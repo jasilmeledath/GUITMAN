@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a, #333);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 600px;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 6rem;
+            margin: 0;
+            color: #ff6f61;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin: 10px 0;
+            color: #ffcc00;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin: 20px 0;
+            color: #ddd;
+        }
+
+        .guitar {
+            font-size: 8rem;
+            margin: 20px 0;
+            animation: strum 2s infinite ease-in-out;
+        }
+
+        @keyframes strum {
+            0%, 100% {
+                transform: rotate(0deg);
+            }
+            25% {
+                transform: rotate(10deg);
+            }
+            75% {
+                transform: rotate(-10deg);
+            }
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 1rem;
+            color: #fff;
+            background-color: #ff6f61;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #ff4a3d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Guitar Icon -->
+        <div class="guitar">🎸</div>
+        <!-- 404 Heading -->
+        <h1>404</h1>
+        <!-- Subheading -->
+        <h2>Oops! You've Hit a Wrong Chord</h2>
+        <!-- Description -->
+        <p>
+            Looks like the page you're looking for has been strummed away. 
+            Don't fret! Let's get you back on track.
+        </p>
+        <!-- Home Button -->
+        <a href="/home" class="btn">Back to Home</a>
+    </div>
+</body>
+</html>

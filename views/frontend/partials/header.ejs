@@ -1,0 +1,187 @@
+<header class="fixed top-0 w-full bg-white/80 backdrop-blur-md py-4 px-6 border-b z-50">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex items-center justify-between">
+            <!-- Logo -->
+            <a href="/" class="flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 4v16M15 4v16M11 4v16M7 4v16M3 8h18M3 16h18" />
+                </svg>
+                <span class="text-2xl font-bold tracking-tight">GUITMAN</span>
+            </a>
+
+            <!-- Desktop Navigation -->
+            <% if (currentRoute !== '/login' && currentRoute !== '/signup') { %>
+            <nav class="hidden lg:flex items-center space-x-1">
+                <div class="relative group">
+                    <button class="flex items-center px-4 py-2 text-gray-700 hover:text-gray-900 rounded-md group">
+                        <span>Shop</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 transition-transform duration-200 group-hover:rotate-180" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <div class="absolute left-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                        <a href="/shop" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Explore All</a>
+                        <a href="/shop?category=acoustic&page=1&search=&sort=createdAt&order=desc&minPrice=0&maxPrice=100000" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Electric Guitars</a>
+                        <a href="/shop?category=semi-acoustic&page=1&search=&sort=createdAt&order=desc&minPrice=0&maxPrice=100000" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Acoustic Guitars</a>
+                        <a href="/shop?category=classical&page=1&search=&sort=createdAt&order=desc&minPrice=0&maxPrice=100000" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Semi-acoustic Guitars</a>
+                        <a href="/shop?category=electrical&page=1&search=&sort=createdAt&order=desc&minPrice=0&maxPrice=100000" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Classical Guitars</a>
+                        <a href="/shop?category=ukulele&page=1&search=&sort=createdAt&order=desc&minPrice=0&maxPrice=100000" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Ukulele</a>
+                        <a href="/shop?category=accessories&page=1&search=&sort=createdAt&order=desc&minPrice=0&maxPrice=100000" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Accessories</a>
+                    </div>
+                </div>
+
+                <a href="/shop" class="px-4 py-2 text-gray-700 hover:text-gray-900 rounded-md relative group">
+                    New Arrivals
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 rounded-full">New</span>
+                </a>
+
+                <!-- <div class="relative group">
+                    <button class="flex items-center px-4 py-2 text-gray-700 hover:text-gray-900 rounded-md group">
+                        <span>Brands</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 transition-transform duration-200 group-hover:rotate-180" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <div class="absolute left-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                        <a href="/brands/fender" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Fender</a>
+                        <a href="/brands/gibson" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Gibson</a>
+                        <a href="/brands/ibanez" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Ibanez</a>
+                        <a href="/brands/martin" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Martin</a>
+                    </div>
+                </div> -->
+
+                <a href="/Tune" class="px-4 py-2 text-gray-700 hover:text-gray-900 rounded-md">Tune</a>
+                <a href="/contact" class="px-4 py-2 text-gray-700 hover:text-gray-900 rounded-md">Contact</a>
+            </nav>
+            <% } %>
+
+            <!-- Right Side Icons -->
+            <div class="flex items-center space-x-4">
+                <% if (currentRoute !== '/login' && currentRoute !== '/signup') { %>
+                    <!-- Search Button -->
+                    <button class="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200" id="searchButton">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </button>
+
+                    <!-- Cart Button -->
+                    <button class="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200 relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
+                    </button>
+                <% } %>
+
+                <!-- User Menu -->
+                <div class="relative group">
+                    <button class="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
+                        <% if (user) { %>
+                            <img src="<%= user.profile_image || '/ui/dprofile.jpg' %>" alt="Profile" class="w-8 h-8 rounded-full object-cover">
+                        <% } else { %>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        <% } %>
+                    </button>
+                    <div class="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                        <% if (user) { %>
+                            <div class="px-4 py-2 text-sm text-gray-900 border-b">
+                                <div class="font-medium"><%= user.name %></div>
+                                <div class="text-gray-500"><%= user.email %></div>
+                            </div>
+                            <a href="/profile/<%=user.id%>" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Your Profile</a>
+                            <a href="/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Your Orders</a>
+                            <a href="/wishlist" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Wishlist</a>
+                            <div class="border-t">
+                                <a href="/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Sign out</a>
+                            </div>
+                        <% } else { %>
+                            <a href="/login" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign in</a>
+                            <a href="/signup" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Create account</a>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button class="lg:hidden p-2 hover:bg-gray-100 rounded-full transition-colors duration-200" id="mobileMenuButton">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div class="lg:hidden hidden" id="mobileMenu">
+            <nav class="mt-4 px-2 pb-3 space-y-1">
+                <a href="/shop" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Shop</a>
+                <a href="/new-arrivals" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">New Arrivals</a>
+                <a href="/brands" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Brands</a>
+                <a href="/deals" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Deals</a>
+                <a href="/contact" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Contact</a>
+            </nav>
+        </div>
+
+        <!-- Search Overlay -->
+        <div class="hidden fixed inset-0 bg-black bg-opacity-50 z-50" id="searchOverlay">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white w-full max-w-2xl rounded-lg shadow-xl">
+                    <div class="p-4">
+                        <div class="flex items-center border-b pb-4">
+                            <input type="text" placeholder="Search products..." class="flex-1 text-xl outline-none">
+                            <button class="ml-4 text-gray-500 hover:text-gray-700" id="closeSearch">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="mt-4">
+                            <h3 class="text-sm font-medium text-gray-500">Popular Searches</h3>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                <button class="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-full">Electric Guitars</button>
+                                <button class="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-full">Acoustic Guitars</button>
+                                <button class="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-full">Guitar Picks</button>
+                                <button class="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-full">Strings</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<script>
+    // Mobile menu toggle
+    const mobileMenuButton = document.getElementById('mobileMenuButton');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    // Search overlay toggle
+    const searchButton = document.getElementById('searchButton');
+    const searchOverlay = document.getElementById('searchOverlay');
+    const closeSearch = document.getElementById('closeSearch');
+
+    searchButton.addEventListener('click', () => {
+        searchOverlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    });
+
+    closeSearch.addEventListener('click', () => {
+        searchOverlay.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    });
+
+    // Close search on overlay click
+    searchOverlay.addEventListener('click', (e) => {
+        if (e.target === searchOverlay) {
+            searchOverlay.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+    });
+</script>

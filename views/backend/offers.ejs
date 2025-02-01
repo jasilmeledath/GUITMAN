@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('./partials/meta') %>
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/backend/imgs/theme/favicon.svg">
+    <!-- Template CSS -->
+    <link href="/backend/css/main.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <div class="screen-overlay"></div>
+    <%- include('./partials/leftNav') %>
+    <main class="main-wrap">
+        <%- include('./partials/header') %>
+        <section class="content-main">
+            <div class="content-header">
+                <div>
+                    <h2 class="content-title card-title">Offers</h2>
+                    <p>Add, edit or delete an offer</p>
+                </div>
+                <div>
+                    <input type="text" placeholder="Search Offers" class="form-control bg-white" />
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <form action="/admin/dashboard/add-offer" method="POST">
+                                <div class="mb-4">
+                                    <label for="offer_type" class="form-label">Offer Type</label>
+                                    <input type="text" name="offer_type" placeholder="Type here" class="form-control" id="offer_type" required />
+                                </div>
+                                <div class="mb-4">
+                                    <label for="offer_percentage" class="form-label">Offer Percentage</label>
+                                    <input type="number" name="offer_percentage" placeholder="Type here" class="form-control" id="offer_percentage" />
+                                </div>
+                                <div class="mb-4">
+                                    <label for="offer_price" class="form-label">Offer Price</label>
+                                    <input type="number" name="offer_price" placeholder="Type here" class="form-control" id="offer_price" />
+                                </div>
+                                <div class="mb-4">
+                                    <label for="expiry_date" class="form-label">Expiry Date</label>
+                                    <input type="date" name="expiry_date" class="form-control" id="expiry_date" required />
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">Create Offer</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" value="" />
+                                                </div>
+                                            </th>
+                                            <th>ID</th>
+                                            <th>Type</th>
+                                            <th>Percentage</th>
+                                            <th>Price</th>
+                                            <th>Expiry Date</th>
+                                            <th class="text-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% offers.forEach((offer, index) => { %>
+                                            <tr>
+                                                <td class="text-center">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" value="" />
+                                                    </div>
+                                                </td>
+                                                <td><%= index + 1 %></td>
+                                                <td><b><%= offer.offer_type %></b></td>
+                                                <td><%= offer.offer_percentage %> %</td>
+                                                <td>$<%= offer.offer_price %></td>
+                                                <td><%= offer.expiry_date.toDateString() %></td>
+                                                <td class="text-end">
+                                                    <div class="dropdown">
+                                                        <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
+                                                            <i class="material-icons md-more_horiz"></i>
+                                                        </a>
+                                                        <div class="dropdown-menu">
+                                                            <a class="dropdown-item" href="#">View detail</a>
+                                                            <a class="dropdown-item" href="#">Edit info</a>
+                                                            <a class="dropdown-item text-danger" href="#">Delete</a>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- .col// -->
+                    </div>
+                    <!-- .row // -->
+                </div>
+                <!-- card body .// -->
+            </div>
+            <!-- card .// -->
+        </section>
+        <!-- content-main end// -->
+        <%- include('./partials/footer') %>
+    </main>
+    <script src="/backend/js/vendors/jquery-3.6.0.min.js"></script>
+    <script src="/backend/js/vendors/bootstrap.bundle.min.js"></script>
+    <script src="/backend/js/vendors/select2.min.js"></script>
+    <script src="/backend/js/vendors/perfect-scrollbar.js"></script>
+    <script src="/backend/js/vendors/jquery.fullscreen.min.js"></script>
+    <!-- Main Script -->
+    <script src="/backend/js/main.js" type="text/javascript"></script>
+</body>
+</html>

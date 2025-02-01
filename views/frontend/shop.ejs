@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GUITMAN - Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.5.0/nouislider.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .nouislider-connect {
+            background-color: #4F46E5;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <%- include('./partials/loading') %>
+    <%- include('./partials/header', {currentRoute: '/shop'}, {user: user}) %>
+    
+    <!-- Products Section -->
+    <section class="py-16 px-6 mt-3">
+        <%- include('./partials/breadcrumbs', { breadcrumbs }) %>
+        <div class="container mx-auto">
+            <h1 class="text-4xl font-bold mb-8 text-center text-gray-800">Our Collection</h1>
+            
+            <!-- Controls Section -->
+            <div class="mb-12 space-y-6">
+                <!-- Search and Sort Row -->
+                <form id="filterForm" action="/shop" method="GET" class="flex flex-col md:flex-row justify-between items-start gap-4">
+                    <!-- Search Input -->
+                    <div class="relative w-full md:w-96">
+                        <input type="text" 
+                               name="search"
+                               value="<%= search %>"
+                               placeholder="Search products..."
+                               class="w-full px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" 
+                             class="h-5 w-5 absolute right-3 top-3 text-gray-400" 
+                             fill="none" 
+                             viewBox="0 0 24 24" 
+                             stroke="currentColor">
+                            <path stroke-linecap="round" 
+                                  stroke-linejoin="round" 
+                                  stroke-width="2" 
+                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+
+                    <!-- Sort Dropdown -->
+                    <select id="sortSelect" 
+                            name="sort"
+                            class="w-full md:w-48 px-4 py-2 rounded-full border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="createdAt_desc" <%= sort === 'createdAt' && order === 'desc' ? 'selected' : '' %>>Newest First</option>
+                        <option value="price_asc" <%= sort === 'price' && order === 'asc' ? 'selected' : '' %>>Price: Low to High</option>
+                        <option value="price_desc" <%= sort === 'price' && order === 'desc' ? 'selected' : '' %>>Price: High to Low</option>
+                        <option value="product_name_asc" <%= sort === 'product_name' && order === 'asc' ? 'selected' : '' %>>Name: A-Z</option>
+                        <option value="product_name_desc" <%= sort === 'product_name' && order === 'desc' ? 'selected' : '' %>>Name: Z-A</option>
+                    </select>
+
+                    <!-- Hidden Fields for State Preservation -->
+                    <input type="hidden" name="category" value="<%= category %>">
+                    <input type="hidden" name="minPrice" value="<%= minPrice %>">
+                    <input type="hidden" name="maxPrice" value="<%= maxPrice %>">
+                    <input type="hidden" name="page" value="1">
+                    <input type="hidden" name="order" value="<%= order %>">
+                </form>
+
+                <!-- Filters Row -->
+                <div class="flex flex-col md:flex-row gap-6">
+                    <!-- Category Filters -->
+                    <div class="flex flex-wrap gap-3 flex-1 category-filters">
+                        <a href="?category=all&page=1&search=<%= search %>&sort=<%= sort %>&order=<%= order %>&minPrice=<%= minPrice %>&maxPrice=<%= maxPrice %>" 
+                           class="px-4 py-2 rounded-full <%= category === 'all' ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-300 hover:bg-gray-100' %> transition-colors duration-200">
+                            All
+                        </a>
+                        <% categories.forEach(cat => { %>
+                            <a href="?category=<%= cat.name.toLowerCase() %>&page=1&search=<%= search %>&sort=<%= sort %>&order=<%= order %>&minPrice=<%= minPrice %>&maxPrice=<%= maxPrice %>" 
+                               class="px-4 py-2 rounded-full <%= category === cat.name.toLowerCase() ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-300 hover:bg-gray-100' %> transition-colors duration-200">
+                                <%= cat.name %>
+                            </a>
+                        <% }); %>
+                    </div>
+
+                    <!-- Price Range Filter -->
+                    <form id="priceForm" action="/shop" method="GET" class="w-full md:w-64">
+                        <div class="mb-2 flex justify-between text-sm font-medium text-gray-700">
+                            <span>₹<span id="priceMinValue"><%= minPrice %></span></span>
+                            <span>₹<span id="priceMaxValue"><%= maxPrice %></span></span>
+                        </div>
+                        <input type="hidden" name="minPrice" id="formMinPrice">
+                        <input type="hidden" name="maxPrice" id="formMaxPrice">
+                        <% ['category', 'search', 'sort', 'order'].forEach(param => { %>
+                            <input type="hidden" name="<%= param %>" value="<%= locals[param] %>">
+                        <% }) %>
+                        <div id="priceRange" class="range-slider"></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <% if (products.length === 0) { %>
+                <div class="text-center py-12">
+                    <h3 class="text-2xl font-bold mb-4 text-gray-800">No products found</h3>
+                    <p class="text-gray-600 mb-6">Try adjusting your filters or search terms</p>
+                    <a href="/shop" class="px-6 py-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors duration-200">
+                        Clear Filters
+                    </a>
+                </div>
+            <% } else { %>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8" id="productsContainer">
+                    <% products.forEach(product => { %>
+                        <a href="/product-details/<%=product._id%>" class="group">
+                            <div class="product-card bg-white p-6 rounded-xl shadow-sm group-hover:shadow-lg transition-shadow duration-300 flex flex-col h-[27rem]">
+                                <div class="relative flex-1 overflow-hidden">
+                                    <img src="/<%= product.images[0] %>" 
+                                         alt="<%= product.product_name %>" 
+                                         class="w-full h-64 object-contain mb-4 rounded-lg transition-transform duration-300 group-hover:scale-105">
+                                    <button class="absolute top-3 right-3 bg-white p-2 rounded-full shadow-sm hover:bg-gray-100 transition-colors duration-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600 hover:text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="mt-4">
+                                    <h3 class="font-semibold text-lg mb-2 text-gray-800 truncate"><%= product.product_name %></h3>
+                                    <div class="flex items-center justify-between mb-3">
+                                        <span class="text-2xl font-bold text-indigo-600">₹<%= product.price.toLocaleString('en-IN') %></span>
+                                        <button class="p-2 bg-indigo-100 rounded-full hover:bg-indigo-200 transition-colors duration-200">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    <% }); %>
+                </div>                
+            <% } %>
+
+            <!-- Pagination -->
+            <% if (totalPages > 1) { %>
+            <div class="mt-12 flex justify-center gap-2">
+                <% for(let i = 1; i <= totalPages; i++) { %>
+                    <a href="?page=<%= i %>&category=<%= category %>&search=<%= search %>&sort=<%= sort %>&order=<%= order %>&minPrice=<%= minPrice %>&maxPrice=<%= maxPrice %>"
+                       class="px-4 py-2 rounded-full <%= i === currentPage ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-300 hover:bg-gray-100' %> transition-colors duration-200">
+                        <%= i %>
+                    </a>
+                <% } %>
+            </div>
+            <% } %>
+        </div>
+    </section>
+
+    <%- include('./partials/footer') %>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.5.0/nouislider.min.js"></script>
+    <script>
+        // Price Range Slider Initialization
+        const priceSlider = document.getElementById('priceRange');
+        noUiSlider.create(priceSlider, {
+            start: ['<%= minPrice %>', '<%= maxPrice %>'],
+            connect: true,
+            range: {
+                'min': 0,
+                'max': 100000
+            },
+            step: 100,
+            format: {
+                to: value => Math.round(value),
+                from: value => value
+            }
+        });
+
+        // Price Range Update Handler
+        priceSlider.noUiSlider.on('update', (values, handle) => {
+            const [min, max] = values.map(Number);
+            document.getElementById('priceMinValue').textContent = min;
+            document.getElementById('priceMaxValue').textContent = max;
+            document.getElementById('formMinPrice').value = min;
+            document.getElementById('formMaxPrice').value = max;
+        });
+
+        // Debounced Form Submission for Price Range
+        let priceTimeout;
+        priceSlider.noUiSlider.on('change', () => {
+            clearTimeout(priceTimeout);
+            priceTimeout = setTimeout(() => {
+                document.getElementById('priceForm').submit();
+            }, 500);
+        });
+
+        // Sort Dropdown Handler
+        document.getElementById('sortSelect').addEventListener('change', function() {
+            const [sortField, order] = this.value.split('_');
+            const form = document.getElementById('filterForm');
+            
+            // Update hidden order input
+            const orderInput = form.querySelector('input[name="order"]');
+            orderInput.value = order;
+            
+            // Update hidden sort input
+            const sortInput = form.querySelector('input[name="sort"]');
+            sortInput.value = sortField;
+            
+            form.submit();
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+          const links = document.querySelectorAll("a");
+          links.forEach(link => {
+            link.addEventListener("click", function() {
+              showLoader();
+            });
+          });
+        });
+      </script>
+</body>
+</html>

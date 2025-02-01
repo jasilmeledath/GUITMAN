@@ -1,0 +1,23 @@
+<section class="py-16 px-6 bg-gray-50">
+    <div class="container mx-auto">
+        <h2 class="text-3xl font-bold mb-12 text-center text-gray-800">Explore Categories</h2>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+            <% categories.forEach(category => { %>
+                <a href="/shop?category=<%= category ? encodeURIComponent(category.name) : '' %>&page=1&search=&sort=createdAt&order=desc&minPrice=0&maxPrice=100000">
+                <div class="text-center group">
+                    <div class="w-36 h-36 mx-auto mb-4 rounded-full bg-white shadow-lg relative overflow-hidden group-hover:shadow-xl transition-shadow duration-300">
+                        <div class="absolute inset-0 flex items-center justify-center p-5">
+                            <img src="/<%= category.image.replace('public/', '') %>" 
+                                 alt="<%= category.name %>" 
+                                 class="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-300">
+                        </div>
+                    </div>
+                    <span class="text-base font-medium text-gray-700 group-hover:text-indigo-600 transition-colors">
+                        <%= category.name %>
+                    </span>
+                </div>
+            </a>
+            <% }); %>
+        </div>
+    </div>
+</section>
