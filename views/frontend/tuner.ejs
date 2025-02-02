@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guitar Tuner - GuitMan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .tuner-container {
+            background: linear-gradient(145deg, #e6e6e6, #ffffff);
+            box-shadow: 20px 20px 60px #d9d9d9, -20px -20px 60px #ffffff;
+        }
+        .tuning-peg {
+            transition: transform 0.3s ease;
+        }
+        .tuning-peg:hover {
+            transform: scale(1.1);
+        }
+        .string {
+            stroke-dasharray: 5, 5;
+            animation: vibrate 0.5s ease-in-out infinite;
+        }
+        @keyframes vibrate {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(1px); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 ">
+    <%- include('./partials/header') %>
+
+    <main class="container mx-auto px-4 py-12 ">
+        <h1 class="text-4xl font-bold text-center mb-8 text-gray-800">Guitar Tuner</h1>
+
+        <div class="tuner-container max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
+            <div class="relative mb-12">
+                <!-- Guitar Head SVG -->
+                <svg viewBox="0 0 400 200" class="w-full h-auto">
+                    <defs>
+                        <linearGradient id="headGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#8B4513;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#D2691E;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M20,20 L380,20 C390,20 395,25 395,35 L395,165 C395,175 390,180 380,180 L20,180 C10,180 5,175 5,165 L5,35 C5,25 10,20 20,20 Z" fill="url(#headGradient)" stroke="#000" stroke-width="2"/>
+                    <rect x="10" y="170" width="380" height="10" fill="#D2691E" stroke="#000" stroke-width="1"/>
+                    
+                    <!-- Strings -->
+                    <line x1="20" y1="40" x2="380" y2="40" class="string" stroke="#silver" stroke-width="1"/>
+                    <line x1="20" y1="65" x2="380" y2="65" class="string" stroke="#silver" stroke-width="1"/>
+                    <line x1="20" y1="90" x2="380" y2="90" class="string" stroke="#silver" stroke-width="1"/>
+                    <line x1="20" y1="115" x2="380" y2="115" class="string" stroke="#silver" stroke-width="1"/>
+                    <line x1="20" y1="140" x2="380" y2="140" class="string" stroke="#silver" stroke-width="1"/>
+                    <line x1="20" y1="165" x2="380" y2="165" class="string" stroke="#silver" stroke-width="1"/>
+                    
+                    <!-- Tuning Pegs -->
+                    <g class="tuning-peg" data-note="E">
+                        <circle cx="50" cy="30" r="15" fill="#FFD700" stroke="#000" stroke-width="2"/>
+                        <text x="50" y="35" text-anchor="middle" font-size="14" fill="#000">E</text>
+                    </g>
+                    <g class="tuning-peg" data-note="A">
+                        <circle cx="50" cy="80" r="15" fill="#FFD700" stroke="#000" stroke-width="2"/>
+                        <text x="50" y="85" text-anchor="middle" font-size="14" fill="#000">A</text>
+                    </g>
+                    <g class="tuning-peg" data-note="D">
+                        <circle cx="50" cy="130" r="15" fill="#FFD700" stroke="#000" stroke-width="2"/>
+                        <text x="50" y="135" text-anchor="middle" font-size="14" fill="#000">D</text>
+                    </g>
+                    <g class="tuning-peg" data-note="G">
+                        <circle cx="350" cy="30" r="15" fill="#FFD700" stroke="#000" stroke-width="2"/>
+                        <text x="350" y="35" text-anchor="middle" font-size="14" fill="#000">G</text>
+                    </g>
+                    <g class="tuning-peg" data-note="B">
+                        <circle cx="350" cy="80" r="15" fill="#FFD700" stroke="#000" stroke-width="2"/>
+                        <text x="350" y="85" text-anchor="middle" font-size="14" fill="#000">B</text>
+                    </g>
+                    <g class="tuning-peg" data-note="e">
+                        <circle cx="350" cy="130" r="15" fill="#FFD700" stroke="#000" stroke-width="2"/>
+                        <text x="350" y="135" text-anchor="middle" font-size="14" fill="#000">e</text>
+                    </g>
+                </svg>
+            </div>
+
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-semibold mb-4">Current String: <span id="currentNote" class="text-indigo-600">-</span></h2>
+                <p class="text-lg text-gray-600">Click on a tuning peg to select a string, then play the string and adjust until it's in tune.</p>
+            </div>
+            
+            <!-- Tuning Meter -->
+            <div class="relative w-full h-24 bg-gray-200 rounded-full overflow-hidden mb-8">
+                <div class="absolute top-0 left-0 w-full h-full flex items-center justify-between px-8 text-sm font-medium">
+                    <span class="text-red-500">♭ Flat</span>
+                    <span class="text-green-500">In Tune</span>
+                    <span class="text-red-500">Sharp ♯</span>
+                </div>
+                <div id="tuningMeter" class="absolute top-1/2 left-1/2 w-4 h-20 bg-indigo-600 rounded-full transition-all duration-300 ease-out transform -translate-x-1/2 -translate-y-1/2"></div>
+            </div>
+
+            <div class="text-center">
+                <button id="startTuning" class="bg-indigo-600 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    Start Tuning
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <%- include('./partials/footer') %>
+
+    <script>
+        const tuningPegs = document.querySelectorAll('.tuning-peg');
+        const currentNoteDisplay = document.getElementById('currentNote');
+        const tuningMeter = document.getElementById('tuningMeter');
+        const startTuningButton = document.getElementById('startTuning');
+
+        let selectedNote = null;
+        let tuningInterval = null;
+
+        tuningPegs.forEach(peg => {
+            peg.addEventListener('click', () => {
+                const note = peg.getAttribute('data-note');
+                selectNote(note);
+            });
+        });
+
+        function selectNote(note) {
+            selectedNote = note;
+            currentNoteDisplay.textContent = note;
+            
+            // Reset all pegs
+            tuningPegs.forEach(peg => peg.querySelector('circle').setAttribute('fill', '#FFD700'));
+            
+            // Highlight selected peg
+            const selectedPeg = document.querySelector(`.tuning-peg[data-note="${note}"]`);
+            selectedPeg.querySelector('circle').setAttribute('fill', '#4CAF50');
+        }
+
+        startTuningButton.addEventListener('click', () => {
+            if (selectedNote) {
+                if (tuningInterval) {
+                    clearInterval(tuningInterval);
+                }
+                simulateTuning();
+            } else {
+                alert('Please select a string to tune first.');
+            }
+        });
+
+        function simulateTuning() {
+            let progress = 0;
+            tuningInterval = setInterval(() => {
+                progress += Math.random() * 10 - 5; // Random movement
+                progress = Math.max(-50, Math.min(50, progress)); // Clamp between -50 and 50
+                updateMeter(progress);
+                
+                if (Math.abs(progress) < 2) { // Consider "in tune" if within ±2
+                    clearInterval(tuningInterval);
+                }
+            }, 100);
+        }
+
+        function updateMeter(value) {
+            const position = 50 + value; // Convert -50..50 to 0..100
+            tuningMeter.style.left = `${position}%`;
+            
+            // Update color based on how close to being in tune
+            if (Math.abs(value) < 5) {
+                tuningMeter.style.backgroundColor = '#4CAF50'; // Green
+            } else if (Math.abs(value) < 20) {
+                tuningMeter.style.backgroundColor = '#FFC107'; // Yellow
+            } else {
+                tuningMeter.style.backgroundColor = '#F44336'; // Red
+            }
+        }
+    </script>
+</body>
+</html>

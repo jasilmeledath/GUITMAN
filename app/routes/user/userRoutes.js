@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const userControls = require("../../controllers/user/userAuth");
+const userAuth = require("../../controllers/user/userAuth");
 const { validateLoginForm } = require('../../validators/validateLoginForm');
 const verifyUser = require("../../middlewares/verifyUser");
 const loadPages = require('../../controllers/user/loadPages');
@@ -18,29 +18,29 @@ router.get('/auth/google/callback', passport.authenticate('google', {
     res.redirect('/home');
 });
 
-// Logout route
-router.get('/logout', (req, res) => {
-    res.clearCookie('authToken');
-    res.redirect('/');
-});
+
 
 // Public routes (no authentication required)
 router.get('/login', loadPages.login);
 router.get('/signup', loadPages.signup);
 
 // Authentication routes
-router.post('/signup', userControls.signup);
-router.post('/verify-otp', userControls.verifyOtp);
-router.post('/resend-otp', userControls.resendOtp);
-router.post('/login', validateLoginForm, userControls.login);
+router.post('/signup', userAuth.signup);
+router.post('/verify-otp', userAuth.verifyOtp);
+router.post('/resend-otp', userAuth.resendOtp);
+router.post('/login', validateLoginForm, userAuth.login);
 
 // Routes that require user information but not strict authentication
+// router.get('/tune', loadPages.tuner);
 router.get('/shop', verifyUser, loadPages.loadShop);
 router.get('/product-details/:id', verifyUser, loadPages.loadProductDetails);
 
 // Protected routes (require authentication)
 router.get('/home', verifyUser, loadPages.home);
 router.get('/profile/:id', verifyUser, loadPages.userProfile);
-router.post('/submit-review/:id', verifyUser, userControls.submitReview);
+router.post('/submit-review/:id', verifyUser, userAuth.submitReview);
+
+// Logout route
+router.get('/logout', userAuth.logout);
 
 module.exports = router;

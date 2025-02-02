@@ -33,7 +33,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// app.use(redirectIfLoggedIn);
+app.use(redirectIfLoggedIn);
 
 // Routes
 app.get('/', async (req, res) => {

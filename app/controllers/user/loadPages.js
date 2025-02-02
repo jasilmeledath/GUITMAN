@@ -3,7 +3,6 @@ const Category = require("../../models/categoryModel");
 const Review = require("../../models/reviewModel");
 const Coupon = require("../../models/couponModel");
 const User = require("../../models/userModel");
-const { log } = require("console");
 const loadPages = {
   login: (req, res) => {
     res.render("frontend/login", {
@@ -214,5 +213,9 @@ const loadPages = {
       res.status(500).json({ message: "Internal server error" });
     }
   },
+  
+  tuner : async (req, res) => {
+    res.render("frontend/tuner",{currentRoute: req.path, user: req.user || null,})
+  }
 };
 module.exports = loadPages;

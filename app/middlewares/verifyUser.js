@@ -5,9 +5,10 @@ const unless = require('express-unless');
 
 const verifyUser = async (req, res, next) => {
   const token = req.cookies.authToken;
+  
 
   if (!token) {
-    return next(); // No token, proceed without authentication
+    return res.status(401).redirect('/'); 
   }
 
   try {

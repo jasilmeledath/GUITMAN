@@ -1,29 +1,38 @@
 const validateLoginForm = (req, res, next) => {
     const errors = {};
+    let { email, password } = req.body;
 
-    const { email, password } = req.body;
+    // Trim input to avoid spaces being counted
+    email = email?.trim();
+    password = password?.trim();
 
     // Validate email
-    if (!email || email.trim() === "") {
+    if (!email) {
         errors.email = "Email is required.";
-    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         errors.email = "Please enter a valid email address.";
     }
 
     // Validate password
-    if (!password || password.trim() === "") {
+    if (!password) {
         errors.password = "Password is required.";
-    } else if (password.length < 6) {
-        errors.password = "Password must be at least 6 characters long.";
-    } else if (!/[A-Z]/.test(password)) {
-        errors.password = "Password must contain at least one uppercase letter.";
-    } else if (!/[0-9]/.test(password)) {
-        errors.password = "Password must contain at least one number.";
+    } else {
+        const passwordErrors = [];
+        if (password.length < 6) passwordErrors.push("at least 6 characters long");
+        if (!/[A-Z]/.test(password)) passwordErrors.push("one uppercase letter");
+        if (!/[0-9]/.test(password)) passwordErrors.push("one number");
+
+        if (passwordErrors.length > 0) {
+            errors.password = `Password must contain ${passwordErrors.join(", ")}.`;
+        }
     }
 
-    // If there are errors, return them
+    // If there are validation errors, return them
     if (Object.keys(errors).length > 0) {
-        return res.status(400).json({ errors });
+        return res.status(400).json({
+            success: false,
+            errors,
+        });
     }
 
     next(); // Proceed to the next middleware or controller

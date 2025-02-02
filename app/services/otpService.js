@@ -1,10 +1,12 @@
-const generateOTP = require("../utils/generateOtp");
+function generateOTP() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
 const createOtp = () => {
-  return {
-    otp: generateOTP(),
-    otpExpires: new Date(Date.now() + 10 * 60 * 1000), // OTP valid for 10 mins
-  };
+    return {
+        otp: generateOTP(),
+        otpExpires: new Date(Date.now() + 2 * 60 * 1000), // OTP valid for 2 mins
+    };
 };
 
-module.exports = { createOtp };
+module.exports = { generateOTP, createOtp };

@@ -1,50 +1,64 @@
 const jwt = require("jsonwebtoken");
 const Admin = require("../../models/adminModel");
 const bcrypt = require("bcrypt");
-const tokenBlacklist = require('../../utils/tokenBlacklist');
-const Category = require('../../models/categoryModel');
+const tokenBlacklist = require("../../utils/tokenBlacklist");
+const Category = require("../../models/categoryModel");
+const { adminErrors } = require("../../utils/errorMessages");
+const HttpStatus = require("../../utils/httpStatus");
 
 const adminAuth = {
-  loadLogin: (req,res)=>{
-    res.render('backend/adminLogin')
-},
+  loadLogin: (req, res) => {
+    res.render("backend/adminLogin");
+  },
   login: async (req, res) => {
     try {
       const { email, password } = req.body;
-      
+
       const admin = await Admin.findOne({ email });
       if (!admin) {
-        return res.status(404).json({ message: 'Admin not found.' });
+        return res
+          .status(HttpStatus.NOT_FOUND)
+          .render("backend/adminLogin", {
+            error: adminErrors.login.adminNotFound,
+          });
       }
-  
+
       const isMatch = await bcrypt.compare(password, admin.password);
       if (!isMatch) {
-        return res.status(400).json({ message: 'Invalid credentials.' });
+        return res
+          .status(HttpStatus.BAD_REQUEST)
+          .render("backend/adminLogin", {
+            error: adminErrors.login.invalidCredentials,
+          });
       }
       // Generate JWT token
       const token = jwt.sign(
-        { id: admin._id, email: admin.email }, 
-        process.env.JWT_SECRET, 
-        { expiresIn: '1h' } 
+        { id: admin._id, email: admin.email },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
       );
-      res.cookie('authToken', token, {
-        httpOnly: true, 
-        secure: process.env.NODE_ENV === 'production', 
-        maxAge: 3600000 // 1 hour
+      res.cookie("authToken", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 3600000, // 1 hour
       });
       res.redirect(`/admin/dashboard`);
     } catch (err) {
       console.error(err);
-      res.status(500).json({ message: 'Server error.' });
+      res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .render("backend/adminLogin", {
+          error: adminErrors.general.serverError,
+        });
     }
   },
   loadDashboard: async (req, res) => {
     try {
       const categories = await Category.find({});
-      res.render('backend/dashboard', { categories });
+      res.render("backend/dashboard");
     } catch (error) {
-      console.error('Error loading dashboard:', error);
-      res.status(500).send('Unable to load dashboard.');
+      console.error("Error loading dashboard:", error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).send("Unable to load dashboard.");
     }
   },
   addAdmin: async (req, res) => {
@@ -76,13 +90,13 @@ const adminAuth = {
       res.status(500).send("Server error.");
     }
   },
-  logout : (req, res) => {
+  logout: (req, res) => {
     const token = req.cookies.authToken;
     if (token) {
       tokenBlacklist.add(token); // Add token to the blacklist
     }
-    res.clearCookie('authToken'); // Clear the authToken cookie
-    return res.status(200).redirect('/admin/login');
+    res.clearCookie("authToken"); // Clear the authToken cookie
+    return res.status(200).redirect("/admin/login");
   },
 };
 module.exports = adminAuth;
