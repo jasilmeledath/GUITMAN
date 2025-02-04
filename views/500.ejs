@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 Internal Server Error - GuitMan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        @keyframes strum {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-5deg); }
+        }
+        .guitar-strum {
+            animation: strum 2s ease-in-out infinite;
+            transform-origin: bottom center;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        .music-staff {
+            background-image: repeating-linear-gradient(to bottom, #e5e7eb 0px, #e5e7eb 1px, transparent 1px, transparent 20px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <div class="flex-grow flex items-center justify-center px-4 py-12">
+        <div class="max-w-4xl w-full bg-white shadow-2xl rounded-lg overflow-hidden">
+            <div class="music-staff h-48 bg-indigo-50 relative">
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="guitar-strum">
+                        <i data-lucide="guitar" class="w-32 h-32 text-indigo-600"></i>
+                    </div>
+                </div>
+                <div class="absolute top-4 left-4 floating">
+                    <i data-lucide="music" class="w-8 h-8 text-indigo-400"></i>
+                </div>
+                <div class="absolute bottom-4 right-4 floating" style="animation-delay: -1.5s;">
+                    <i data-lucide="music-4" class="w-8 h-8 text-indigo-400"></i>
+                </div>
+            </div>
+            <div class="p-8 text-center">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">500 - Internal Server Error</h1>
+                <p class="text-xl text-gray-600 mb-8">Oops! Our strings got a bit tangled.</p>
+                <p class="text-gray-600 mb-8">
+                    Don't worry, our tech rockstars are working on a epic solo to fix this. 
+                    In the meantime, why not explore some of our greatest hits?
+                </p>
+                <div class="flex flex-wrap justify-center gap-4 mb-8">
+                    <a href="/" class="bg-indigo-600 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        Return to Homepage
+                    </a>
+                    <a href="/contact" class="bg-gray-200 text-gray-800 px-6 py-3 rounded-full text-lg font-semibold hover:bg-gray-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+                        Contact Support
+                    </a>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">While you wait, why not...</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+                            <i data-lucide="headphones" class="w-8 h-8 text-indigo-600 mx-auto mb-2"></i>
+                            <h3 class="font-semibold text-gray-800 mb-2">Listen to Our Playlist</h3>
+                            <p class="text-gray-600">Enjoy our curated collection of tunes while you wait.</p>
+                            <a href="#" class="text-indigo-600 hover:underline mt-2 inline-block">Listen Now</a>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+                            <i data-lucide="book-open" class="w-8 h-8 text-indigo-600 mx-auto mb-2"></i>
+                            <h3 class="font-semibold text-gray-800 mb-2">Read Our Latest Blog</h3>
+                            <p class="text-gray-600">Discover tips, tricks, and insights about guitars and music.</p>
+                            <a href="#" class="text-indigo-600 hover:underline mt-2 inline-block">Read Blog</a>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+                            <i data-lucide="shopping-bag" class="w-8 h-8 text-indigo-600 mx-auto mb-2"></i>
+                            <h3 class="font-semibold text-gray-800 mb-2">Check Out New Arrivals</h3>
+                            <p class="text-gray-600">See our latest guitar models and accessories.</p>
+                            <a href="#" class="text-indigo-600 hover:underline mt-2 inline-block">View Products</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="bg-gray-800 text-white py-4">
+        <div class="container mx-auto text-center">
+            <p>&copy; 2025 GuitMan. All rights reserved.</p>
+        </div>
+    </footer>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

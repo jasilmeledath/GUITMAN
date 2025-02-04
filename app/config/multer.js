@@ -45,30 +45,30 @@ const upload = multer({
 
 // Middleware for image resizing
 const resizeImages = async (req, res, next) => {
-  if (!req.files) return next();
+  if (!req.files || req.files.length === 0) return next();
 
   try {
-    const imagePromises = req.files.map(async (file, index) => {
-      const timestamp = Date.now();
-      const outputPath = `uploads/${req.baseUrl.includes('category') ? 'category-images' : 'product-images'}/resized-${timestamp}-${index}.jpeg`; // Path starts at 'uploads' (no 'public')
-      const fullOutputPath = `public/${outputPath}`; // Full path with 'public'
+      const imagePromises = req.files.map(async (file, index) => {
+          const timestamp = Date.now();
+          const outputPath = `uploads/${req.baseUrl.includes('category') ? 'category-images' : 'product-images'}/resized-${timestamp}-${index}.jpeg`;
+          const fullOutputPath = `public/${outputPath}`;
 
-      await sharp(file.path)
-        .resize(800, 800, { fit: 'cover' }) // Resize to 800x800 with cropping
-        .jpeg({ quality: 90 })
-        .toFile(fullOutputPath);
+          await sharp(file.path)
+              .resize(800, 800, { fit: 'cover' }) // Resize to 800x800 with cropping
+              .jpeg({ quality: 90 })
+              .toFile(fullOutputPath);
 
-      // Delete the original file
-      fs.unlinkSync(file.path);
-      return outputPath; // Return path without 'public'
-    });
+          // Delete the original file
+          fs.unlinkSync(file.path);
 
-    // Store resized image paths in `req.body.images`
-    req.body.images = await Promise.all(imagePromises);
-    next();
+          return { ...file, path: outputPath }; // Update file path
+      });
+
+      req.files = await Promise.all(imagePromises); // Ensure req.files is correctly populated
+      next();
   } catch (error) {
-    console.error('Error processing images:', error);
-    return res.status(500).json({ message: 'Error processing images.' });
+      console.error('Error processing images:', error);
+      return res.status(500).json({ message: 'Error processing images.' });
   }
 };
 

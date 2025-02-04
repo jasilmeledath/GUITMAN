@@ -4,6 +4,18 @@ const Review = require("../../models/reviewModel");
 const Coupon = require("../../models/couponModel");
 const User = require("../../models/userModel");
 const loadPages = {
+  landing:async (req, res) => {
+    try {
+        const categories = await Category.find({isBlocked:false});
+        
+        const products = await Product.find({ isTopModel: true });
+        res.render('frontend/landing', { products, categories, currentRoute: req.path, user: req.user || null });
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        res.status(500).send("Internal Server Error");
+    }
+},
+
   login: (req, res) => {
     res.render("frontend/login", {
       email: "",

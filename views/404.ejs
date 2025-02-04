@@ -3,95 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 - Page Not Found</title>
+    <title>404 Page Not Found - GuitMan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #1a1a1a, #333);
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            text-align: center;
+            font-family: 'Inter', sans-serif;
         }
-
-        .container {
-            max-width: 600px;
-            padding: 20px;
+        .desert-bg {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23d97706' fill-opacity='0.1'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
-
-        h1 {
-            font-size: 6rem;
-            margin: 0;
-            color: #ff6f61;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
-
-        h2 {
-            font-size: 2rem;
-            margin: 10px 0;
-            color: #ffcc00;
-        }
-
-        p {
-            font-size: 1.2rem;
-            margin: 20px 0;
-            color: #ddd;
-        }
-
-        .guitar {
-            font-size: 8rem;
-            margin: 20px 0;
-            animation: strum 2s infinite ease-in-out;
-        }
-
-        @keyframes strum {
-            0%, 100% {
-                transform: rotate(0deg);
-            }
-            25% {
-                transform: rotate(10deg);
-            }
-            75% {
-                transform: rotate(-10deg);
-            }
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            font-size: 1rem;
-            color: #fff;
-            background-color: #ff6f61;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-            transition: background-color 0.3s ease;
-        }
-
-        .btn:hover {
-            background-color: #ff4a3d;
+        .floating {
+            animation: float 3s ease-in-out infinite;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <!-- Guitar Icon -->
-        <div class="guitar">🎸</div>
-        <!-- 404 Heading -->
-        <h1>404</h1>
-        <!-- Subheading -->
-        <h2>Oops! You've Hit a Wrong Chord</h2>
-        <!-- Description -->
-        <p>
-            Looks like the page you're looking for has been strummed away. 
-            Don't fret! Let's get you back on track.
-        </p>
-        <!-- Home Button -->
-        <a href="/home" class="btn">Back to Home</a>
+<body class="bg-amber-50 min-h-screen flex flex-col">
+    <div class="flex-grow flex items-center justify-center px-4 py-12">
+        <div class="max-w-2xl w-full bg-white shadow-2xl rounded-lg overflow-hidden">
+            <div class="desert-bg h-48 relative">
+                <div class="absolute inset-0 bg-gradient-to-b from-amber-500/50 to-amber-600/50"></div>
+                <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
+                    <div class="w-24 h-24 bg-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                        <i data-lucide="music" class="w-12 h-12 text-white"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-16 p-8 text-center">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">404 - Page Not Found</h1>
+                <p class="text-xl text-gray-600 mb-8">
+                    <%= typeof message !== "undefined" ? message : "Oops! This melody doesn't exist." %>
+                </p>
+                <p class="text-gray-600 mb-8">
+                    Looks like you've wandered into the desert of lost tunes. 
+                    Don't worry, we'll help you find your way back to the music!
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                    <a href="/" class="bg-indigo-600 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        Return to Homepage
+                    </a>
+                    <a href="/shop" class="bg-amber-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-amber-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
+                        Browse Our Instruments
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
+    <div class="bg-amber-100 py-12 px-4">
+        <div class="max-w-3xl mx-auto text-center">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Lost in the Desert of 404?</h2>
+            <p class="text-gray-600 mb-6">Here are some popular pages that might help you find your rhythm:</p>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <a href="/guitars" class="flex flex-col items-center p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+                    <i data-lucide="guitar" class="w-8 h-8 text-indigo-600 mb-2"></i>
+                    <span class="text-gray-800">Guitars</span>
+                </a>
+                <a href="/accessories" class="flex flex-col items-center p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+                    <i data-lucide="headphones" class="w-8 h-8 text-indigo-600 mb-2"></i>
+                    <span class="text-gray-800">Accessories</span>
+                </a>
+                <a href="/lessons" class="flex flex-col items-center p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+                    <i data-lucide="book-open" class="w-8 h-8 text-indigo-600 mb-2"></i>
+                    <span class="text-gray-800">Lessons</span>
+                </a>
+                <a href="/contact" class="flex flex-col items-center p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+                    <i data-lucide="message-circle" class="w-8 h-8 text-indigo-600 mb-2"></i>
+                    <span class="text-gray-800">Contact Us</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    <footer class="bg-gray-800 text-white py-4">
+        <div class="container mx-auto text-center">
+            <p>&copy; 2025 GuitMan. All rights reserved.</p>
+        </div>
+    </footer>
+    <script>
+        lucide.createIcons();
+    </script>
 </body>
 </html>

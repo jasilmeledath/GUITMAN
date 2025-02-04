@@ -1,19 +1,18 @@
 const express = require("express");
 const router = express.Router();
 const adminControls = require("../../controllers/admin/adminControls");
-const adminDash = require("../../controllers/admin/adminDash")
 const productRoutes  = require("../admin/productRoutes");
+const loadAdminPage  =require("../../controllers/admin/loadAdminpage");
 
 // function test(){
 //     console.log("invoked");
 // }
 // test()
 
-router.get('/user-list', adminDash.loadUserList);
-router.get('/user-cards', adminDash.loadUserCards);
-router.get('/user-details/:id', adminDash.loadUserDetails);
-router.post('/block-user/:id', adminControls.blockUser);
-router.post('/unblock-user/:id', adminControls.unblockUser);
+router.get('/user-list', loadAdminPage.userList);
+router.get('/user-cards', loadAdminPage.userCards);
+router.get('/user-details/:id', loadAdminPage.userDetails);
+router.patch('/:action-user/:id', adminControls.toggleUserStatus);
 router.use('/product', productRoutes);
 
 

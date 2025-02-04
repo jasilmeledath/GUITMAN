@@ -3,128 +3,43 @@ const Category = require("../../models/categoryModel");
 const Offer = require("../../models/offerModel");
 
 const productController = {
-   loadProductList : async (req, res) => {
+  addProduct: async (req, res) => {
     try {
-      const {
-        page = 1,
-        limit = 10,
-        category,
-        status,
-        sortBy = "createdAt",
-        order = "desc",
-      } = req.query;
-  
-      // Fetch categories for dropdown
-      const categories = await Category.find({}, "name");
-  
-      // Fetch offers for dropdown
-      const offers = await Offer.find({}, "discount");
-  
-      // Build filter object
-      const filter = {};
-      if (category) filter.category = category;
-      if (status) filter.isActive = status === "active";
-  
-      // Sorting option
-      const sortOption = { [sortBy]: order === "asc" ? 1 : -1 };
-  
-      // Fetch products with filters, pagination, and sorting
-      const products = await Product.find(filter)
-        .populate("category", "name")
-        .populate("offer", "discount")
-        .sort(sortOption)
-        .skip((page - 1) * limit)
-        .limit(parseInt(limit));
-  
-      // Count total products for pagination
-      const totalProducts = await Product.countDocuments(filter);
-  
-      // Render with pagination details, categories, and offers
-      res.render("backend/productList", {
-        products,
-        categories,
-        offers, // Pass offers to the view
-        totalPages: Math.ceil(totalProducts / limit),
-        currentPage: parseInt(page),
-      });
+        const { product_name, description, price, category, offer, isActive } = req.body;
+
+        // Check if files were uploaded
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).send("No images uploaded.");
+        }
+
+        // Ensure price is not negative
+        if (price < 0) {
+            return res.status(400).send("Price cannot be negative.");
+        }
+
+        // Map file paths
+        const images = req.files.map(file => file.path.replace("public/", "")); // Remove "public/" from path
+
+        // Assign offer ID if applicable
+        const offerId = offer === "" ? null : offer;
+
+        // Create new product entry
+        const newProduct = new Product({
+            product_name,
+            description,
+            price,
+            images,
+            category,
+            offer: offerId,
+            isActive: isActive === "true"
+        });
+
+        await newProduct.save();
+        res.redirect("/admin/dashboard/product/list-product");
     } catch (error) {
-      console.error("Error fetching products:", error);
-      res.status(500).send("Internal Server Error");
+        console.error("Error adding product:", error);
+        res.status(500).send("Internal Server Error");
     }
-  },
-  loadProductDetails: async (req, res) => {
-    try {
-      const productId = req.params.id;
-      const product = await Product.findById(productId);
-
-      const user = req.user;
-      if (!product) {
-        return res.status(404).send("Product not found");
-      }
-      res.render("backend/productDetails", { product, user });
-    } catch (error) {
-      console.error("Error fetching product details:", error);
-      res.status(500).send("Internal server error");
-    }
-  },
-  loadAddProduct: async (req, res) => {
-    try {
-      const categories = await Category.find({});
-      const offers = await Offer.find({});
-      res.render("backend/addProduct", { categories, offers });
-    } catch (error) {
-      console.error("Error fetching categories and offers:", error);
-      res.status(500).send("Internal Server Error");
-    }
-  },
- addProduct : async (req, res) => {
-  try {
-    const {
-      product_name,
-      description,
-      price,
-      stock,
-      category,
-      offer,
-      isActive,
-      isTopModel
-    } = req.body;
-
-    // Check if images were processed and uploaded
-    if (!req.body.images || req.body.images.length === 0) {
-      return res.status(400).send("No images were uploaded or processed.");
-    }
-    if (price < 0 || stock < 0) {
-      return res
-        .status(400)
-        .send("price or stock should not be less than zero.");
-    }
-
-    // Store image paths from the resize middleware
-    const images = req.body.images;
-
-    // Handle empty offer field
-    const offerId = offer === "" ? null : offer;
-
-    // Save product to the database
-    const newProduct = new Product({
-      product_name,
-      description,
-      price,
-      stock,
-      images,
-      category,
-      offer: offerId,
-      isActive: isActive === "true",
-      isTopModel: isTopModel === "true"
-    });
-
-    await newProduct.save();
-    res.redirect("/admin/dashboard/product/list-product");
-  } catch (error) {
-    console.error("Error adding product:", error);
-    res.status(500).send("Internal Server Error");
-  }
 },
   
   editProduct:async (req, res) => {
@@ -273,30 +188,6 @@ const productController = {
       res.status(500).send("Internal Server Error");
     }
   },
-  loadCategories: async (req, res) => {
-    try {
-      // Fetch categories from the database
-      const categories = await Category.find({});
-      // Pass categories to the EJS template
-      res.render("backend/categories", { categories });
-    } catch (error) {
-      console.error("Error loading categories:", error);
-      res.status(500).send("Unable to load categories.");
-    }
-  },
-  loadOffers: async (req, res) => {
-    try {
-      // Fetch categories from the database
-      const offers = await Offer.find({});
-
-      // Pass categories to the EJS template
-      res.render("backend/offers", { offers });
-    } catch (error) {
-      console.error("Error loading offers:", error);
-      res.status(500).send("Unable to load offers.");
-    }
-  },
-
   addOffer: async (req, res) => {
     try {
       const { offer_type, offer_percentage, offer_price, expiry_date } =

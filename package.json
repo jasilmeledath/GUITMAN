@@ -12,6 +12,7 @@
   "type": "commonjs",
   "description": "",
   "dependencies": {
+    "@material-tailwind/html": "^2.3.2",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
     "connect-mongo": "^5.1.0",

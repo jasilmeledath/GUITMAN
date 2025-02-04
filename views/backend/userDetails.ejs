@@ -7,6 +7,7 @@
     <link rel="shortcut icon" type="image/x-icon" href="/backend/imgs/theme/favicon.svg">
     <!-- Template CSS -->
     <link href="/backend/css/main.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body>
@@ -14,6 +15,10 @@
     <%- include('./partials/leftNav') %>
     <main class="main-wrap">
         <%- include('./partials/header') %>
+
+        <!-- Success & Error Messages -->
+        <div id="popupMessage" class="hidden fixed top-5 right-5 z-50 p-4 rounded-lg shadow-lg text-white text-lg font-semibold"></div>
+
         <section class="content-main">
             <div class="content-header">
                 <a href="javascript:history.back()"><i class="material-icons md-arrow_back"></i> Go back </a>
@@ -22,73 +27,136 @@
                 <div class="card-header bg-primary" style="height:150px"></div>
                 <div class="card-body">
                     <div class="row">
+                        <!-- User Profile Image -->
                         <div class="col-xl col-lg flex-grow-0" style="flex-basis:230px">
+                            <% if(user.profile_image){ %>
                             <div class="img-thumbnail shadow w-100 bg-white position-relative text-center" style="height:190px; width:200px; margin-top:-120px">
                                 <img src="<%= user.profile_image %>" class="center-xy img-fluid" alt="Userpic">
                             </div>
+                            <% } else { %>
+                                <div class="img-thumbnail shadow w-100 bg-white position-relative text-center" style="height:190px; width:200px; margin-top:-120px">
+                                    <img src="/ui/dprofile.jpg" class="center-xy img-fluid" alt="Userpic">
+                                </div>
+                            <% } %>
                         </div>
+
+                        <!-- User Personal Details -->
                         <div class="col-xl col-lg">
-                            <h3><%= user.first_name %> <%= user.last_name %></h3>
-                            <p><%= user.address %></p> <!-- Assuming `address` is a field in the `user` model -->
-                            <p>
-                                Status: 
-                                <span class="badge rounded-pill <%= user.isActive ? 'alert-success' : 'alert-danger' %>">
-                                    <%= user.isActive ? 'Unblocked' : 'Blocked' %>
-                                </span>
-                            </p>
+                            <h3 class="mb-3"><%= user.first_name %> <%= user.last_name %></h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p><strong>Email:</strong> <%= user.email %></p>
+                                    <p><strong>Mobile:</strong> <%= user.mobile || 'Not provided' %></p>
+                                    <p><strong>Google ID:</strong> <%= user.googleId || 'Not linked' %></p>
+                                </div>
+                                <div>
+                                    <p><strong>Status:</strong> 
+                                        <span id="userStatus" class="badge rounded-pill <%= user.isActive ? 'alert-success' : 'alert-danger' %>">
+                                            <%= user.isActive ? 'Active' : 'Blocked' %>
+                                        </span>
+                                    </p>
+                                    <p><strong>Verified:</strong> 
+                                        <span class="badge rounded-pill <%= user.isVerified ? 'alert-success' : 'alert-warning' %>">
+                                            <%= user.isVerified ? 'Yes' : 'No' %>
+                                        </span>
+                                    </p>
+                                    <p><strong>Created:</strong> <%= new Date(user.createdAt).toLocaleString() %></p>
+                                    <p><strong>Last Updated:</strong> <%= new Date(user.updatedAt).toLocaleString() %></p>
+                                </div>
+                            </div>
+                            <hr class="my-4">
+                            
+                            <!-- Address Details -->
+                            <h5 class="mb-3 font-semibold">Address Details</h5>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p><strong>Country:</strong> <%= addresses[0]?.country || 'Not provided' %></p>
+                                    <p><strong>State:</strong> <%= addresses[0]?.state || 'Not provided' %></p>
+                                    <p><strong>City:</strong> <%= addresses[0]?.city || 'Not provided' %></p>
+                                </div>
+                                <div>
+                                    <p><strong>Address:</strong> <%= addresses[0]?.address || 'Not provided' %></p>
+                                    <p><strong>Pincode:</strong> <%= addresses[0]?.pincode || 'Not provided' %></p>
+                                    <p><strong>Contact Number:</strong> <%= addresses[0]?.contact_number || 'Not provided' %></p>
+                                </div>
+                            </div>
                         </div>
+
+                        <!-- Toggle Button for User Block/Unblock -->
                         <div class="col-xl-4 text-md-end">
-                            <form action="/admin/dashboard/block-user/<%= user._id %>" method="POST" id="blockForm">
-                                <button type="submit" class="btn btn-danger">Block User</button>
-                            </form>
-                            <form action="/admin/dashboard/unblock-user/<%= user._id %>" method="POST" id="unblockForm">
-                                <button type="submit" class="btn btn-success">Unblock User</button>
-                            </form>
-                        </div>
-                    </div>
-                    <hr class="my-4">
-                    <div class="row g-4">
-                        <div class="col-md-12 col-lg-4 col-xl-2">
-                            <article class="box">
-                                <p class="mb-0 text-muted">Total orders:</p>
-                                <h5 class="text-success">238</h5>
-                                <p class="mb-0 text-muted">Total Purchase:</p>
-                                <h5 class="text-success mb-0">$2380</h5>
-                            </article>
-                        </div>
-                        <div class="col-sm-6 col-lg-4 col-xl-3">
-                            <h6>Contacts</h6>
-                            <p>
-                                <%= user.mobile %> <br>
-                                <%= user.email %> <br>
-                            </p>
-                        </div>
-                        <div class="col-sm-6 col-lg-4 col-xl-3">
-                            <h6>Address</h6>
-                            <p>
-                                Country: <%= addresses[0].country %> <br>
-                                Address: <%= addresses[0].address %> <br>
-                                Postal code: <%= addresses[0].pincode %>
-                            </p>
+                            <label for="toggleSwitch" class="flex items-center cursor-pointer">
+                                <div class="relative">
+                                    <input type="checkbox" id="toggleSwitch" class="sr-only" <%= user.isActive ? 'checked' : '' %>>
+                                    <div class="block w-14 h-8 rounded-full transition-colors duration-200 ease-in-out <%= user.isActive ? 'bg-red-600' : 'bg-green-600' %>" id="toggleBackground"></div>
+                                    <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform duration-200 ease-in-out <%= user.isActive ? 'translate-x-6' : '' %>" id="toggleDot"></div>
+                                </div>
+                                <div class="ml-3 text-gray-700 font-medium" id="toggleLabel">
+                                    <%= user.isActive ? 'Block' : 'Unblock' %> User
+                                </div>
+                            </label>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="pagination-area mt-30 mb-50">
-                <nav aria-label="Page navigation example">
-                    <ul class="pagination justify-content-start">
-                        <li class="page-item active"><a class="page-link" href="#">01</a></li>
-                        <li class="page-item"><a class="page-link" href="#">02</a></li>
-                        <li class="page-item"><a class="page-link" href="#">03</a></li>
-                        <li class="page-item"><a class="page-link dot" href="#">...</a></li>
-                        <li class="page-item"><a class="page-link" href="#">16</a></li>
-                        <li class="page-item"><a class="page-link" href="#"><i class="material-icons md-chevron_right"></i></a></li>
-                    </ul>
-                </nav>
-            </div>
         </section>
         <%- include('./partials/footer') %>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleSwitch = document.getElementById('toggleSwitch');
+            const userStatus = document.getElementById('userStatus');
+            const toggleBackground = document.getElementById('toggleBackground');
+            const toggleDot = document.getElementById('toggleDot');
+            const toggleLabel = document.getElementById('toggleLabel');
+            const popupMessage = document.getElementById('popupMessage');
+            const userId = '<%= user._id %>';
+
+            function showPopup(message, isSuccess) {
+                popupMessage.textContent = message;
+                popupMessage.className = `fixed top-5 right-5 z-50 p-4 rounded-lg shadow-lg text-white text-lg font-semibold ${
+                    isSuccess ? 'bg-green-600' : 'bg-red-600'
+                }`;
+                popupMessage.classList.remove('hidden');
+                setTimeout(() => popupMessage.classList.add('hidden'), 3000);
+            }
+
+            function updateToggleAppearance(isActive) {
+                toggleBackground.classList.toggle('bg-green-600', !isActive);
+                toggleBackground.classList.toggle('bg-red-600', isActive);
+                toggleDot.classList.toggle('translate-x-6', !isActive);
+                toggleLabel.textContent = isActive ? 'Block User' : 'Unblock User';
+            }
+
+            toggleSwitch.addEventListener('change', function() {
+                const isBlocked = !this.checked;
+                const action = isBlocked ? 'block' : 'unblock';
+
+                fetch(`/admin/dashboard/${action}-user/${userId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        userStatus.textContent = isBlocked ? 'Blocked' : 'Active';
+                        userStatus.classList.toggle('alert-success', !isBlocked);
+                        userStatus.classList.toggle('alert-danger', isBlocked);
+                        showPopup(`User successfully ${isBlocked ? 'blocked' : 'unblocked'}`, true);
+                        updateToggleAppearance(!isBlocked);
+                    } else {
+                        showPopup('Failed to update user status!', false);
+                        this.checked = !isBlocked;
+                    }
+                })
+                .catch(() => {
+                    showPopup('Error connecting to the server!', false);
+                    this.checked = !isBlocked;
+                });
+            });
+        });
+    </script>
+    </script>
     <script src="/backend/js/vendors/jquery-3.6.0.min.js"></script>
     <script src="/backend/js/vendors/bootstrap.bundle.min.js"></script>
     <script src="/backend/js/vendors/select2.min.js"></script>
@@ -96,5 +164,4 @@
     <script src="/backend/js/vendors/jquery.fullscreen.min.js"></script>
     <script src="/backend/js/main.js" type="text/javascript"></script>
 </body>
-
 </html>

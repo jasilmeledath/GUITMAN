@@ -1,29 +1,46 @@
-const Category = require("../../models/categoryModel");
-const Product = require("../../models/productModel")
-const Offer = require("../../models/offerModel");
 const User = require("../../models/userModel");
-
+const HttpStatus = require("../../utils/httpStatus");
 
 const adminControls = {
-  blockUser : async (req, res) => {
+  /**
+   * Toggles a user's active status (block/unblock).
+   * - Retrieves the user ID from request parameters.
+   * - Determines the action (`block` or `unblock`) and updates the `isActive` status accordingly.
+   * - Responds with the updated user's status.
+   *
+   * @param {Object} req - Express request object containing the user ID and action.
+   * @param {Object} res - Express response object to send back the result.
+   * @param {Function} next - Express next function to handle errors.
+   */
+  toggleUserStatus: async (req, res, next) => {
     try {
       const userId = req.params.id;
-      await User.findByIdAndUpdate(userId, { isActive: false }, { new: true });
-      res.redirect(`/admin/dashboard/user-details/${userId}`); // Redirect back to user details page
-    } catch (error) {
-      console.error("Error blocking user:", error);
-      res.status(500).send("Internal Server Error");
+      const action = req.params.action; 
+
+      const isActive = action === "unblock";
+
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { isActive },
+        { new: true } 
+      );
+
+      if (!updatedUser) {
+        return res.status(HttpStatus.NOT_FOUND).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      res.status(HttpStatus.OK).json({
+        success: true,
+        message: `User ${isActive ? "unblocked" : "blocked"} successfully`,
+        isActive: updatedUser.isActive,
+      });
+    } catch (err) {
+      next(err);
     }
   },
-  unblockUser: async (req, res) => {
-    try {
-      const userId = req.params.id;
-      await User.findByIdAndUpdate(userId, { isActive: true }, { new: true });
-      res.redirect(`/admin/dashboard/user-details/${userId}`); // Redirect back to user details page
-    } catch (error) {
-      console.error("Error unblocking user:", error);
-      res.status(500).send("Internal Server Error");
-    }
-  }
 };
+
 module.exports = adminControls;

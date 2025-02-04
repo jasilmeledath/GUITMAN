@@ -2,101 +2,95 @@ const jwt = require("jsonwebtoken");
 const Admin = require("../../models/adminModel");
 const bcrypt = require("bcrypt");
 const tokenBlacklist = require("../../utils/tokenBlacklist");
-const Category = require("../../models/categoryModel");
 const { adminErrors } = require("../../utils/errorMessages");
 const HttpStatus = require("../../utils/httpStatus");
 
 const adminAuth = {
-  loadLogin: (req, res) => {
-    res.render("backend/adminLogin");
-  },
-  login: async (req, res) => {
+  /**
+   * Handles admin login authentication.
+   * - Checks if the admin exists in the database.
+   * - Validates the provided password using bcrypt.
+   * - Generates a JWT token upon successful authentication.
+   * - Stores the token in an HTTP-only cookie for security.
+   * - Redirects the admin to the dashboard on success.
+   * 
+   * @param {Object} req - Express request object (contains email and password).
+   * @param {Object} res - Express response object.
+   * @param {Function} next - Express next function to handle errors.
+   */
+  login: async (req, res, next) => {
     try {
       const { email, password } = req.body;
 
+      // Check if the admin exists in the database
       const admin = await Admin.findOne({ email });
       if (!admin) {
         return res
           .status(HttpStatus.NOT_FOUND)
           .render("backend/adminLogin", {
-            error: adminErrors.login.adminNotFound,
+            error: adminErrors.login.adminNotFound, // Display error message if admin not found
           });
       }
 
+      // Compare the provided password with the stored hash
       const isMatch = await bcrypt.compare(password, admin.password);
       if (!isMatch) {
         return res
           .status(HttpStatus.BAD_REQUEST)
           .render("backend/adminLogin", {
-            error: adminErrors.login.invalidCredentials,
+            error: adminErrors.login.invalidCredentials, // Display invalid credentials error
           });
       }
-      // Generate JWT token
+
+      // Generate a JWT token for authentication
       const token = jwt.sign(
         { id: admin._id, email: admin.email },
         process.env.JWT_SECRET,
-        { expiresIn: "1h" }
+        { expiresIn: "1h" } // Token expires in 1 hour
       );
+
+      // Store the JWT token in a secure HTTP-only cookie
       res.cookie("authToken", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 3600000, // 1 hour
+        httpOnly: true, // Prevents JavaScript access (mitigates XSS attacks)
+        secure: process.env.NODE_ENV === "production", // Enables secure cookies in production
+        maxAge: 3600000, // Cookie expires in 1 hour
       });
+
+      // Redirect the admin to the dashboard after successful login
       res.redirect(`/admin/dashboard`);
     } catch (err) {
-      console.error(err);
-      res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .render("backend/adminLogin", {
-          error: adminErrors.general.serverError,
-        });
+      next(err); // Pass error to global error handler middleware
     }
   },
-  loadDashboard: async (req, res) => {
-    try {
-      const categories = await Category.find({});
-      res.render("backend/dashboard");
-    } catch (error) {
-      console.error("Error loading dashboard:", error);
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).send("Unable to load dashboard.");
-    }
-  },
-  addAdmin: async (req, res) => {
-    try {
-      const { name, email, password } = req.body;
 
-      // Check if email already exists
-      const existingAdmin = await Admin.findOne({ email });
-      if (existingAdmin) {
-        return res.status(400).send("Admin with this email already exists.");
+  /**
+   * Handles admin logout.
+   * - Adds the current authentication token to a blacklist to prevent reuse.
+   * - Clears the authentication cookie from the client.
+   * - Redirects the admin to the login page after logout.
+   * 
+   * @param {Object} req - Express request object.
+   * @param {Object} res - Express response object.
+   * @param {Function} next - Express next function to handle errors.
+   */
+  logout: (req, res, next) => {
+    try {
+      const token = req.cookies.authToken;
+      
+      // If a token exists, add it to the blacklist to invalidate it
+      if (token) {
+        tokenBlacklist.add(token);
       }
 
-      // Hash the password
-      const saltRounds = 10; // Number of salt rounds for bcrypt
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      // Clear the authentication token cookie
+      res.clearCookie("authToken");
 
-      // Create a new admin with hashed password
-      const admin = new Admin({
-        name,
-        email,
-        password: hashedPassword,
-      });
-
-      await admin.save();
-
-      res.send("Admin added successfully.");
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Server error.");
+      // Redirect the admin to the login page after logout
+      return res.status(HttpStatus.OK).redirect("/admin/login");
+    } catch (err) {
+      next(err); // Pass error to global error handler middleware
     }
-  },
-  logout: (req, res) => {
-    const token = req.cookies.authToken;
-    if (token) {
-      tokenBlacklist.add(token); // Add token to the blacklist
-    }
-    res.clearCookie("authToken"); // Clear the authToken cookie
-    return res.status(200).redirect("/admin/login");
   },
 };
+
 module.exports = adminAuth;

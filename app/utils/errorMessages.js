@@ -50,6 +50,7 @@ const userErrors = {
     },
     productManagement: {
       addFailed: 'Unable to add the product. Please check your input and try again.',
+      productNotFound: 'Unable to load product. Please try again later.',
       updateFailed: 'Product update failed. Verify the details and try again.',
       deleteFailed: 'We encountered an error while deleting the product. Please try again.',
       invalidProductId: 'Invalid product ID. Please provide a valid one.',

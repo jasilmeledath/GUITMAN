@@ -4,7 +4,7 @@
 <head>
     <%- include('./partials/meta') %>
     <!-- Favicon -->
-    <link rel="shortcut icon" type="image/x-icon" href="/backend/imgs/theme/favicon.svg">
+    <link rel="shortcut icon" type="image/x-icon" href="">
     <!-- Template CSS -->
     <link href="/backend/css/main.css" rel="stylesheet" type="text/css" />
 </head>
@@ -84,6 +84,52 @@
         </section>
         <%- include('./partials/footer') %>
     </main>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+    const userStatusToggle = document.getElementById('userStatusToggle');
+    const confirmationModal = document.getElementById('confirmationModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const cancelAction = document.getElementById('cancelAction');
+    const confirmAction = document.getElementById('confirmAction');
+    const userId = "<%= user._id %>"; // Fetch user ID from server-side template
+
+    userStatusToggle.addEventListener('change', function () {
+        const newStatus = this.checked ? 'unblock' : 'block';
+        showConfirmationModal(newStatus);
+    });
+
+    function showConfirmationModal(action) {
+        modalTitle.textContent = `Confirm ${action.charAt(0).toUpperCase() + action.slice(1)}`;
+        modalMessage.textContent = `Are you sure you want to ${action} this user?`;
+        confirmationModal.classList.remove('hidden');
+
+        confirmAction.onclick = async () => {
+            try {
+                const response = await fetch(`/admin/user/${userId}/${action}`, {
+                    method: 'POST', // Ensure your route supports POST
+                    headers: { 'Content-Type': 'application/json' },
+                });
+
+                if (response.ok) {
+                    // Update the UI dynamically
+                    confirmationModal.classList.add('hidden');
+                    window.location.reload(); // Reload to reflect changes
+                } else {
+                    console.error("Failed to update user status");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        };
+    }
+
+    cancelAction.onclick = () => {
+        confirmationModal.classList.add('hidden');
+        userStatusToggle.checked = !userStatusToggle.checked; // Revert toggle
+    };
+});
+    </script>
     <script src="/backend/js/vendors/jquery-3.6.0.min.js"></script>
     <script src="/backend/js/vendors/bootstrap.bundle.min.js"></script>
     <script src="/backend/js/vendors/select2.min.js"></script>
