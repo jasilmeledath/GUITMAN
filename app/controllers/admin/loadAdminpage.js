@@ -39,7 +39,7 @@ const loadAdminPage = {
       const query = {};
       if (search) {
         query.$or = [
-          { first_name: { $regex: search, $options: "i" } },
+          { first_name: { $regex: search, $options: "i" } }, 
           { last_name: { $regex: search, $options: "i" } },
           { email: { $regex: search, $options: "i" } },
         ];
@@ -136,44 +136,69 @@ const loadAdminPage = {
   productList: async (req, res, next) => {
     try {
       const {
-        page = 1,
-        limit = 10,
-        category,
-        status,
-        sortBy = "createdAt",
-        order = "desc",
+        page = 1, // Current page (defaults to 1)
+        limit = 10, // Products per page
+        category, // Filter by category
+        status, // Active/Inactive status
+        sortBy = "createdAt", // Sorting field
+        order = "desc", // Sorting order (asc/desc)
+        search = "", // Search query
       } = req.query;
-
-      const categories = await Category.find({}, "name");
-      const offers = await Offer.find({}, "discount");
-
+  
+      // Fetch categories and offers for filtering options
+      const categories = await Category.find({}, "name").lean();
+      const offers = await Offer.find({}, "discount").lean();
+  
+      // Initialize the filter object
       const filter = {};
-      if (category) filter.category = category;
-      if (status) filter.isActive = status === "active";
-
+      if (category) filter.category = category; // Category filter
+      if (status) filter.isActive = status === "active"; // Status filter
+  
+      // Search logic: Match product name or description (case-insensitive)
+      if (search) {
+        filter.$or = [
+          { product_name: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } },
+        ];
+      }
+  
+      // Sort options: Default to descending by the `sortBy` field
       const sortOption = { [sortBy]: order === "asc" ? 1 : -1 };
-
+  
+      // Fetch products based on filters, sorting, pagination, and population
       const products = await Product.find(filter)
-        .populate("category", "name")
-        .populate("offer", "discount")
-        .sort(sortOption)
-        .skip((page - 1) * limit)
-        .limit(parseInt(limit));
-
+        .populate("category", "name") // Include category name
+        .populate("offer", "discount") // Include offer discount
+        .sort(sortOption) // Sort results
+        .skip((page - 1) * parseInt(limit)) // Skip for pagination
+        .limit(parseInt(limit)) // Limit results per page
+        .lean();
+  
+      // Total number of products for pagination
       const totalProducts = await Product.countDocuments(filter);
-
-      res.status(httpStatus.OK).render("backend/productList", {
-        products,
-        categories,
-        offers,
-        totalPages: Math.ceil(totalProducts / limit),
-        currentPage: parseInt(page),
+  
+      // Calculate total pages
+      const totalPages = Math.ceil(totalProducts / limit);
+  
+      // Render the `productGrid` view with the required data
+      res.status(200).render("backend/productList", {
+        products, // List of products to display
+        categories, // List of categories for dropdown
+        offers, // List of offers for dropdown
+        totalPages, // Total number of pages for pagination
+        currentPage: parseInt(page), // Current active page
+        search, 
+        category, // Selected category for dropdown
+        status, // Selected status filter
+        sortBy, // Current sorting field
+        order, // Current sorting order
+        limit: parseInt(limit), // Products per page
       });
     } catch (err) {
-      next(err);
+      console.error("Error in loading product list:", err);
+      next(err); // Pass the error to the error-handling middleware
     }
   },
-
   /**
    * Fetches product details by ID and renders the product details page.
    *
@@ -210,7 +235,9 @@ const loadAdminPage = {
     try {
       const categories = await Category.find({});
       const offers = await Offer.find({});
-      res.status(httpStatus.OK).render("backend/addProduct", { categories, offers });
+      const formData = req.body || {};
+      const errors = null;
+      res.status(httpStatus.OK).render("backend/addProduct", { categories, offers, formData,errors });
     } catch (err) {
       next(err);
     }

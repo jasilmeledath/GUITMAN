@@ -3,51 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login</title>
+    <title>Secure Admin Access</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        if (window.history.replaceState) {
-          window.history.replaceState(null, null, window.location.href);
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        neon: '#00ff00',
+                        darkBg: '#0a0a0a',
+                        darkAccent: '#1a1a1a',
+                    },
+                    boxShadow: {
+                        neonGlow: '0 0 5px #00ff00, 0 0 20px #00ff00',
+                    },
+                },
+            },
         }
-      </script>
     </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+        body {
+            font-family: 'Share Tech Mono', monospace;
+        }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-gray-800 to-gray-900 min-h-screen flex items-center justify-center">
-    <div class="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
-        <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Admin Login</h2>
+<body class="bg-darkBg text-neon min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-darkAccent rounded-lg shadow-xl p-8 border border-neon">
+        <h2 class="text-3xl font-bold text-center mb-6 tracking-wider">SECURE ADMIN ACCESS</h2>
 
         <% if (typeof error !== 'undefined') { %>
-            <div class="mb-4 text-sm text-red-600 bg-red-100 border border-red-400 rounded p-3">
+            <div class="mb-4 text-sm text-red-500 bg-red-900 border border-red-500 rounded p-3">
                 <%= error %>
             </div>
         <% } %>
 
         <form id="adminLoginForm" method="POST" action="/admin/login" class="space-y-6">
             <div>
-                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                <label for="email" class="block text-sm font-medium mb-1">IDENTITY</label>
                 <input 
                     type="email" 
                     name="email" 
                     id="email" 
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-700 focus:border-gray-700" 
+                    class="w-full px-4 py-2 bg-darkBg border border-neon rounded-md shadow-sm focus:ring-2 focus:ring-neon focus:border-neon text-white" 
                     required>
-                <span class="text-sm"></span>
+                <span class="text-sm text-red-500"></span>
             </div>
             <div>
-                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <label for="password" class="block text-sm font-medium mb-1">ACCESS CODE</label>
                 <input 
                     type="password" 
                     name="password" 
                     id="password" 
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-700 focus:border-gray-700" 
+                    class="w-full px-4 py-2 bg-darkBg border border-neon rounded-md shadow-sm focus:ring-2 focus:ring-neon focus:border-neon text-white" 
                     required>
-                <span class="text-sm"></span>
+                <span class="text-sm text-red-500"></span>
             </div>
-            <button type="submit" class="w-full bg-gray-800 text-white py-2 rounded-md hover:bg-gray-900 shadow-lg transition">
-                Login
+            <button type="submit" class="w-full bg-neon text-darkBg py-2 rounded-md hover:bg-opacity-80 shadow-neonGlow transition duration-300 ease-in-out font-bold tracking-wider">
+                AUTHENTICATE
             </button>
         </form>
     </div>
+    <script>
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+    </script>
     <script src="/JS/formValidation.js"></script>
 </body>
 </html>

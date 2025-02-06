@@ -1,47 +1,47 @@
 const Product = require("../../models/productModel");
 const Category = require("../../models/categoryModel");
 const Offer = require("../../models/offerModel");
+const httpStatus = require("../../utils/httpStatus");
 
 const productController = {
-  addProduct: async (req, res) => {
-    try {
-        const { product_name, description, price, category, offer, isActive } = req.body;
-
-        // Check if files were uploaded
-        if (!req.files || req.files.length === 0) {
-            return res.status(400).send("No images uploaded.");
-        }
-
-        // Ensure price is not negative
-        if (price < 0) {
-            return res.status(400).send("Price cannot be negative.");
-        }
-
-        // Map file paths
-        const images = req.files.map(file => file.path.replace("public/", "")); // Remove "public/" from path
-
-        // Assign offer ID if applicable
-        const offerId = offer === "" ? null : offer;
-
-        // Create new product entry
-        const newProduct = new Product({
-            product_name,
-            description,
-            price,
-            images,
-            category,
-            offer: offerId,
-            isActive: isActive === "true"
-        });
-
-        await newProduct.save();
-        res.redirect("/admin/dashboard/product/list-product");
-    } catch (error) {
-        console.error("Error adding product:", error);
-        res.status(500).send("Internal Server Error");
-    }
-},
+  addProduct: async (req, res, next) => {
   
+    try {
+      const { product_name, description, price, category, offer, isActive, stock } = req.body;
+      const images = req.body.images; 
+  
+      // Create a new product
+      const newProduct = new Product({
+        product_name,
+        description,
+        price,
+        stock: stock || 0, // Set default stock to 0 (if not provided)
+        images,
+        category,
+        offer: offer || null,
+        isActive: isActive === "true", // Convert string to boolean
+      });
+  
+      // Save to the database
+      await newProduct.save();
+  
+      res.status(httpStatus.CREATED).render ('backend/productList');
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  toggle: async (req, res, next) => {
+    try {
+      const productId = req.params.id;
+      // Convert req.body.isActive to boolean if necessary
+      const isActive = req.body.isActive === true || req.body.isActive === 'true';
+      await Product.findByIdAndUpdate(productId, { isActive });
+      res.status(200).json({ success: true, isActive });
+    } catch (error) {
+      next(error);
+    }
+  },
   editProduct:async (req, res) => {
     try {
       const productId = req.params.id;
@@ -207,5 +207,27 @@ const productController = {
       res.status(500).send("Internal Server Error");
     }
   },
+
+  deleteOffer: async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Find and delete the offer
+        const deletedOffer = await Offer.findByIdAndDelete(id);
+
+        if (!deletedOffer) {
+            return res.status(404).json({ success: false, message: 'Offer not found' });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Offer deleted successfully',
+            deletedOffer: deletedOffer, // Optional: include deleted offer details
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+},
 };
 module.exports = productController;

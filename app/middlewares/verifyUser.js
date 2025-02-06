@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const tokenBlacklist = require('../utils/tokenBlacklist');
 const User = require("../models/userModel");
-const unless = require('express-unless');
 
 const verifyUser = async (req, res, next) => {
   const token = req.cookies.authToken;
@@ -26,7 +25,7 @@ const verifyUser = async (req, res, next) => {
     req.user = decoded;
     const userId = decoded.id;
     const isExistingUser = await User.findById(userId);
-
+    
     if (!isExistingUser) {
       return res.status(404).redirect('/login');
     }
@@ -44,7 +43,5 @@ const verifyUser = async (req, res, next) => {
   }
 };
 
-// Apply unless condition to skip enforcing authentication for specific routes
-verifyUser.unless = unless;
 
 module.exports = verifyUser;

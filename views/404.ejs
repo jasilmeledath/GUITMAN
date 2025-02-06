@@ -43,14 +43,29 @@
                     Looks like you've wandered into the desert of lost tunes. 
                     Don't worry, we'll help you find your way back to the music!
                 </p>
-                <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                    <a href="/" class="bg-indigo-600 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                <% if (user) { %>
+                    <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                      <a href="/" class="bg-indigo-600 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                         Return to Homepage
-                    </a>
-                    <a href="/shop" class="bg-amber-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-amber-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
+                      </a>
+                      <a href="/shop" class="bg-amber-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-amber-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
                         Browse Our Instruments
-                    </a>
-                </div>
+                      </a>
+                    </div>
+                  <% } else if (admin) { %>
+                    <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                      <a href="/admin/dashboard" class="bg-indigo-600 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        Return to Dashboard
+                      </a>
+                    </div>
+                  <% } else { %>
+                    <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                        <p class="text-gray-600">You are not logged in.</p>
+                        <a href="/login" class="bg-indigo-600 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                          Return to login
+                        </a>
+                      </div>
+                  <% } %>
             </div>
         </div>
     </div>

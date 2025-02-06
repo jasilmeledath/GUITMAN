@@ -5,7 +5,6 @@ const verifyAdmin = require("../../middlewares/verifyAdmin");
 const noCache = require("../../middlewares/noCache");
 const dashRoutes = require("./dashRoutes");
 const loadAdminPage  =require("../../controllers/admin/loadAdminpage");
-const protectAdminRoutes = require("../../middlewares/protectAdminRoutes");
 
 router.get('/login',noCache, loadAdminPage.login);
 router.post('/login', adminAuth.login);

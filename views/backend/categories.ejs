@@ -59,7 +59,6 @@
                                             <th>Name</th>
                                             <th>Description</th>
                                             <th>Slug</th>
-                                            <th>Order</th>
                                             <th class="text-end">Action</th>
                                         </tr>
                                     </thead>
@@ -75,7 +74,6 @@
                                                 <td><b><%= category.name %></b></td>
                                                 <td><%= category.description %></td>
                                                 <td>/categories/<%= category.name.toLowerCase().replace(/\s+/g, '-') %></td>
-                                                <td><%= index + 1 %></td>
                                                 <td class="text-end">
                                                     <div class="dropdown">
                                                         <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
@@ -146,7 +144,11 @@
     <script src="/backend/js/vendors/select2.min.js"></script>
     <script src="/backend/js/vendors/perfect-scrollbar.js"></script>
     <script src="/backend/js/vendors/jquery.fullscreen.min.js"></script>
+    <script src="/backend/js/vendors/chart.js"></script>
+
+    <!-- Main Script -->
     <script src="/backend/js/main.js" type="text/javascript"></script>
+    <script src="/backend/js/custom-chart.js" type="text/javascript"></script>
     <script>
       // Populate the edit category modal with data
       $('#editCategoryModal').on('show.bs.modal', function (event) {

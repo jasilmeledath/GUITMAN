@@ -1,10 +1,11 @@
 const jwt = require('jsonwebtoken');
 const tokenBlacklist = require('../utils/tokenBlacklist');
+const User= require("../models/userModel");
+const Admin = require("../models/adminModel");
 
-const redirectIfLoggedIn = (req, res, next) => {
+const redirectIfUserLoggedIn = async(req, res, next) => {
     
     const token = req.cookies.authToken;
-    
 
     if (!token) {
         return next(); 
@@ -14,8 +15,12 @@ const redirectIfLoggedIn = (req, res, next) => {
             return next();
         }
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+        const userId = decoded.id;
+        const isUser = await User.findById(userId);
 
-        if (decoded && (req.path === '/login' || req.path === '/signup' || req.path === '/' || req.path === '/admin/login')) {
+        if (isUser && (req.path === '/login' || req.path === '/signup' || req.path === '/' || req.path.includes('admin'))) {    
+            
             return res.redirect('/home'); 
         }
 
@@ -27,5 +32,35 @@ const redirectIfLoggedIn = (req, res, next) => {
         return next(); 
     }
 };
+const redirectIfAdminLoggedIn = async(req, res, next) => {
+    
+    const token = req.cookies.authToken;
 
-module.exports = redirectIfLoggedIn;
+    if (!token) {
+        return next(); 
+    }
+    try {
+        if (tokenBlacklist.has(token)) {
+            return next();
+        }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.admin = decoded;
+        const adminId = decoded.id;
+        const isAdmin = await Admin.findById(adminId);
+
+        if (isAdmin && !req.path.includes('admin')) {
+            return res.redirect('/admin/dashboard'); 
+        }
+
+        return next(); 
+    } catch (error) {
+        console.error("JWT Verification Error:", error);
+        res.clearCookie('authToken');
+
+        return next(); 
+    }
+};
+
+
+
+module.exports = {redirectIfUserLoggedIn,redirectIfAdminLoggedIn};

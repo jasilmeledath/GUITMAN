@@ -5,7 +5,7 @@ const { validateLoginForm } = require('../../validators/validateLoginForm');
 const verifyUser = require("../../middlewares/verifyUser");
 const loadPages = require('../../controllers/user/loadPages');
 const passport = require("../../config/passport");
-const redirectIfLoggedIn = require("../../middlewares/redirectIfLoggedIn");
+const {redirectIfUserLoggedIn} = require("../../middlewares/redirectIfLoggedIn");
 
 // Google OAuth routes
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
@@ -18,7 +18,10 @@ router.get('/auth/google/callback', passport.authenticate('google', {
     res.redirect('/home');
 });
 
+router.use(redirectIfUserLoggedIn);
 
+
+router.get('/', loadPages.landing);
 
 // Public routes (no authentication required)
 router.get('/login', loadPages.login);
@@ -32,8 +35,8 @@ router.post('/login', validateLoginForm, userAuth.login);
 
 // Routes that require user information but not strict authentication
 // router.get('/tune', loadPages.tuner);
-router.get('/shop', verifyUser, loadPages.loadShop);
-router.get('/product-details/:id', verifyUser, loadPages.loadProductDetails);
+router.get('/shop', loadPages.loadShop);
+router.get('/product-details/:id', loadPages.loadProductDetails);
 
 // Protected routes (require authentication)
 router.get('/home', verifyUser, loadPages.home);

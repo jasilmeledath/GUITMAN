@@ -1,74 +1,99 @@
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const sharp = require('sharp');
+const multer = require("multer");
+const path = require("path");
+const sharp = require("sharp");
+const fs = require("fs");
 
-// Configure storage settings with dynamic destination
+// Resolve the project root directory
+const rootDir = path.resolve(__dirname, "../../");
+
+// Dynamic storage engine
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: (req, file, cb) => {
     let uploadPath;
-    if (req.baseUrl.includes('category')) {
-      uploadPath = 'public/uploads/category-images';
+
+    // Set the upload path based on the URL
+    if (req.baseUrl.includes("category")) {
+      uploadPath = path.join(rootDir, "public/uploads/category-images");
     } else {
-      uploadPath = 'public/uploads/product-images';
+      uploadPath = path.join(rootDir, "public/uploads/product-images");
     }
 
+    // Create the directory if it doesn't exist
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
+
     cb(null, uploadPath);
   },
-  filename: function (req, file, cb) {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  }
+  filename: (req, file, cb) => {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    cb(null, `${uniqueSuffix}-${file.originalname}`);
+  },
 });
 
-// Set file filter to allow only images
+// File filter to allow only images
 const fileFilter = (req, file, cb) => {
-  const allowedFileTypes = /jpeg|jpg|png|gif/;
-  const extname = allowedFileTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedFileTypes.test(file.mimetype);
-
-  if (extname && mimetype) {
-    return cb(null, true);
+  if (file.mimetype.startsWith("image/")) {
+    cb(null, true);
   } else {
-    cb(new Error('Invalid file type. Only JPEG, PNG, and GIF file types are allowed.'));
+    cb(new Error("Only image files are allowed!"), false);
   }
 };
 
-// Multer middleware
+// Multer configuration
 const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: { fileSize: 1024 * 1024 * 5 }, // 5MB file size limit
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB file size limit
 });
 
-// Middleware for image resizing
+// Middleware for resizing images
 const resizeImages = async (req, res, next) => {
-  if (!req.files || req.files.length === 0) return next();
+  if (!req.files || req.files.length === 0) {
+    return next();
+  }
 
   try {
-      const imagePromises = req.files.map(async (file, index) => {
-          const timestamp = Date.now();
-          const outputPath = `uploads/${req.baseUrl.includes('category') ? 'category-images' : 'product-images'}/resized-${timestamp}-${index}.jpeg`;
-          const fullOutputPath = `public/${outputPath}`;
+    const imagePromises = req.files.map(async (file) => {
+      const timestamp = Date.now();
+      const resizedDir = path.join(
+        rootDir,
+        `public/uploads/${
+          req.baseUrl.includes("category") ? "category-images" : "product-images"
+        }`
+      );
 
-          await sharp(file.path)
-              .resize(800, 800, { fit: 'cover' }) // Resize to 800x800 with cropping
-              .jpeg({ quality: 90 })
-              .toFile(fullOutputPath);
+      // Create resized directory if it doesn't exist
+      if (!fs.existsSync(resizedDir)) {
+        fs.mkdirSync(resizedDir, { recursive: true });
+      }
 
-          // Delete the original file
-          fs.unlinkSync(file.path);
+      const resizedFilePath = path.join(
+        resizedDir,
+        `resized-${timestamp}-${file.originalname}`
+      );
 
-          return { ...file, path: outputPath }; // Update file path
-      });
+      // Resize the image and save it
+      await sharp(file.path)
+        .resize(800, 800, { fit: "cover" })
+        .jpeg({ quality: 90 })
+        .toFile(resizedFilePath);
 
-      req.files = await Promise.all(imagePromises); // Ensure req.files is correctly populated
-      next();
+      // Delete the original file after resizing
+      fs.unlinkSync(file.path);
+
+      // Return the path for the resized file (excluding `public`)
+      return `uploads/${
+        req.baseUrl.includes("category") ? "category-images" : "product-images"
+      }/resized-${timestamp}-${file.originalname}`;
+    });
+
+    // Collect all resized image paths
+    req.body.images = await Promise.all(imagePromises);
+    next();
   } catch (error) {
-      console.error('Error processing images:', error);
-      return res.status(500).json({ message: 'Error processing images.' });
+    console.error("Error resizing images:", error);
+    res.status(500).json({ message: "Error processing images." });
   }
 };
 
