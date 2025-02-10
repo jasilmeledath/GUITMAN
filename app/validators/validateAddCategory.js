@@ -1,21 +1,11 @@
 const Category = require("../models/categoryModel");
+const errorMessages = require("../utils/errorMessages");
 
 const validateAddCategory = async (req, res, next) => {
   const { name, description } = req.body;
   const errors = {};
 
   try {
-    // Validate category name
-    if (!name || name.trim() === "") {
-      errors.name = "Category name is required.";
-    } else {
-      const existingCategory = await Category.findOne({
-        name: { $regex: new RegExp(`^${name}$`, "i") },
-      });
-      if (existingCategory) {
-        errors.name = "Category name already exists.";
-      }
-    }
 
     // Validate description
     if (!description || description.trim() === "") {
@@ -34,16 +24,16 @@ const validateAddCategory = async (req, res, next) => {
 
     // If there are validation errors, render the form with errors
     if (Object.keys(errors).length > 0) {
-      return res.render("backend/addCategory", {
-        errors,
-        formData: req.body,
-      });
+        req.session.errors = errors;
+        req.session.formData = req.body;
+        return res.redirect('/admin/add-product');
+      }
+  
+      next();
+    } catch (err) {
+      console.error("Error in validateAddProduct:", err.message);
+      req.session.errors = { general: errorMessages.adminErrors.general.serverError};
+      res.redirect('/admin/add-product');
     }
-
-    next(); // Proceed if no validation errors
-  } catch (err) {
-    next(err);
-  }
-};
-
+  };
 module.exports = validateAddCategory;

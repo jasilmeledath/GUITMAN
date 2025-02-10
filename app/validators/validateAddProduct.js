@@ -1,10 +1,9 @@
 const Product = require("../models/productModel");
 const Offer = require("../models/offerModel");
 const Category = require("../models/categoryModel");
-const errorMessages = require("../utils/errorMessages");
 
 const validateAddProduct = async (req, res, next) => {
-  console.log("Invoked validateAddProduct");
+
 
   const { product_name, price, stock, description, category } = req.body;
   const errors = {};
@@ -70,14 +69,11 @@ const validateAddProduct = async (req, res, next) => {
       Category.find(),
     ]);
 
-    // If errors exist, send them to the view
+    // If errors exist, store them in the session and redirect to the form
     if (Object.keys(errors).length > 0) {
-      return res.status(400).render("backend/addProduct", {
-        errors,
-        offers,
-        categories,
-        formData: req.body,
-      });
+      req.session.errors = errors;
+      req.session.formData = req.body;
+      return res.redirect("/admin/dashboard/product/add-product");
     }
 
     next(); // Proceed if no validation errors

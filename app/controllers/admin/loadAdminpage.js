@@ -233,15 +233,48 @@ const loadAdminPage = {
    */
   addProduct: async (req, res, next) => {
     try {
+      const errors = req.session.errors || {};
+      const formData = req.session.formData || {};
+  
+      // Clear session errors and formData
+      delete req.session.errors;
+      delete req.session.formData;
+  
       const categories = await Category.find({});
       const offers = await Offer.find({});
-      const formData = req.body || {};
-      const errors = null;
-      res.status(httpStatus.OK).render("backend/addProduct", { categories, offers, formData,errors });
+      res.status(200).render("backend/addProduct", {
+        categories,
+        offers,
+        formData,
+        errors
+      });
     } catch (err) {
       next(err);
     }
   },
+
+  editProduct:async (req, res) => {
+      try {
+        // Find the product by ID and populate category and offer details
+        const product = await Product.findById(req.params.id)
+          .populate('category')
+          .populate('offer');
+          
+        if (!product) {
+          return res.status(404).send("Product not found");
+        }
+    
+        // Fetch all categories and offers for the select dropdowns in the form
+        const categories = await Category.find();
+        const offers = await Offer.find();
+    
+        // Render the editProduct.ejs view with the required data
+        res.render('backend/editProduct', { product, categories, offers });
+      } catch (error) {
+        console.error("Error loading edit product page:", error);
+        res.status(500).send("Server error");
+      }
+    },
 
   /**
    * Loads and renders the categories page.

@@ -1,0 +1,224 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+    <%- include('./partials/meta') %>
+    <link rel="shortcut icon" type="image/x-icon" href="/backend/imgs/theme/favicon.svg">
+    <link href="/backend/css/main.css" rel="stylesheet" type="text/css" />
+    <!-- Add Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <div class="screen-overlay"></div>
+    <%- include('./partials/leftNav') %>
+    <main class="main-wrap">
+        <%- include('./partials/header') %>
+        <section class="content-main">
+            <div class="row">
+                <div class="col-9">
+                    <div class="content-header">
+                        <h2 class="content-title">Edit Product</h2>
+                    </div>
+                </div>
+                <div class="col-lg-9">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h4>Product Information</h4>
+                        </div>
+                        <div class="card-body">
+                            <form id="editProductForm" action="/admin/dashboard/product/update-product/<%= product._id %>" enctype="multipart/form-data">
+                                <div class="mb-4">
+                                    <label for="product_name" class="form-label">Product Title</label>
+                                    <input type="text" name="product_name" id="product_name" class="form-control"
+                                        value="<%= product.product_name %>" required />
+                                    <span id="nameError" class="text-danger" style="display:none;">Product name already exists</span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label">Full Description</label>
+                                    <textarea name="description" class="form-control" rows="4"><%= product.description %></textarea>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-lg-4">
+                                        <div class="mb-4">
+                                            <label class="form-label">Regular Price</label>
+                                            <input name="price" type="number" class="form-control" min="0"
+                                                value="<%= product.price %>" />
+                                        </div>
+                                        <div class="mb-4">
+                                            <label class="form-label">Stocks</label>
+                                            <input name="stock" type="number" class="form-control" min="0"
+                                                value="<%= product.stock %>" />
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <label class="form-label">Offer</label>
+                                        <select name="offer" class="form-select">
+                                            <option value="">No Offer</option>
+                                            <% offers.forEach((offer) => { %>
+                                                <option value="<%= offer._id %>" <%= product.offer && product.offer._id.toString() === offer._id.toString() ? 'selected' : '' %> >
+                                                    <%= offer.offer_type %>
+                                                </option>
+                                            <% }); %>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-check">
+                                        <input name="isTopModel" class="form-check-input" type="checkbox" value="true"
+                                            <%= product.isTopModel ? 'checked' : '' %> />
+                                        <span class="form-check-label"> Top Model </span>
+                                    </label>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label">Category</label>
+                                    <select name="category" class="form-select">
+                                        <% categories.forEach((category) => { %>
+                                            <option value="<%= category._id %>" <%= product.category._id.toString() === category._id.toString() ? 'selected' : '' %> >
+                                                <%= category.name %>
+                                            </option>
+                                        <% }); %>
+                                    </select>
+                                </div>
+
+                                <!-- Image Preview and Upload Section -->
+                                <div class="mb-4">
+                                    <label class="form-label">Current Images</label>
+                                    <div id="imagePreviewContainer" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                                        <% product.images.forEach((image, index) => { %>
+                                            <div class="image-box" style="position: relative; margin-bottom: 20px;">
+                                                <img src="/<%= image %>" style="width: 100px; height: 100px; object-fit: cover; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 10px;">
+                                                <input type="file" name="images_<%= index %>" accept="image/*" class="image-input" style="display: block;">
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                    <input type="hidden" name="deletedImages" id="deletedImages">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Update Product</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <%- include('./partials/footer') %>
+    </main>
+
+    <!-- Tailwind Alert Component -->
+    <div id="alert" class="fixed top-4 right-4 z-50 hidden">
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+            <strong class="font-bold" id="alertTitle"></strong>
+            <span class="block sm:inline" id="alertMessage"></span>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("product_name").addEventListener("blur", async function () {
+            const name = this.value.trim();
+            const id = "<%= product._id %>";
+            if (name) {
+                const res = await fetch(`/admin/dashboard/product/check-name?name=${name}&id=${id}`);
+                const data = await res.json();
+                if (data.exists) {
+                    document.getElementById("nameError").style.display = "block";
+                } else {
+                    document.getElementById("nameError").style.display = "none";
+                }
+            }
+        });
+    </script>
+
+    <script src="/backend/js/vendors/jquery-3.6.0.min.js"></script>
+    <script src="/backend/js/vendors/bootstrap.bundle.min.js"></script>
+    <script src="/backend/js/vendors/select2.min.js"></script>
+    <script src="/backend/js/vendors/perfect-scrollbar.js"></script>
+    <script src="/backend/js/vendors/jquery.fullscreen.min.js"></script>
+    <script src="/backend/js/vendors/chart.js"></script>
+
+    <!-- Main Script -->
+    <script src="/backend/js/main.js" type="text/javascript"></script>
+    <script src="/backend/js/custom-chart.js" type="text/javascript"></script>
+    
+    <!-- New Script for Image Preview Update -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function(){
+            const fileInputs = document.querySelectorAll('.image-input');
+            fileInputs.forEach(function(input) {
+                input.addEventListener('change', function(event){
+                    const file = event.target.files[0];
+                    if(file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e){
+                            const img = event.target.parentElement.querySelector('img');
+                            if(img) {
+                                img.src = e.target.result;
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            });
+        });
+    </script>
+    
+    <!-- New Script to Intercept the Form Submit and Send a PUT Request via Fetch -->
+    <script>
+        function showAlert(title, message, type = 'success') {
+            const alert = document.getElementById('alert');
+            const alertTitle = document.getElementById('alertTitle');
+            const alertMessage = document.getElementById('alertMessage');
+            
+            alertTitle.textContent = title + ' ';
+            alertMessage.textContent = message;
+            
+            if (type === 'error') {
+                alert.querySelector('div').classList.remove('bg-green-100', 'border-green-400', 'text-green-700');
+                alert.querySelector('div').classList.add('bg-red-100', 'border-red-400', 'text-red-700');
+            } else {
+                alert.querySelector('div').classList.remove('bg-red-100', 'border-red-400', 'text-red-700');
+                alert.querySelector('div').classList.add('bg-green-100', 'border-green-400', 'text-green-700');
+            }
+            
+            alert.classList.remove('hidden');
+            setTimeout(() => {
+                alert.classList.add('hidden');
+            }, 5000);
+        }
+    
+        document.getElementById("editProductForm").addEventListener("submit", async function(e) {
+            e.preventDefault(); // Prevent the default form submission
+    
+            const form = this;
+            const formData = new FormData(form);
+    
+            try {
+                const response = await fetch(form.action, {
+                    method: 'PUT',
+                    body: formData
+                });
+    
+                if (response.ok) {
+                    const data = await response.json();
+                    showAlert('Product updated successfully!', 'The changes have been saved.');
+                    setTimeout(() => {
+                        window.location.href = "http://localhost:8080/admin/dashboard/product/list-product"; // Redirect after alert
+                    }, 3000);
+                    // Optionally, you can redirect or update the UI here
+                } else {
+                    const errorData = await response.json();
+                    showAlert('Error', errorData.message, 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showAlert('Error', 'An error occurred while updating the product.', 'error');
+            }
+        });
+    </script>
+    
+</body>
+
+</html>

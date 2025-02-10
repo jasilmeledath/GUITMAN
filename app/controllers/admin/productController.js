@@ -7,7 +7,7 @@ const productController = {
   addProduct: async (req, res, next) => {
   
     try {
-      const { product_name, description, price, category, offer, isActive, stock } = req.body;
+      const { product_name, description, price, category, offer, isActive, stock, isTopModel } = req.body;
       const images = req.body.images; 
   
       // Create a new product
@@ -19,13 +19,14 @@ const productController = {
         images,
         category,
         offer: offer || null,
-        isActive: isActive === "true", // Convert string to boolean
+        isActive: isActive === "true",
+        isTopModel: isTopModel === "true" 
       });
   
       // Save to the database
       await newProduct.save();
   
-      res.status(httpStatus.CREATED).render ('backend/productList');
+      res.status(httpStatus.CREATED).redirect ('/admin/dashboard/product/product-list');
     } catch (err) {
       next(err);
     }
@@ -42,69 +43,48 @@ const productController = {
       next(error);
     }
   },
-  editProduct:async (req, res) => {
+  updateProduct:async (req, res) => {
     try {
       const productId = req.params.id;
-      const { name, description, price, stock, status, category, offer } = req.body;
-      const images = req.files ? req.files.map(file => `uploads/product-images/${file.filename}`) : req.body.images;
-  
-      // Validation checks
-      if (!productId) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Product ID is required" });
+      let product = await Product.findById(productId);
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
       }
   
-      if (!name || !price || !stock || !status || !category) {
-        return res.status(400).json({
-          success: false,
-          message: "Name, price, stock, status, and category are required fields.",
+      // Update text/number fields if they are provided
+      if (req.body.product_name) product.product_name = req.body.product_name;
+      if (req.body.description) product.description = req.body.description;
+      if (req.body.price) product.price = Number(req.body.price);
+      if (req.body.stock) product.stock = Number(req.body.stock);
+      if (req.body.category) product.category = req.body.category;
+      // Offer may be an empty string if no offer is selected; convert it to null if so.
+      product.offer = req.body.offer && req.body.offer.trim() !== '' ? req.body.offer : null;
+      if (req.body.isTopModel !== undefined) {
+        // Checkbox value will be "true" if checked
+        product.isTopModel = req.body.isTopModel === 'true';
+      }
+  
+      // Process any uploaded files
+      // The file field names are expected to be in the format "images_<index>"
+      if (req.files && req.files.length > 0) {
+        req.files.forEach((file) => {
+          const match = file.fieldname.match(/images_(\d+)/);
+          if (match) {
+            const index = parseInt(match[1], 10);
+            // Use the corresponding resized image path.
+            // (Assuming that the order in req.body.images corresponds to the order of req.files)
+            product.images[index] = req.body.images.shift();
+          }
         });
       }
   
-      if (price < 0 || stock < 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Price or stock should not be less than zero.",
-        });
-      }
+      // Save the updated product
+      await product.save();
   
-      // Create update object dynamically
-      const updateData = {
-        product_name: name,
-        price,
-        stock,
-        isActive: status === "active",
-        category,
-      };
-  
-      if (description) updateData.description = description;
-      if (images) updateData.images = images;
-      if (offer && mongoose.Types.ObjectId.isValid(offer)) {
-        updateData.offer = offer; // Only include `offer` if it's a valid ObjectId
-      } else {
-        updateData.offer = null; // Set to null if offer is not valid
-      }
-  
-      // Perform update
-      const updatedProduct = await Product.findByIdAndUpdate(productId, updateData, { new: true });
-  
-      if (!updatedProduct) {
-        return res
-          .status(404)
-          .json({ success: false, message: "Product not found" });
-      }
-  
-      res.status(200).json({
-        success: true,
-        message: "Product updated successfully",
-        data: updatedProduct,
-      });
-    } catch (error) {
-      console.error("Error updating product details", error);
-      res
-        .status(500)
-        .json({ success: false, message: "Internal Server Error" });
+      res.status(200).json({ message: 'Product updated successfully', product });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Server error while updating the product' });
     }
   },
   deleteProduct: async (req, res) => {

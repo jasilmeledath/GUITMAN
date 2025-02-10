@@ -3,18 +3,19 @@ dotenv.config();
 const express = require("express");
 const path = require("path");
 const methodOverride = require("method-override");
+const session = require("express-session");
+const cookieParser = require("cookie-parser");
+const fs = require("fs");
+const jwt = require('jsonwebtoken');
+const nocache = require("nocache");
+
 const userRoutes = require("./app/routes/user/userRoutes");
 const adminRoutes = require("./app/routes/admin/adminRoutes");
 const connectDatabase = require("./app/config/database");
-const cookieParser = require("cookie-parser");
-const loadPages = require("./app/controllers/user/loadPages");
+const { redirectIfAdminLoggedIn } = require("./app/middlewares/redirectIfLoggedIn");
 const HttpStatus = require("./app/utils/httpStatus");
-const fs = require("fs");
-const jwt = require('jsonwebtoken');
-const{redirectIfAdminLoggedIn} = require("./app/middlewares/redirectIfLoggedIn");
 const User = require('./app/models/userModel');
 const Admin = require('./app/models/adminModel');
-
 
 // Initialize application
 const app = express();
@@ -22,13 +23,19 @@ app.set("view engine", "ejs");
 
 // Middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static("public"));
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 app.use(methodOverride("_method"));
-const nocache = require("nocache");
+app.use(nocache());
 
+// Configure session middleware
+app.use(session({
+  secret: 'your_secret_key', // Use a secure key in production
+  resave: false,
+  saveUninitialized: true
+}));
 
 // Ensure upload directory exists
 const uploadDir = path.join(__dirname, "public/uploads/products");
@@ -36,11 +43,8 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Connect database
+// Connect to the database
 connectDatabase();
-
-// No-cache middleware
-app.use(nocache());
 
 // Set no-cache for static files in production environment
 app.use((req, res, next) => {
@@ -48,13 +52,11 @@ app.use((req, res, next) => {
   next();
 });
 
+// Custom middleware
 app.use(redirectIfAdminLoggedIn);
+
 // Routes
-
-// Apply verifyUser middleware with exclusions
 app.use("/", userRoutes);
-
-// Admin routes
 app.use("/admin", adminRoutes);
 
 // 404 handler (for non-existing routes)
@@ -90,12 +92,10 @@ app.use((err, req, res, next) => {
   }
 
   if (req.xhr || req.headers.accept.indexOf("json") > -1) {
-    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).render("500");
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal Server Error" });
   }
 
-  res
-    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-    .render("500", { message: "Internal Server Error" });
+  res.status(HttpStatus.INTERNAL_SERVER_ERROR).render("500", { message: "Internal Server Error" });
 });
 
 // Start server

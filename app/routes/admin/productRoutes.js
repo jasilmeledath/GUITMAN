@@ -10,7 +10,8 @@ router.get('/list-product', loadAdminPage.productList);
 router.get('/add-product', loadAdminPage.addProduct);
 router.post('/add-product', upload.array('files', 5), resizeImages, validateAddProduct, productController.addProduct);
 router.patch('/product-toggle-active/:id',productController.toggle)
-router.put('/edit-product/:id', upload.array('files', 5), productController.editProduct);
+router.get('/edit-product/:id', loadAdminPage.editProduct);
+router.put('/update-product/:id', upload.any(),resizeImages, productController.updateProduct);
 router.get('/product-details/:id', loadAdminPage.productDetails);
 
 router.get('/categories', loadAdminPage.categories);

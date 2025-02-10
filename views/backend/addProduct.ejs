@@ -117,6 +117,20 @@
                                 </div>
 
                                 <div class="mb-4">
+                                    <label class="form-check">
+                                        <input
+                                            id="publishCheckbox"
+                                            name="isTopModel"
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            value="false"
+                                            <%= formData && formData.isTopMode ? 'checked' : '' %>
+                                        />
+                                        <span class="form-check-label"> Top Model </span>
+                                    </label>
+                                </div>
+
+                                <div class="mb-4">
                                     <label class="form-label">Category</label>
                                     <select name="category" class="form-select">
                                         <% categories.forEach((category) => { %>
