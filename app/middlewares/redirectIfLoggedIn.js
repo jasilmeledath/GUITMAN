@@ -4,7 +4,7 @@ const User= require("../models/userModel");
 const Admin = require("../models/adminModel");
 
 const redirectIfUserLoggedIn = async(req, res, next) => {
-    
+
     const token = req.cookies.authToken;
 
     if (!token) {
@@ -33,7 +33,6 @@ const redirectIfUserLoggedIn = async(req, res, next) => {
     }
 };
 const redirectIfAdminLoggedIn = async(req, res, next) => {
-    
     const token = req.cookies.authToken;
 
     if (!token) {
@@ -48,8 +47,10 @@ const redirectIfAdminLoggedIn = async(req, res, next) => {
         const adminId = decoded.id;
         const isAdmin = await Admin.findById(adminId);
 
-        if (isAdmin && !req.path.includes('admin')) {
+        if (isAdmin && !req.path.includes('admin') ) {
             return res.redirect('/admin/dashboard'); 
+        }else if(req.path == '/admin/login'){
+            return res.redirect('/admin/dashboard');  
         }
 
         return next(); 

@@ -176,12 +176,12 @@ const userAuth = {
         });
       }
 
-      // Check if the user exists and is verified
+      // Check if the user exists 
       const user = await User.findOne({ email });
-      if (!user || !user.isVerified) {
+      if (!user) {
         return res.status(404).json({
           success: false,
-          errors: { email: "User not found or not verified." },
+          errors: { email: "User not found or not found." },
         });
       }
 

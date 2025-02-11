@@ -1,38 +1,113 @@
 const generateSignupEmail = (first_name, otp) => {
+    const validityMinutes = 3;
+    const supportEmail = process.env.SUPPORT_EMAIL || 'support@guitman.com';
+    
     return {
-        subject: "Action Required: Verify Your Email to Join the GuitMan Community 🎸",
-        text: `Hi ${first_name},
+        subject: "Verify Your Email Address - GuitMan",
+        text: `Dear ${first_name},
 
-Welcome to GuitMan, the ultimate destination for guitar enthusiasts! 🎶
+Welcome to GuitMan - Your Premier Guitar Community!
 
-To complete your registration and unlock all the amazing features GuitMan has to offer, please verify your email address by using the One-Time Password (OTP) below:
+To ensure the security of your account and complete your registration, please verify your email address using the following One-Time Password (OTP):
 
-🎟️ Your OTP Code: ${otp}
+Your Verification Code: ${otp}
 
-⚠️ This code is valid for the next 2 minutes. Please do not share it with anyone for security purposes. 
+Important Security Information:
+• This code will expire in ${validityMinutes} minutes
+• It can only be used once
+• Never share this code with anyone
+• Our team will never ask for this code
 
-If you did not sign up for GuitMan, kindly ignore this email.
+If you did not attempt to create an account with GuitMan, please disregard this email and contact our support team at ${supportEmail}.
 
-Need assistance? We're here to help! Feel free to contact our support team at any time.
+What's Next?
+Once verified, you'll gain access to:
+• Expert guitar tutorials and lessons
+• Exclusive community forums
+• Gear reviews and recommendations
+• Special member-only events
 
-Thank you for joining our vibrant community of guitar lovers. We’re thrilled to have you onboard!
+Need assistance? Our support team is available 24/7 at ${supportEmail}.
 
-Rock on! 🤘  
-The GuitMan Team  
-        `,
-        html: `<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <h2 style="color: #4CAF50;">Welcome to GuitMan, ${first_name}! 🎸</h2>
-            <p>Thank you for signing up with <strong>GuitMan</strong>, the ultimate destination for guitar enthusiasts!</p>
-            <p>To complete your registration and unlock all the amazing features we offer, please verify your email address by using the One-Time Password (OTP) below:</p>
-            <p style="font-size: 1.5em; font-weight: bold; color: #4CAF50;">🎟️ Your OTP Code: <span style="color: #000;">${otp}</span></p>
-            <p><strong>⚠️ Note:</strong> This code is valid for the next <strong>10 minutes</strong>. For your security, please do not share this code with anyone.</p>
-            <hr>
-            <p>If you didn’t sign up for GuitMan, you can safely ignore this email.</p>
-            <p>Need help? Feel free to <a href="mailto:${process.env.EMAIL}" style="color: #4CAF50; text-decoration: none;">contact us</a>. We're here for you!</p>
-            <p style="margin-top: 20px;">Thank you for joining our vibrant community of guitar lovers. We're thrilled to have you onboard!</p>
-            <p style="font-size: 1.2em; font-weight: bold;">Rock on! 🤘</p>
-            <p style="color: #4CAF50;">- The GuitMan Team</p>
-        </div>`
+Thank you for choosing GuitMan. We look forward to helping you on your musical journey.
+
+Best regards,
+The GuitMan Team
+
+This is an automated message. Please do not reply directly to this email.`,
+        html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to GuitMan</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333333; background-color: #f9f9f9;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <!-- Header -->
+        <div style="text-align: center; padding: 20px 0; border-bottom: 2px solid #f0f0f0;">
+            <h1 style="color: #2C3E50; margin: 0; font-size: 24px;">Welcome to GuitMan</h1>
+            <p style="color: #7F8C8D; margin: 10px 0 0;">Your Premier Guitar Community</p>
+        </div>
+
+        <!-- Main Content -->
+        <div style="padding: 30px 0;">
+            <p style="margin-bottom: 20px;">Dear ${first_name},</p>
+            
+            <p>Thank you for joining GuitMan. To complete your registration and secure your account, please verify your email address using the verification code below:</p>
+            
+            <!-- OTP Section -->
+            <div style="background-color: #F8F9FA; border-radius: 6px; padding: 20px; margin: 25px 0; text-align: center;">
+                <p style="font-size: 14px; color: #666; margin: 0 0 10px;">Your Verification Code:</p>
+                <div style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #2C3E50; font-family: monospace;">
+                    ${otp}
+                </div>
+                <p style="font-size: 13px; color: #666; margin: 10px 0 0;">
+                    This code will expire in ${validityMinutes} minutes
+                </p>
+            </div>
+
+            <!-- Security Notice -->
+            <div style="background-color: #FFF3E0; border-left: 4px solid #FF9800; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; font-size: 14px; color: #E65100;">
+                    <strong>Security Notice:</strong><br>
+                    • Never share this code with anyone<br>
+                    • GuitMan will never ask for this code via email or phone<br>
+                    • If you didn't request this code, please ignore this email
+                </p>
+            </div>
+
+            <!-- Features Section -->
+            <div style="margin: 30px 0;">
+                <h3 style="color: #2C3E50; font-size: 18px;">What's Next?</h3>
+                <p>Once verified, you'll unlock access to:</p>
+                <ul style="color: #555; padding-left: 20px;">
+                    <li>Expert guitar tutorials and lessons</li>
+                    <li>Exclusive community forums</li>
+                    <li>Gear reviews and recommendations</li>
+                    <li>Special member-only events</li>
+                </ul>
+            </div>
+
+            <!-- Support Section -->
+            <div style="margin: 30px 0; text-align: center;">
+                <p style="color: #666;">Need help? Our support team is here for you:</p>
+                <a href="mailto:${supportEmail}" style="color: #3498DB; text-decoration: none;">${supportEmail}</a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; padding-top: 20px; border-top: 2px solid #f0f0f0; color: #999; font-size: 12px;">
+            <p>This is an automated message. Please do not reply directly to this email.</p>
+            <p style="margin-top: 10px;">
+                &copy; ${new Date().getFullYear()} GuitMan. All rights reserved.<br>
+                [Company Address]
+            </p>
+        </div>
+    </div>
+</body>
+</html>`
     };
 };
 

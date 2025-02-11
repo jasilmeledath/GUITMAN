@@ -2,6 +2,8 @@ const multer = require("multer");
 const path = require("path");
 const sharp = require("sharp");
 const fs = require("fs");
+const {status} = require("http-status")
+
 
 // Resolve the project root directory
 const rootDir = path.resolve(__dirname, "../../");
@@ -93,7 +95,7 @@ const resizeImages = async (req, res, next) => {
     next();
   } catch (error) {
     console.error("Error resizing images:", error);
-    res.status(500).json({ message: "Error processing images." });
+    res.status(status.INTERNAL_SERVER_ERROR).render('500');
   }
 };
 

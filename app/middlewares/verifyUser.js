@@ -7,7 +7,7 @@ const verifyUser = async (req, res, next) => {
   
 
   if (!token) {
-    return res.status(401).redirect('/'); 
+    return res.status(401).redirect('/login'); 
   }
 
   try {
