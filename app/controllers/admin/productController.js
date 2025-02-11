@@ -1,7 +1,7 @@
 const Product = require("../../models/productModel");
 const Category = require("../../models/categoryModel");
 const Offer = require("../../models/offerModel");
-const httpStatus = require("../../utils/httpStatus");
+const {status} = require("http-status")
 
 const productController = {
   addProduct: async (req, res, next) => {
@@ -26,7 +26,7 @@ const productController = {
       // Save to the database
       await newProduct.save();
   
-      res.status(httpStatus.CREATED).redirect ('/admin/dashboard/product/product-list');
+      res.status(status.CREATED).redirect ('/admin/dashboard/product/product-list');
     } catch (err) {
       next(err);
     }
@@ -38,7 +38,7 @@ const productController = {
       // Convert req.body.isActive to boolean if necessary
       const isActive = req.body.isActive === true || req.body.isActive === 'true';
       await Product.findByIdAndUpdate(productId, { isActive });
-      res.status(200).json({ success: true, isActive });
+      res.status(status.OK).json({ success: true, isActive });
     } catch (error) {
       next(error);
     }
@@ -48,7 +48,7 @@ const productController = {
       const productId = req.params.id;
       let product = await Product.findById(productId);
       if (!product) {
-        return res.status(404).json({ message: 'Product not found' });
+        return res.status(status.NOT_FOUND).json({ message: 'Product not found' });
       }
   
       // Update text/number fields if they are provided
@@ -81,10 +81,10 @@ const productController = {
       // Save the updated product
       await product.save();
   
-      res.status(200).json({ message: 'Product updated successfully', product });
+      res.status(status.OK).json({ message: 'Product updated successfully', product });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ message: 'Server error while updating the product' });
+      res.status(status.INTERNAL_SERVER_ERROR).json({ message: 'Server error while updating the product' });
     }
   },
   deleteProduct: async (req, res) => {
@@ -92,11 +92,11 @@ const productController = {
       const productId = req.params.id;
       await Product.findByIdAndUpdate(productId, { isActive: false });
       res
-        .status(200)
+        .status(status.OK)
         .json({ success: true, message: "Product deleted successfully" });
     } catch (error) {
       console.error("Error deleting product:", error);
-      res.status(500).send("Internel Server Error");
+      res.status(status.INTERNAL_SERVER_ERROR).send("Internel Server Error");
     }
   },
   addCategory: async (req, res) => {

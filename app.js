@@ -13,7 +13,7 @@ const userRoutes = require("./app/routes/user/userRoutes");
 const adminRoutes = require("./app/routes/admin/adminRoutes");
 const connectDatabase = require("./app/config/database");
 const { redirectIfAdminLoggedIn } = require("./app/middlewares/redirectIfLoggedIn");
-const HttpStatus = require("./app/utils/httpStatus");
+const {status} = require("http-status")
 const User = require('./app/models/userModel');
 const Admin = require('./app/models/adminModel');
 
@@ -74,10 +74,10 @@ app.use(async (req, res) => {
       admin = await Admin.findById(id) || null;
     }
 
-    res.status(HttpStatus.NOT_FOUND).render("404", { user, admin });
+    res.status(status.NOT_FOUND).render("404", { user, admin });
   } catch (error) {
     console.error("Error in 404 handler:", error.message);
-    res.status(HttpStatus.NOT_FOUND).render("404", { user: null, admin: null });
+    res.status(status.NOT_FOUND).render("404", { user: null, admin: null });
   }
 });
 
@@ -86,16 +86,16 @@ app.use((err, req, res, next) => {
   console.error("Error:", err.stack);
 
   if (err.code === "LIMIT_FILE_SIZE") {
-    return res.status(HttpStatus.BAD_REQUEST).render("500", {
+    return res.status(status.BAD_REQUEST).render("500", {
       message: "File too large. Please upload smaller files.",
     });
   }
 
   if (req.xhr || req.headers.accept.indexOf("json") > -1) {
-    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal Server Error" });
+    return res.status(status.INTERNAL_SERVER_ERROR).json({ message: "Internal Server Error" });
   }
 
-  res.status(HttpStatus.INTERNAL_SERVER_ERROR).render("500", { message: "Internal Server Error" });
+  res.status(status.INTERNAL_SERVER_ERROR).render("500", { message: "Internal Server Error" });
 });
 
 // Start server

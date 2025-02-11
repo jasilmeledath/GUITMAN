@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const tokenBlacklist = require('../utils/tokenBlacklist');
 const User = require("../models/userModel");
 
+
 const verifyUser = async (req, res, next) => {
   const token = req.cookies.authToken;
   
