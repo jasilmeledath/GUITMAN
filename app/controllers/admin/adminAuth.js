@@ -3,7 +3,8 @@ const Admin = require("../../models/adminModel");
 const bcrypt = require("bcrypt");
 const tokenBlacklist = require("../../utils/tokenBlacklist");
 const { adminErrors } = require("../../utils/errorMessages");
-const {status} = require("http-status");
+const HttpStatus = require("../../utils/httpStatus");
+
 const adminAuth = {
   /**
    * Handles admin login authentication.
@@ -25,7 +26,7 @@ const adminAuth = {
       const admin = await Admin.findOne({ email });
       if (!admin) {
         return res
-          .status(status.NOT_FOUND)
+          .status(HttpStatus.NOT_FOUND)
           .render("backend/adminLogin", {
             error: adminErrors.login.adminNotFound, // Display error message if admin not found
           });
@@ -35,7 +36,7 @@ const adminAuth = {
       const isMatch = await bcrypt.compare(password, admin.password);
       if (!isMatch) {
         return res
-          .status(status.BAD_REQUEST)
+          .status(HttpStatus.BAD_REQUEST)
           .render("backend/adminLogin", {
             error: adminErrors.login.invalidCredentials, // Display invalid credentials error
           });
@@ -85,7 +86,7 @@ const adminAuth = {
       res.clearCookie("authToken");
 
       // Redirect the admin to the login page after logout
-      return res.status(status.OK).redirect("/admin/login");
+      return res.status(HttpStatus.OK).redirect("/admin/login");
     } catch (err) {
       next(err); // Pass error to global error handler middleware
     }

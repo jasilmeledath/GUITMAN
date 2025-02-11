@@ -3,23 +3,23 @@ const User = require("../../models/userModel");
 const Address = require("../../models/addressModel");
 const Offer = require("../../models/offerModel");
 const Product = require("../../models/productModel");
-const {status} = require("http-status")
+const httpStatus = require("../../utils/httpStatus");
 const { adminErrors } = require("../../utils/errorMessages");
-const { log } = require("console");
+
 
 const loadAdminPage = {
   /**
    * Renders the admin login page.
    */
   login: (req, res) => {
-    res.status(status.OK).render("backend/adminLogin");
+    res.status(httpStatus.OK).render("backend/adminLogin");
   },
 
   /**
    * Renders the admin dashboard page.
    */
   dashboard: (req, res) => {
-    res.status(status.OK).render("backend/dashboard");
+    res.status(httpStatus.OK).render("backend/dashboard");
   },
 
   /**
@@ -56,7 +56,7 @@ const loadAdminPage = {
         .skip((page - 1) * limit)
         .limit(Number(limit));
 
-      res.status(status.OK).render("backend/userList", {
+      res.status(httpStatus.OK).render("backend/userList", {
         users,
         currentPage: Number(page),
         totalPages,
@@ -73,7 +73,7 @@ const loadAdminPage = {
    * Renders the user cards view.
    */
   userCards: (req, res) => {
-    res.status(status.OK).render("backend/userCards");
+    res.status(httpStatus.OK).render("backend/userCards");
   },
 
   /**
@@ -93,7 +93,7 @@ const loadAdminPage = {
 
       if (!user) {
         return res
-          .status(status.NOT_FOUND)
+          .status(httpStatus.NOT_FOUND)
           .render("404", { message: adminErrors.userManagement.userNotFound });
       }
 
@@ -117,7 +117,7 @@ const loadAdminPage = {
   loadOffers: async (req, res, next) => {
     try {
       const offers = await Offer.find({});
-      res.status(status.OK).render("backend/offers", { offers });
+      res.status(httpStatus.OK).render("backend/offers", { offers });
     } catch (err) {
       next(err);
     }
@@ -214,11 +214,11 @@ const loadAdminPage = {
 
       if (!product) {
         return res
-          .status(status.NOT_FOUND)
+          .status(httpStatus.NOT_FOUND)
           .render("404", { message: adminErrors.productManagement.productNotFound });
       }
 
-      res.status(status.OK).render("backend/productDetails", { product, user });
+      res.status(httpStatus.OK).render("backend/productDetails", { product, user });
     } catch (err) {
       next(err);
     }
@@ -242,7 +242,7 @@ const loadAdminPage = {
   
       const categories = await Category.find({});
       const offers = await Offer.find({});
-      res.status(status.OK).render("backend/addProduct", {
+      res.status(200).render("backend/addProduct", {
         categories,
         offers,
         formData,
@@ -261,7 +261,7 @@ const loadAdminPage = {
           .populate('offer');
           
         if (!product) {
-          return res.status(status.NOT_FOUND).send("Product not found");
+          return res.status(404).send("Product not found");
         }
     
         // Fetch all categories and offers for the select dropdowns in the form
@@ -272,7 +272,7 @@ const loadAdminPage = {
         res.render('backend/editProduct', { product, categories, offers });
       } catch (error) {
         console.error("Error loading edit product page:", error);
-        res.status(status.NOT_FOUND).send("Server error");
+        res.status(500).send("Server error");
       }
     },
 
@@ -282,7 +282,8 @@ const loadAdminPage = {
   categories: async (req, res, next) => {
     try {
       const categories = await Category.find({});
-      res.status(status.OK).render("backend/categories", { categories });
+      const error = null;
+      res.status(httpStatus.OK).render("backend/categories", { categories, error:error });
     } catch (err) {
       next(err);
     }
@@ -294,7 +295,7 @@ const loadAdminPage = {
   offers: async (req, res, next) => {
     try {
       const offers = await Offer.find({});
-      res.status(status.OK).render("backend/offers", { offers });
+      res.status(httpStatus.OK).render("backend/offers", { offers });
     } catch (err) {
       next(err);
     }

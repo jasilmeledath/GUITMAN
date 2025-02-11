@@ -1,36 +1,38 @@
 const Product = require("../../models/productModel");
 const Category = require("../../models/categoryModel");
 const Offer = require("../../models/offerModel");
-const {status} = require("http-status")
+const httpStatus = require("../../utils/httpStatus");
 
 const productController = {
   addProduct: async (req, res, next) => {
-  
     try {
-      const { product_name, description, price, category, offer, isActive, stock, isTopModel } = req.body;
-      const images = req.body.images; 
-  
-      // Create a new product
-      const newProduct = new Product({
-        product_name,
-        description,
-        price,
-        stock: stock || 0, // Set default stock to 0 (if not provided)
-        images,
-        category,
-        offer: offer || null,
-        isActive: isActive === "true",
-        isTopModel: isTopModel === "true" 
-      });
-  
-      // Save to the database
-      await newProduct.save();
-  
-      res.status(status.CREATED).redirect ('/admin/dashboard/product/product-list');
+        const { product_name, description, price, category, offer, isActive, stock } = req.body;
+        const images = req.body.images; 
+
+        // Checkbox handling
+        const isTopModel = req.body.isTopModel === "on";
+        const isActiveParsed = req.body.isActive === "on";
+
+        // Create a new product
+        const newProduct = new Product({
+            product_name,
+            description,
+            price,
+            stock: stock || 0, // Set default stock to 0 (if not provided)
+            images,
+            category,
+            offer: offer || null,
+            isActive: isActiveParsed,
+            isTopModel,
+        });
+
+        // Save to the database
+        await newProduct.save();
+        res.status(httpStatus.CREATED).redirect('/admin/dashboard/product/list-product');
     } catch (err) {
-      next(err);
+        next(err);
     }
-  },
+},
 
   toggle: async (req, res, next) => {
     try {
@@ -38,7 +40,7 @@ const productController = {
       // Convert req.body.isActive to boolean if necessary
       const isActive = req.body.isActive === true || req.body.isActive === 'true';
       await Product.findByIdAndUpdate(productId, { isActive });
-      res.status(status.OK).json({ success: true, isActive });
+      res.status(200).json({ success: true, isActive });
     } catch (error) {
       next(error);
     }
@@ -48,7 +50,7 @@ const productController = {
       const productId = req.params.id;
       let product = await Product.findById(productId);
       if (!product) {
-        return res.status(status.NOT_FOUND).json({ message: 'Product not found' });
+        return res.status(404).json({ message: 'Product not found' });
       }
   
       // Update text/number fields if they are provided
@@ -81,10 +83,10 @@ const productController = {
       // Save the updated product
       await product.save();
   
-      res.status(status.OK).json({ message: 'Product updated successfully', product });
+      res.status(200).json({ message: 'Product updated successfully', product });
     } catch (err) {
       console.error(err);
-      res.status(status.INTERNAL_SERVER_ERROR).json({ message: 'Server error while updating the product' });
+      res.status(500).json({ message: 'Server error while updating the product' });
     }
   },
   deleteProduct: async (req, res) => {
@@ -92,11 +94,11 @@ const productController = {
       const productId = req.params.id;
       await Product.findByIdAndUpdate(productId, { isActive: false });
       res
-        .status(status.OK)
+        .status(200)
         .json({ success: true, message: "Product deleted successfully" });
     } catch (error) {
       console.error("Error deleting product:", error);
-      res.status(status.INTERNAL_SERVER_ERROR).send("Internel Server Error");
+      res.status(500).send("Internel Server Error");
     }
   },
   addCategory: async (req, res) => {
@@ -104,31 +106,42 @@ const productController = {
       const { name, description } = req.body;
       const image = req.file; // Get the uploaded file
   
+      // Check if an image was uploaded
       if (!image) {
-        return res.status(400).send("No image was uploaded.");
+        return res.status(400).render("admin/dashboard/product/categories", {
+          error: "No image was uploaded."
+        });
       }
   
-      // Check if the category already exists
-      const existingCategory = await Category.findOne({ name });
+      const existingCategory = await Category.findOne({
+        name: { $regex: new RegExp("^" + name + "$", "i") }
+      });
       if (existingCategory) {
-        return res.status(400).send("Category with this name already exists.");
+
+        const categories = await Category.find();
+
+        return res.status(400).render("backend/categories", {
+          error: "Category with this name already exists.",
+          categories: categories,
+        });
       }
   
-      // Create a new category
       const category = new Category({
         name,
         description,
-        image: image.path // Store the image path
+        image: image.path 
       });
   
       await category.save();
       res.redirect("/admin/dashboard/product/categories");
     } catch (error) {
       console.error("Error adding category:", error);
-      res.status(500).send("Server error. Unable to add category.");
+      res.status(500).render("admin/dashboard/product/categories", {
+        error: "Server error. Unable to add category."
+      });
     }
   },
-
+  
   editCategory: async (req, res) => {
     try {
       const categoryId = req.params.id;
@@ -148,26 +161,60 @@ const productController = {
   },
 
   listCategory: async (req, res) => {
+    console.log("invoked listCategory");
+    
     try {
-      const id = req.params.id;
-      await Category.findByIdAndUpdate(id, { isBlocked: false });
-      res.redirect("/admin/dashboard/product/categories");
-    } catch (error) {
-      console.error("Error listing category:", error);
-      res.status(500).send("Internal Server Error");
-    }
-  },
+        const id = req.params.id;
+        const updatedCategory = await Category.findByIdAndUpdate(id, { isBlocked: false }, { new: true });
 
-  unlistCategory: async (req, res) => {
-    try {
-      const id = req.params.id;
-      await Category.findByIdAndUpdate(id, { isBlocked: true });
-      res.redirect("/admin/dashboard/product/categories");
+        if (!updatedCategory) {
+            return res.status(404).json({
+                success: false,
+                message: "Category not found",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Category listed successfully",
+            category: updatedCategory,
+        });
     } catch (error) {
-      console.error("Error unlisting category:", error);
-      res.status(500).send("Internal Server Error");
+        console.error("Error listing category:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
     }
-  },
+},
+
+unlistCategory: async (req, res) => {
+    console.log("invoked unlistCategory");
+
+    try {
+        const id = req.params.id;
+        const updatedCategory = await Category.findByIdAndUpdate(id, { isBlocked: true }, { new: true });
+
+        if (!updatedCategory) {
+            return res.status(404).json({
+                success: false,
+                message: "Category not found",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Category unlisted successfully",
+            category: updatedCategory,
+        });
+    } catch (error) {
+        console.error("Error unlisting category:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
+    }
+},
   addOffer: async (req, res) => {
     try {
       const { offer_type, offer_percentage, offer_price, expiry_date } =

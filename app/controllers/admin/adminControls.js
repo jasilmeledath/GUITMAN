@@ -1,5 +1,5 @@
 const User = require("../../models/userModel");
-const {status} = require("http-status")
+const HttpStatus = require("../../utils/httpStatus");
 
 const adminControls = {
   /**
@@ -26,13 +26,13 @@ const adminControls = {
       );
 
       if (!updatedUser) {
-        return res.status(status.NOT_FOUND).json({
+        return res.status(HttpStatus.NOT_FOUND).json({
           success: false,
           message: "User not found",
         });
       }
 
-      res.status(status.OK).json({
+      res.status(HttpStatus.OK).json({
         success: true,
         message: `User ${isActive ? "unblocked" : "blocked"} successfully`,
         isActive: updatedUser.isActive,
