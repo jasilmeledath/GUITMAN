@@ -4,7 +4,6 @@ const User= require("../models/userModel");
 const Admin = require("../models/adminModel");
 
 const redirectIfUserLoggedIn = async(req, res, next) => {
-
     const token = req.cookies.authToken;
 
     if (!token) {
@@ -20,7 +19,6 @@ const redirectIfUserLoggedIn = async(req, res, next) => {
         const isUser = await User.findById(userId);
 
         if (isUser && (req.path === '/login' || req.path === '/signup' || req.path === '/' || req.path.includes('admin'))) {    
-            
             return res.redirect('/home'); 
         }
 

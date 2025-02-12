@@ -30,49 +30,52 @@
             <div class="card">
                 <div class="card-body">
                     <div class="row">
+                        <!-- Create Category Form -->
                         <div class="col-md-3">
                             <form action="/admin/dashboard/product/add-category" method="POST" enctype="multipart/form-data">
                                 <div class="mb-4">
-                                  <label for="category_name" class="form-label">Category Name</label>
-                                  <input
-                                    type="text"
-                                    name="name"
-                                    placeholder="Type here"
-                                    class="form-control"
-                                    id="category_name"
-                                    required
-                                  />
-                                  <!-- Field to display validation error message for category name -->
-                                  <% if (error) { %>
-                                    <div id="nameError" class="text-danger mt-1"><%= error %></div>
-                                  <% } %>
+                                    <label for="category_name" class="form-label">Category Name</label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        placeholder="Type here"
+                                        class="form-control"
+                                        id="category_name"
+                                        required
+                                    />
+                                    <!-- Field to display validation error message for category name -->
+                                    <% if (error) { %>
+                                        <div id="nameError" class="text-danger mt-1"><%= error %></div>
+                                    <% } %>
                                 </div>
                                 <div class="mb-4">
-                                  <label class="form-label">Description</label>
-                                  <textarea
-                                    name="description"
-                                    placeholder="Type here"
-                                    class="form-control"
-                                    required
-                                  ></textarea>
+                                    <label class="form-label">Description</label>
+                                    <textarea
+                                        name="description"
+                                        placeholder="Type here"
+                                        class="form-control"
+                                        required
+                                    ></textarea>
                                 </div>
                                 <div class="mb-4">
-                                  <label for="category_image" class="form-label">Category Image</label>
-                                  <input
-                                    type="file"
-                                    name="image"
-                                    class="form-control"
-                                    id="category_image"
-                                    accept="image/*"
-                                    required
-                                  />
+                                    <label for="category_image" class="form-label">Category Image</label>
+                                    <input
+                                        type="file"
+                                        name="image"
+                                        class="form-control"
+                                        id="category_image"
+                                        accept="image/*"
+                                        required
+                                    />
+                                    <!-- Image preview container -->
+                                    <div id="imagePreview" class="mt-2"></div>
                                 </div>
                                 <div class="d-grid">
-                                  <button type="submit" class="btn btn-primary">Create Category</button>
+                                    <button type="submit" class="btn btn-primary">Create Category</button>
                                 </div>
-                              </form>
-                              
+                            </form>
                         </div>
+                        <!-- Categories Table -->
                         <div class="col-md-9">
                             <div class="table-responsive">
                                 <table class="table table-hover">
@@ -110,7 +113,14 @@
                                                 </td>
                                                 <td class="text-end">
                                                     <div class="flex items-center justify-end space-x-2">
-                                                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editCategoryModal" data-id="<%= category._id %>" data-name="<%= category.name %>" data-description="<%= category.description %>">
+                                                        <!-- Added data-image attribute -->
+                                                        <button class="btn btn-sm btn-outline-primary" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#editCategoryModal" 
+                                                                data-id="<%= category._id %>" 
+                                                                data-name="<%= category.name %>" 
+                                                                data-description="<%= category.description %>" 
+                                                                data-image="<%= category.image %>">
                                                             Edit
                                                         </button>
                                                         <label class="relative inline-flex items-center cursor-pointer">
@@ -143,6 +153,8 @@
                                 <div class="mb-3">
                                     <label for="edit-category-name" class="form-label">Category Name</label>
                                     <input type="text" class="form-control" id="edit-category-name" name="name" required>
+                                    <!-- Field to display validation error message for edit category name -->
+                                    <div id="editNameError" class="text-danger mt-1"></div>
                                 </div>
                                 <div class="mb-3">
                                     <label for="edit-category-description" class="form-label">Description</label>
@@ -188,10 +200,17 @@
             modal.find('#edit-category-id').val(id);
             modal.find('#edit-category-name').val(name);
             modal.find('#edit-category-description').val(description);
-            modal.find('#currentImagePreview').html(`<img src="/${image.replace('public/', '')}" alt="${name}" class="w-20 h-full object-cover rounded-full">`);
+            // Clear any previous error message
+            modal.find('#editNameError').text('');
+            // Only show preview if image data exists
+            if (image) {
+                modal.find('#currentImagePreview').html(`<img src="/${image.replace('public/', '')}" alt="${name}" class="w-20 h-full object-cover rounded-full">`);
+            } else {
+                modal.find('#currentImagePreview').html('');
+            }
         });
 
-        // Handle form submission via JavaScript
+        // Handle edit category form submission via JavaScript
         document.querySelector('#editCategoryForm').addEventListener('submit', async function (event) {
             event.preventDefault();
 
@@ -213,6 +232,8 @@
                     body: formData,
                 });
 
+                const result = await response.json();
+
                 if (response.ok) {
                     Swal.fire({
                         icon: 'success',
@@ -228,7 +249,12 @@
                         location.reload();
                     });
                 } else {
-                    throw new Error('Failed to update category');
+                    // If validation error, display message below the category name input in modal
+                    if(response.status === 400) {
+                        document.getElementById("editNameError").textContent = result.message;
+                    } else {
+                        throw new Error(result.message || 'Failed to update category');
+                    }
                 }
             } catch (error) {
                 console.error('Error updating category:', error);
@@ -285,7 +311,21 @@
                 });
             }
         }
+
+        // Image preview for the Create Category form
+        document.getElementById("category_image").addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            const previewContainer = document.getElementById("imagePreview");
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewContainer.innerHTML = `<img src="${e.target.result}" alt="Image Preview" class="w-32 h-32 object-cover rounded">`;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewContainer.innerHTML = "";
+            }
+        });
     </script>
 </body>
 </html>
-

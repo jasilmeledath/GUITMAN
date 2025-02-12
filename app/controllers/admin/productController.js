@@ -144,21 +144,31 @@ const productController = {
   
   editCategory: async (req, res) => {
     try {
-      const categoryId = req.params.id;
-      const { name, description } = req.body;
-      const image = req.file; // Get the uploaded file
-  
-      const updateFields = { name, description };
-      if (image) {
-        updateFields.image = `uploads/product-images/${image.filename}`; // Store the relative image path
-      }
-      await Category.findByIdAndUpdate(categoryId, updateFields);
-      res.status(200).json({ success: true, message: "Category edited successfully" });
+        const categoryId = req.params.id;
+        const { name, description } = req.body;
+        const image = req.file; // Get the uploaded file
+
+        // Validate if a category with the same name already exists (case-insensitive) and is not the current one
+        const existingCategory = await Category.findOne({
+            name: { $regex: new RegExp("^" + name + "$", "i") },
+            _id: { $ne: categoryId }
+        });
+        if (existingCategory) {
+            return res.status(400).json({ success: false, message: "Category with this name already exists." });
+        }
+
+        const updateFields = { name, description };
+        if (image) {
+            updateFields.image = `uploads/product-images/${image.filename}`; // Store the relative image path
+        }
+        await Category.findByIdAndUpdate(categoryId, updateFields);
+        res.status(200).json({ success: true, message: "Category edited successfully" });
     } catch (error) {
-      console.error("Error editing category:", error);
-      res.status(500).json({ success: false, message: "Internal Server Error" });
+        console.error("Error editing category:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
     }
-  },
+},
+
 
   listCategory: async (req, res) => {
     console.log("invoked listCategory");
