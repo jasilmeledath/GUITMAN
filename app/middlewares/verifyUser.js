@@ -5,12 +5,9 @@ const User = require("../models/userModel");
 
 const verifyUser = async (req, res, next) => {
   const token = req.cookies.authToken;
-  
-
   if (!token) {
     return res.status(401).redirect('/login'); 
   }
-
   try {
     if (tokenBlacklist.has(token)) {
       return res.status(401).json({ message: 'Access denied. Token is invalidated.' });

@@ -2,8 +2,7 @@ const multer = require("multer");
 const path = require("path");
 const sharp = require("sharp");
 const fs = require("fs");
-const {status} = require("http-status")
-
+const { status } = require("http-status");
 
 // Resolve the project root directory
 const rootDir = path.resolve(__dirname, "../../");
@@ -12,7 +11,6 @@ const rootDir = path.resolve(__dirname, "../../");
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let uploadPath;
-
     // Set the upload path based on the URL
     if (req.baseUrl.includes("category")) {
       uploadPath = path.join(rootDir, "public/uploads/category-images");
@@ -56,46 +54,52 @@ const resizeImages = async (req, res, next) => {
   }
 
   try {
-    const imagePromises = req.files.map(async (file) => {
+    const uploadType = req.baseUrl.includes("category") ? "category-images" : "product-images";
+    const resizedDir = path.join(rootDir, `public/uploads/${uploadType}`);
+
+    // Create the resized directory if it doesn't exist
+    if (!fs.existsSync(resizedDir)) {
+      fs.mkdirSync(resizedDir, { recursive: true });
+    }
+
+    const imagePromises = req.files.map(async (file, index) => {
       const timestamp = Date.now();
-      const resizedDir = path.join(
-        rootDir,
-        `public/uploads/${
-          req.baseUrl.includes("category") ? "category-images" : "product-images"
-        }`
-      );
+      let resizedFileName, resizedFilePath;
 
-      // Create resized directory if it doesn't exist
-      if (!fs.existsSync(resizedDir)) {
-        fs.mkdirSync(resizedDir, { recursive: true });
+      if (index === 0) {
+        // For the first image, resize by width only (preserving aspect ratio)
+        // so that the full image is visible in product cards.
+        resizedFileName = `original-${timestamp}-${file.originalname}`;
+        resizedFilePath = path.join(resizedDir, resizedFileName);
+
+        await sharp(file.path)
+          .resize({ width: 800, withoutEnlargement: true })
+          .jpeg({ quality: 90 })
+          .toFile(resizedFilePath);
+      } else {
+        // For all other images, use the current square cropping (800x800, cover)
+        resizedFileName = `resized-${timestamp}-${file.originalname}`;
+        resizedFilePath = path.join(resizedDir, resizedFileName);
+
+        await sharp(file.path)
+          .resize(800, 800, { fit: "cover" })
+          .jpeg({ quality: 90 })
+          .toFile(resizedFilePath);
       }
-
-      const resizedFilePath = path.join(
-        resizedDir,
-        `resized-${timestamp}-${file.originalname}`
-      );
-
-      // Resize the image and save it
-      await sharp(file.path)
-        .resize(800, 800, { fit: "cover" })
-        .jpeg({ quality: 90 })
-        .toFile(resizedFilePath);
 
       // Delete the original file after resizing
       fs.unlinkSync(file.path);
 
-      // Return the path for the resized file (excluding `public`)
-      return `uploads/${
-        req.baseUrl.includes("category") ? "category-images" : "product-images"
-      }/resized-${timestamp}-${file.originalname}`;
+      // Return the path for the resized file (excluding the "public" folder)
+      return `uploads/${uploadType}/${resizedFileName}`;
     });
 
-    // Collect all resized image paths
+    // Collect all resized image paths and attach them to req.body.images
     req.body.images = await Promise.all(imagePromises);
     next();
   } catch (error) {
     console.error("Error resizing images:", error);
-    res.status(status.INTERNAL_SERVER_ERROR).render('500');
+    res.status(status.INTERNAL_SERVER_ERROR).render("500");
   }
 };
 

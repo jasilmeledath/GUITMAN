@@ -13,16 +13,16 @@ const productController = {
         const isTopModel = req.body.isTopModel === "on";
         const isActiveParsed = req.body.isActive === "on";
 
-        // Create a new product
+
         const newProduct = new Product({
             product_name,
             description,
             price,
-            stock: stock || 0, // Set default stock to 0 (if not provided)
+            stock: stock || 0, 
             images,
             category,
             offer: offer || null,
-            isActive: isActiveParsed,
+            isActive: isActiveParsed || isActive,
             isTopModel,
         });
 
@@ -34,10 +34,9 @@ const productController = {
     }
 },
 
-  toggle: async (req, res, next) => {
+  productToggle: async (req, res, next) => {
     try {
       const productId = req.params.id;
-      // Convert req.body.isActive to boolean if necessary
       const isActive = req.body.isActive === true || req.body.isActive === 'true';
       await Product.findByIdAndUpdate(productId, { isActive });
       res.status(200).json({ success: true, isActive });
