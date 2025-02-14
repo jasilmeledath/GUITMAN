@@ -2,7 +2,7 @@ const multer = require("multer");
 const path = require("path");
 const sharp = require("sharp");
 const fs = require("fs");
-const { status } = require("http-status");
+const httpStatus = require('../utils/httpStatus');
 
 // Resolve the project root directory
 const rootDir = path.resolve(__dirname, "../../");
@@ -97,9 +97,9 @@ const resizeImages = async (req, res, next) => {
     // Collect all resized image paths and attach them to req.body.images
     req.body.images = await Promise.all(imagePromises);
     next();
-  } catch (error) {
-    console.error("Error resizing images:", error);
-    res.status(status.INTERNAL_SERVER_ERROR).render("500");
+  } catch (err) {
+    console.error("Error resizing images:", err);
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).render("500");
   }
 };
 

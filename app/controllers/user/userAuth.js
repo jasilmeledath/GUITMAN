@@ -12,6 +12,8 @@ const {
   generateToken,
 } = require("../../services/authService");
 const { sendEmail } = require("../../services/emailService");
+const httpStatus = require("../../utils/httpStatus");
+const {userErrors, userSuccess}= require("../../utils/messages");
 
 
 const userAuth = {
@@ -21,7 +23,6 @@ const userAuth = {
       const { first_name, last_name, email, password, confirm_password } =
         req.body;
 
-      // Validate input
       const { isValid, errors } = validateSignup({
         first_name,
         last_name,
@@ -31,19 +32,18 @@ const userAuth = {
       });
 
       if (!isValid) {
-        return res.status(400).json({ success: false, errors });
+        return res.status(httpStatus.BAD_REQUEST).json({ success: false, errors });
       }
 
       let user = await User.findOne({ email });
 
       if (user && user.isVerified) {
-        return res.status(400).json({
+        return res.status(http).json({
           success: false,
-          errors: { email: "User already exists with this email." },
+          errors: { email: userErrors.login.alreadyExisting },
         });
       }
 
-      // Generate OTP and hash password
       const { otp, otpExpires } = createOtp();
       const hashedPassword = await hashPassword(password);
 
@@ -66,10 +66,8 @@ const userAuth = {
 
       await user.save();
 
-      // Generate email content
       const emailContent = generateSignupEmail(first_name, otp);
 
-      // Send OTP email
       await sendEmail(
         email,
         emailContent.subject,
@@ -77,13 +75,9 @@ const userAuth = {
         emailContent.html
       );
 
-      res.status(200).json({ success: true, email });
-    } catch (error) {
-      console.error("Signup Error:", error);
-      res.status(500).json({
-        success: false,
-        error: "An error occurred during signup. Please try again.",
-      });
+      res.status(httpStatus.OK).json({ success: true, email });
+    } catch (err) {
+      next(err);
     }
   },
 
@@ -107,7 +101,7 @@ const userAuth = {
       if (!user || user.otp !== otp || user.otpExpires < new Date()) {
         return res
           .status(400)
-          .json({ success: false, error: "Invalid or expired OTP." });
+          .json({ success: false, error: userErrors.registration.otpMismatch });
       }
 
       await User.updateOne(
@@ -117,13 +111,10 @@ const userAuth = {
 
       return res
         .status(200)
-        .json({ success: true, message: "OTP verified successfully." });
-    } catch (error) {
-      console.error("Error during OTP verification:", error);
-      return res
-        .status(500)
-        .json({ success: false, error: "An unexpected error occurred." });
-    }
+        .json({ success: true, message: userSuccess.registration.otpVerified});
+      } catch (err) {
+        next(err);
+      }
   },
 
   resendOtp: async (req, res) => {
@@ -135,7 +126,7 @@ const userAuth = {
       if (!user) {
         return res
           .status(404)
-          .json({ success: false, error: "User not found." });
+          .json({ success: false, error: userErrors.login.userNotFound});
       }
 
       const { otp: newOtp, otpExpires } = createOtp();
@@ -155,13 +146,10 @@ const userAuth = {
 
       return res.status(200).json({
         success: true,
-        message: "A new OTP has been sent to your email.",
+        message: userSuccess.registration.otpResent,
       });
-    } catch (error) {
-      console.error("Error during resend OTP:", error);
-      return res
-        .status(500)
-        .json({ success: false, error: "An unexpected error occurred." });
+    } catch (err) {
+      next(err);
     }
   },
   login: async (req, res) => {
@@ -172,7 +160,7 @@ const userAuth = {
       if (!email || !password) {
         return res.status(400).json({
           success: false,
-          errors: { general: "Email and password are required." },
+          errors: { general: userErrors.general.missingCredentials},
         });
       }
 
@@ -181,7 +169,7 @@ const userAuth = {
       if (!user) {
         return res.status(404).json({
           success: false,
-          errors: { email: "User not found or not found." },
+          errors: { email: userErrors.login.userNotFound },
         });
       }
 
@@ -190,7 +178,7 @@ const userAuth = {
         return res.status(403).json({
           success: false,
           errors: {
-            general: "Your account has been blocked. Please contact support.",
+            general: userErrors.profile.unauthorized,
           },
         });
       }
@@ -200,7 +188,7 @@ const userAuth = {
       if (!isPasswordValid) {
         return res.status(401).json({
           success: false,
-          errors: { password: "Invalid credentials." },
+          errors: { password: userErrors.login.invalidCredentials },
         });
       }
 
@@ -217,7 +205,7 @@ const userAuth = {
 
       return res.status(200).json({
         success: true,
-        message: "Login successful",
+        message: userSuccess.login.loginSuccess,
         user: {
           id: user._id,
           first_name: user.first_name,
@@ -226,12 +214,8 @@ const userAuth = {
         },
         redirect: "/home",
       });
-    } catch (error) {
-      console.error("Login Error:", error);
-      return res.status(500).json({
-        success: false,
-        errors: { general: "Something went wrong. Please try again later." },
-      });
+    } catch (err) {
+      next(err);
     }
   },
   submitReview: async (req, res) => {
@@ -263,18 +247,21 @@ const userAuth = {
 
       // Redirect or send a response
       res.redirect("/product-details/" + productId);
-    } catch (error) {
-      console.error("Error submitting review:", error);
-      res.status(500).send("Error submitting review");
+    } catch (err) {
+      next(err);
     }
   },
   logout: (req, res) => {
-    const token = req.cookies.authToken;
+    try{
+      const token = req.cookies.authToken;
     if (token) {
-      tokenBlacklist.add(token); // Add token to the blacklist
+      tokenBlacklist.add(token); 
     }
-    res.clearCookie("authToken"); // Clear the authToken cookie
+    res.clearCookie("authToken"); 
     return res.status(200).redirect("/login");
+    }catch(err){
+      next(err);
+    }
   },
 };
 

@@ -3,20 +3,39 @@ const Category = require("../../models/categoryModel");
 const Review = require("../../models/reviewModel");
 const Coupon = require("../../models/couponModel");
 const User = require("../../models/userModel");
-const loadPages = {
-  landing:async (req, res) => {
-    try {
-        const categories = await Category.find({isBlocked:false});
-        
-        const products = await Product.find({ isTopModel: true });
-        res.render('frontend/landing', { products, categories, currentRoute: req.path, user: req.user || null });
-    } catch (error) {
-        console.error("Error fetching products:", error);
-        res.status(500).send("Internal Server Error");
-    }
-},
+const httpStatus = require("../../utils/httpStatus");
 
-  login: (req, res) => {
+const loadPages = {
+  /**
+   * Renders the landing page with active categories and top model products.
+   *
+   * @param {Object} req - Express request object containing path and user data.
+   * @param {Object} res - Express response object used to render the landing page.
+   * @param {Function} next - Express next middleware function for error handling.
+   */
+  landing: async (req, res, next) => {
+    try {
+      const categories = await Category.find({ isBlocked: false });
+      const products = await Product.find({ isTopModel: true });
+      res.status(httpStatus.OK).render('frontend/landing', {
+        products,
+        categories,
+        currentRoute: req.path,
+        user: req.user || null
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /**
+   * Renders the login page.
+   *
+   * @param {Object} req - Express request object.
+   * @param {Object} res - Express response object used to render the login page.
+   * @param {Function} next - Express next middleware function (not used here).
+   */
+  login: (req, res, next) => {
     res.render("frontend/login", {
       email: "",
       errors: {},
@@ -24,7 +43,15 @@ const loadPages = {
       currentRoute: req.path,
     });
   },
-  signup: (req, res) => {
+
+  /**
+   * Renders the signup page.
+   *
+   * @param {Object} req - Express request object.
+   * @param {Object} res - Express response object used to render the signup page.
+   * @param {Function} next - Express next middleware function (not used here).
+   */
+  signup: (req, res, next) => {
     res.render("frontend/signup", {
       error: null,
       otpError: null,
@@ -34,7 +61,15 @@ const loadPages = {
       currentRoute: req.path,
     });
   },
-  home: async (req, res) => {
+
+  /**
+   * Renders the home page, similar to the landing page, with active categories and top model products.
+   *
+   * @param {Object} req - Express request object containing path and user data.
+   * @param {Object} res - Express response object used to render the home page.
+   * @param {Function} next - Express next middleware function for error handling.
+   */
+  home: async (req, res, next) => {
     try {
       const categories = await Category.find({ isBlocked: false });
       const products = await Product.find({ isTopModel: true });
@@ -44,12 +79,19 @@ const loadPages = {
         currentRoute: req.path,
         user: req.user || null,
       });
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      res.status(500).send("Internal Server Error");
+    } catch (err) {
+      next(err);
     }
   },
-  loadShop: async (req, res) => {
+
+  /**
+   * Renders the shop page with products filtered, sorted, and paginated based on query parameters.
+   *
+   * @param {Object} req - Express request object containing query parameters for filtering, sorting, and pagination.
+   * @param {Object} res - Express response object used to render the shop page.
+   * @param {Function} next - Express next middleware function for error handling.
+   */
+  loadShop: async (req, res, next) => {
     try {
       const {
         page = 1,
@@ -62,13 +104,13 @@ const loadPages = {
         maxPrice = 100000,
       } = req.query;
 
-      // Build filter object
+      // Build filter object for product search based on price and active status.
       const filter = {
         price: { $gte: Number(minPrice), $lte: Number(maxPrice) },
         isActive: true,
       };
 
-      // Category filter
+      // Apply category filter if provided.
       if (category !== "all") {
         const categoryDoc = await Category.findOne({
           name: { $regex: new RegExp(`^${category}$`, "i") },
@@ -76,8 +118,6 @@ const loadPages = {
         });
 
         if (!categoryDoc) {
-          console.log("user", req.user);
-
           return res.render("frontend/shop", {
             products: [],
             categories: await Category.find({ isBlocked: false }, "name"),
@@ -96,7 +136,7 @@ const loadPages = {
         filter.category = categoryDoc._id;
       }
 
-      // Search filter
+      // Apply search filter if provided.
       if (search) {
         filter.$or = [
           { product_name: { $regex: search, $options: "i" } },
@@ -104,10 +144,10 @@ const loadPages = {
         ];
       }
 
-      // Sorting configuration
+      // Set sorting options based on query parameters.
       const sortOption = { [sort]: order === "asc" ? 1 : -1 };
 
-      // Pagination calculation
+      // Calculate pagination values.
       const skip = (page - 1) * limit;
       const countPromise = Product.countDocuments(filter);
       const productsPromise = Product.find(filter)
@@ -117,13 +157,8 @@ const loadPages = {
         .limit(Number(limit))
         .lean();
 
-      const [totalProducts, products] = await Promise.all([
-        countPromise,
-        productsPromise,
-      ]);
-
+      const [totalProducts, products] = await Promise.all([countPromise, productsPromise]);
       const totalPages = Math.ceil(totalProducts / limit);
-
       const breadcrumbs = [{ label: "Shop", url: "/shop" }];
 
       res.render("frontend/shop", {
@@ -141,34 +176,41 @@ const loadPages = {
         maxPrice: Number(maxPrice),
         user: req.user || null,
       });
-    } catch (error) {
-      console.error("Error loading shop:", error);
-      res.status(500).render("error/500");
+    } catch (err) {
+      next(err);
     }
   },
-  loadProductDetails: async (req, res) => {
+
+  /**
+   * Renders the product details page.
+   * - Retrieves product details, reviews, related products, and active coupons.
+   * - Computes the average rating and rating distribution.
+   *
+   * @param {Object} req - Express request object containing the product ID in parameters.
+   * @param {Object} res - Express response object used to render the product details page.
+   * @param {Function} next - Express next middleware function for error handling.
+   */
+  loadProductDetails: async (req, res, next) => {
     try {
       const productId = req.params.id;
-
       const product = await Product.findById(productId)
         .populate("category")
         .populate("offer")
         .lean();
 
+      if (!product) {
+        return res.status(httpStatus.NOT_FOUND).send("Product not found");
+      }
+
       const reviews = await Review.find({ product: productId })
-        .populate("user", "first_name") // Ensure you get first_name from the User model
+        .populate("user", "first_name")
         .lean();
 
-      // Calculate average rating
-      const avgRating =
-        reviews.reduce((acc, review) => acc + review.rating, 0) /
-          reviews.length || 0;
+      const avgRating = reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length || 0;
 
-      // Calculate rating distribution
       const ratingCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
       reviews.forEach((review) => ratingCounts[review.rating]++);
 
-      // Get related products (same category)
       const relatedProducts = await Product.find({
         category: product.category._id,
         _id: { $ne: productId },
@@ -176,26 +218,16 @@ const loadPages = {
         .limit(3)
         .lean();
 
-      // Get valid coupons
       const coupons = await Coupon.find({
         expire_date: { $gt: new Date() },
       }).lean();
 
-      if (!product) {
-        return res.status(404).send("Product not found");
-      }
       const breadcrumbs = [
         { label: "Shop", url: "/shop" },
-        {
-          label: product.category.name,
-          url: `/shop?category=${product.category.name.toLowerCase()}`,
-        },
-        {
-          label: product.product_name,
-          url: `/product-details/${product.product_name}`,
-        },
+        { label: product.category.name, url: `/shop?category=${product.category.name.toLowerCase()}` },
+        { label: product.product_name, url: `/product-details/${product.product_name}` },
       ];
-      
+
       res.render("frontend/productDetails", {
         product,
         reviews,
@@ -207,27 +239,48 @@ const loadPages = {
         breadcrumbs,
         currentRoute: req.path,
       });
-    } catch (error) {
-      console.error("Error loading product details:", error);
-      res.status(500).send("Internal Server Error");
+    } catch (err) {
+      next(err);
     }
   },
-  userProfile: async (req, res) => {
+
+  /**
+   * Renders the user's profile page.
+   *
+   * @param {Object} req - Express request object containing the user ID in parameters.
+   * @param {Object} res - Express response object used to render the profile page.
+   * @param {Function} next - Express next middleware function for error handling.
+   */
+  userProfile: async (req, res, next) => {
     try {
       const userId = req.params.id;
       const user = await User.findById(userId);
       if (!user) {
-        res.status(404).json({ messege: "user not found !" });
+        return res.status(httpStatus.NOT_FOUND).json({ message: "User not found!" });
       }
       res.render("frontend/profile", { user });
-    } catch (error) {
-      console.error("Error loading profile", error);
-      res.status(500).json({ message: "Internal server error" });
+    } catch (err) {
+      next(err);
     }
   },
-  
-  tuner : async (req, res) => {
-    res.render("frontend/tuner",{currentRoute: req.path, user: req.user || null,})
+
+  /**
+   * Renders the tuner page.
+   *
+   * @param {Object} req - Express request object containing the current route and user data.
+   * @param {Object} res - Express response object used to render the tuner page.
+   * @param {Function} next - Express next middleware function for error handling.
+   */
+  tuner: async (req, res, next) => {
+    try {
+      res.render("frontend/tuner", {
+        currentRoute: req.path,
+        user: req.user || null,
+      });
+    } catch (err) {
+      next(err);
+    }
   }
 };
+
 module.exports = loadPages;

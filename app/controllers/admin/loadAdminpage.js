@@ -4,7 +4,7 @@ const Address = require("../../models/addressModel");
 const Offer = require("../../models/offerModel");
 const Product = require("../../models/productModel");
 const httpStatus = require("../../utils/httpStatus");
-const { adminErrors } = require("../../utils/errorMessages");
+const { adminErrors } = require("../../utils/messages");
 
 
 const loadAdminPage = {
@@ -136,25 +136,22 @@ const loadAdminPage = {
   productList: async (req, res, next) => {
     try {
       const {
-        page = 1, // Current page (defaults to 1)
-        limit = 10, // Products per page
-        category, // Filter by category
-        status, // Active/Inactive status
-        sortBy = "createdAt", // Sorting field
-        order = "desc", // Sorting order (asc/desc)
-        search = "", // Search query
+        page = 1, 
+        limit = 10, 
+        category,
+        status, 
+        sortBy = "createdAt", 
+        order = "desc", 
+        search = "", 
       } = req.query;
   
-      // Fetch categories and offers for filtering options
       const categories = await Category.find({}, "name").lean();
       const offers = await Offer.find({}, "discount").lean();
   
-      // Initialize the filter object
       const filter = {};
-      if (category) filter.category = category; // Category filter
-      if (status) filter.isActive = status === "active"; // Status filter
+      if (category) filter.category = category; 
+      if (status) filter.isActive = status === "active"; 
   
-      // Search logic: Match product name or description (case-insensitive)
       if (search) {
         filter.$or = [
           { product_name: { $regex: search, $options: "i" } },
@@ -162,41 +159,36 @@ const loadAdminPage = {
         ];
       }
   
-      // Sort options: Default to descending by the `sortBy` field
       const sortOption = { [sortBy]: order === "asc" ? 1 : -1 };
   
-      // Fetch products based on filters, sorting, pagination, and population
       const products = await Product.find(filter)
-        .populate("category", "name") // Include category name
-        .populate("offer", "discount") // Include offer discount
-        .sort(sortOption) // Sort results
-        .skip((page - 1) * parseInt(limit)) // Skip for pagination
-        .limit(parseInt(limit)) // Limit results per page
+        .populate("category", "name") 
+        .populate("offer", "discount") 
+        .sort(sortOption) 
+        .skip((page - 1) * parseInt(limit)) 
+        .limit(parseInt(limit)) 
         .lean();
   
-      // Total number of products for pagination
       const totalProducts = await Product.countDocuments(filter);
   
-      // Calculate total pages
       const totalPages = Math.ceil(totalProducts / limit);
   
-      // Render the `productGrid` view with the required data
-      res.status(200).render("backend/productList", {
-        products, // List of products to display
-        categories, // List of categories for dropdown
-        offers, // List of offers for dropdown
-        totalPages, // Total number of pages for pagination
-        currentPage: parseInt(page), // Current active page
+      res.status(httpStatus.OK).render("backend/productList", {
+        products, 
+        categories, 
+        offers, 
+        totalPages, 
+        currentPage: parseInt(page), 
         search, 
-        category, // Selected category for dropdown
-        status, // Selected status filter
-        sortBy, // Current sorting field
-        order, // Current sorting order
-        limit: parseInt(limit), // Products per page
+        category,
+        status, 
+        sortBy,
+        order, 
+        limit: parseInt(limit), 
       });
     } catch (err) {
       console.error("Error in loading product list:", err);
-      next(err); // Pass the error to the error-handling middleware
+      next(err); 
     }
   },
   /**
@@ -236,7 +228,6 @@ const loadAdminPage = {
       const errors = req.session.errors || {};
       const formData = req.session.formData || {};
   
-      // Clear session errors and formData
       delete req.session.errors;
       delete req.session.formData;
   
@@ -255,24 +246,20 @@ const loadAdminPage = {
 
   editProduct:async (req, res) => {
       try {
-        // Find the product by ID and populate category and offer details
         const product = await Product.findById(req.params.id)
           .populate('category')
           .populate('offer');
           
         if (!product) {
-          return res.status(404).send("Product not found");
+          return res.status(httpStatus).render("404");
         }
     
-        // Fetch all categories and offers for the select dropdowns in the form
         const categories = await Category.find();
         const offers = await Offer.find();
     
-        // Render the editProduct.ejs view with the required data
         res.render('backend/editProduct', { product, categories, offers });
-      } catch (error) {
-        console.error("Error loading edit product page:", error);
-        res.status(500).send("Server error");
+      } catch (err) {
+        next(err); 
       }
     },
 

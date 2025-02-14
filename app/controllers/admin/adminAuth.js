@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const Admin = require("../../models/adminModel");
 const bcrypt = require("bcrypt");
 const tokenBlacklist = require("../../utils/tokenBlacklist");
-const { adminErrors } = require("../../utils/errorMessages");
+const { adminErrors } = require("../../utils/messages");
 const HttpStatus = require("../../utils/httpStatus");
 
 const adminAuth = {
@@ -28,7 +28,7 @@ const adminAuth = {
         return res
           .status(HttpStatus.NOT_FOUND)
           .render("backend/adminLogin", {
-            error: adminErrors.login.adminNotFound, // Display error message if admin not found
+            error: adminErrors.login.adminNotFound, 
           });
       }
 
@@ -77,18 +77,15 @@ const adminAuth = {
     try {
       const token = req.cookies.authToken;
       
-      // If a token exists, add it to the blacklist to invalidate it
       if (token) {
         tokenBlacklist.add(token);
       }
 
-      // Clear the authentication token cookie
       res.clearCookie("authToken");
 
-      // Redirect the admin to the login page after logout
       return res.status(HttpStatus.OK).redirect("/admin/login");
     } catch (err) {
-      next(err); // Pass error to global error handler middleware
+      next(err); 
     }
   },
 };

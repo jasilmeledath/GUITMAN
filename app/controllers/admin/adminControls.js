@@ -1,6 +1,7 @@
 const User = require("../../models/userModel");
 const HttpStatus = require("../../utils/httpStatus");
 
+
 const adminControls = {
   /**
    * Toggles a user's active status (block/unblock).
