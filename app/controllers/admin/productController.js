@@ -164,13 +164,13 @@ const productController = {
       const { name, description } = req.body;
       const image = req.file; 
 
-      const existingCategory = await Category.findOne({
-        name: { $regex: new RegExp("^" + name + "$", "i") },
-        _id: { $ne: categoryId }
-      });
-      if (existingCategory) {
-        return res.status(httpStatus.BAD_REQUEST).json({ success: false, message: adminErrors.categoryManagement.alreadyExisting });
-      }
+      // const existingCategory = await Category.findOne({
+      //   name: { $regex: new RegExp("^" + name + "$", "i") },
+      //   _id: { $ne: categoryId }
+      // });
+      // if (existingCategory) {
+      //   return res.status(httpStatus.BAD_REQUEST).json({ success: false, message: adminErrors.categoryManagement.alreadyExisting });
+      // }
 
       const updateFields = { name, description };
       if (image) {

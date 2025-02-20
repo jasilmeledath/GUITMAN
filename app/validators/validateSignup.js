@@ -5,7 +5,7 @@ const validateSignup = (data) => {
   const errors = {};
 
   // Validate First Name
-  if (!first_name || !/^[a-zA-Z]+$/.test(first_name)) {
+  if (!first_name || !/^[a-zA-Z]+$/.test(first_name.trim())) {
     errors.first_name =
       "First name should only contain alphabets and cannot be empty.";
   }

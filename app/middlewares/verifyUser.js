@@ -35,7 +35,7 @@ const verifyUser = async (req, res, next) => {
     next();
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
-      return res.status(401).json({ message: 'Session expired. Please log in again.' });
+      return res.status(401).redirect('/login')
     }
     return res.status(400).json({ message: 'Invalid token.' });
   }

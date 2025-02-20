@@ -61,7 +61,7 @@ function showLoader() {
 }
 
 function hideLoader() {
-  activeRequests--;
+  activeRequests = Math.max(0, activeRequests - 1); // Ensure it doesn't go negative
   if (activeRequests === 0) {
     document.getElementById('musical-loader').classList.add('hidden');
   }
@@ -81,15 +81,28 @@ function hideLoader() {
 // Intercept fetch requests to show/hide loader
 (function() {
   const originalFetch = window.fetch;
-  window.fetch = function() {
+  window.fetch = function(...args) {
     showLoader();
-    return originalFetch.apply(this, arguments).then(response => {
-      hideLoader();
-      return response;
-    }).catch(error => {
-      hideLoader();
-      throw error;
-    });
+    return originalFetch.apply(this, args)
+      .then(response => {
+        hideLoader();
+        return response;
+      })
+      .catch(error => {
+        hideLoader();
+        throw error;
+      });
   };
 })();
+
+// Handle browser back/forward navigation
+window.addEventListener("popstate", () => {
+  hideLoader();
+});
+
+// Hide loader when user refreshes or leaves the page
+window.addEventListener("beforeunload", () => {
+  hideLoader();
+  activeRequests = 0;
+});
 </script>

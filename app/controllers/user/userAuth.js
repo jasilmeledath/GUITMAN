@@ -18,7 +18,7 @@ const {userErrors, userSuccess}= require("../../utils/messages");
 
 const userAuth = {
 
-  signup: async (req, res) => {
+  signup: async (req, res, next) => {
     try {
       const { first_name, last_name, email, password, confirm_password } =
         req.body;
@@ -38,7 +38,7 @@ const userAuth = {
       let user = await User.findOne({ email });
 
       if (user && user.isVerified) {
-        return res.status(http).json({
+        return res.status(httpStatus.CONFLICT).json({
           success: false,
           errors: { email: userErrors.login.alreadyExisting },
         });

@@ -6,6 +6,7 @@ const verifyUser = require("../../middlewares/verifyUser");
 const loadPages = require('../../controllers/user/loadPages');
 const passport = require("../../config/passport");
 const {redirectIfUserLoggedIn} = require("../../middlewares/redirectIfLoggedIn");
+const cartRoutes = require('../user/cartRoutes');
 
 // Google OAuth routes
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
@@ -42,6 +43,7 @@ router.get('/product-details/:id', loadPages.loadProductDetails);
 router.get('/home', verifyUser, loadPages.home);
 router.get('/profile/:id', verifyUser, loadPages.userProfile);
 router.post('/submit-review/:id', verifyUser, userAuth.submitReview);
+router.use('/cart', verifyUser, cartRoutes);
 
 // Logout route
 router.get('/logout', userAuth.logout);

@@ -105,8 +105,10 @@
                 <!-- Stock Info -->
                 <div class="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
                     <span class="text-gray-600">Availability:</span>
-                    <% if(product.stock < 10) { %>
+                    <% if(product.stock < 10 && product.stock!=0) { %>
                         <span class="text-red-600 font-medium">Only <%= product.stock %> left!</span>
+                    <% } else if(product.stock===0) { %>
+                        <span class="text-red-600 font-medium">Out of Stock</span>
                     <% } else { %>
                         <span class="text-green-600 font-medium">In Stock</span>
                     <% } %>
@@ -257,37 +259,6 @@
             });
         });
     });
-
-        // document.querySelector('form').addEventListener('submit', async (event) => {
-        //     event.preventDefault();
-
-        //     if (!ratingInput.value) {
-        //         alert("Please select a rating before submitting.");
-        //         return;
-        //     }
-
-        //     const formData = new FormData(event.target);
-
-        //     console.log("Submitting Review Data:", [...formData.entries()]); // Debugging log
-
-        //     try {
-        //         const response = await fetch('/submit-review', {
-        //             method: 'POST',
-        //             body: formData
-        //         });
-
-        //         if (response.ok) {
-        //             alert('Review submitted successfully!');
-        //             window.location.href = '/product/' + formData.get('productId');
-        //         } else {
-        //             const errorMessage = await response.text();
-        //             alert('Error submitting review: ' + errorMessage);
-        //         }
-        //     } catch (error) {
-        //         console.error("Review Submission Error:", error);
-        //         alert('An error occurred. Please try again.');
-        //     }
-        // });
 
         </script>
         </div>

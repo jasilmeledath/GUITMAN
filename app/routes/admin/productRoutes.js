@@ -4,6 +4,7 @@ const productController = require("../../controllers/admin/productController");
 const loadAdminPage = require("../../controllers/admin/loadAdminpage");
 const { upload, resizeImages, } = require('../../config/multer');
 const validateAddProduct = require("../../validators/validateAddProduct");
+const validateAddCategory = require('../../validators/validateAddCategory')
 
 
 router.get('/list-product', loadAdminPage.productList);

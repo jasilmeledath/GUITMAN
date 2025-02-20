@@ -280,6 +280,72 @@ const loadPages = {
     } catch (err) {
       next(err);
     }
+  },
+  /**
+   * Renders the cart page.
+   *
+   * @param {Object} req - Express request object containing the current route and user data.
+   * @param {Object} res - Express response object used to render the tuner page.
+   * @param {Function} next - Express next middleware function for error handling.
+   */
+  loadCart: async (req, res) => {
+    try {
+      // Assuming the authenticated user's id is available at req.user._id
+      const userId = req.user.id;
+      console.log(req.user);
+      
+
+      // Find the active cart for the current user and populate the product details for each item
+      let cart = await Cart.findOne({ user: userId, status: 'active' })
+        .populate('items.product')
+        .exec();
+
+      console.log(cart);
+      
+      if (!cart) {
+        cart = {
+          items: [],
+          cart_subtotal: 0,
+          tax: 0,
+          shipping_fee: 0,
+          cart_total: 0
+        };
+      } else {
+        // For each cart item, ensure the product details are available.
+        // If not populated properly, fetch them manually.
+        for (let i = 0; i < cart.items.length; i++) {
+          if (!cart.items[i].product || !cart.items[i].product.product_name) {
+            const productData = await Product.findById(cart.items[i].product).lean();
+            cart.items[i].product = productData;
+          }
+        }
+      }
+
+      // Compute the total savings from discounted items (if any)
+      let savings = 0;
+      cart.items.forEach(item => {
+        if (item.discounted_price > 0 && item.discounted_price < item.item_price) {
+          savings += (item.item_price - item.discounted_price) * item.quantity;
+        }
+      });
+
+      // Fetch some products for the "People also bought" section (4 random active products)
+      const products = await Product.aggregate([
+        { $match: { isActive: true } },
+        { $sample: { size: 4 } }
+      ]);
+
+      res.render('frontend/cart', {
+        cart,
+        products,
+        savings,
+        currentRoute: req.path,
+        user: req.user
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Server error');
+    }
   }
 };
 

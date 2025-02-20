@@ -244,7 +244,7 @@ const loadAdminPage = {
     }
   },
 
-  editProduct:async (req, res) => {
+  editProduct:async (req, res, next) => {
       try {
         const product = await Product.findById(req.params.id)
           .populate('category')
