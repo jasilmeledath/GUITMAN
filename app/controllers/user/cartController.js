@@ -3,6 +3,7 @@ const Cart = require('../../models/cartModel');
 const User = require('../../models/userModel');
 const httpStatus = require('../../utils/httpStatus');
 const jwt = require('jsonwebtoken');
+const getUser =  require('../../helpers/getUser');
 
 const cartController = {
     addToCart: async (req, res, next) => {
@@ -111,6 +112,20 @@ const cartController = {
             next(err);
         }
     },
+    removeCartItem: async(req,res,next)=>{
+        try {
+            const productId = req.query.productId;
+            if(!productId){
+                return res.status(httpStatus.BAD_REQUEST)
+                .json({message:"Error removing item, please try again later!"});
+            }
+            const user = await getUser(req,res,next);
+            await Cart.updateOne({user:user._id},{$pull:{items:{product:productId}}})
+            return res.status(httpStatus.OK).json({message:"Item removed success fully;"})
+        } catch (err) {
+            next(err)
+        }
+    }
 };
 
 module.exports = cartController;

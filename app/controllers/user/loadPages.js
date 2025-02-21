@@ -3,6 +3,7 @@ const Category = require("../../models/categoryModel");
 const Review = require("../../models/reviewModel");
 const Coupon = require("../../models/couponModel");
 const User = require("../../models/userModel");
+const Cart = require("../../models/cartModel")
 const httpStatus = require("../../utils/httpStatus");
 
 const loadPages = {
@@ -292,16 +293,12 @@ const loadPages = {
     try {
       // Assuming the authenticated user's id is available at req.user._id
       const userId = req.user.id;
-      console.log(req.user);
-      
 
       // Find the active cart for the current user and populate the product details for each item
       let cart = await Cart.findOne({ user: userId, status: 'active' })
         .populate('items.product')
         .exec();
 
-      console.log(cart);
-      
       if (!cart) {
         cart = {
           items: [],
@@ -343,8 +340,7 @@ const loadPages = {
         user: req.user
       });
     } catch (err) {
-      console.error(err);
-      res.status(500).send('Server error');
+      next(err);
     }
   }
 };
