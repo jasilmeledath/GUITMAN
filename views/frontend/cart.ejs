@@ -32,65 +32,181 @@
                   <% if (cart && cart.items && cart.items.length> 0) { %>
                     <div id="cart-items-container">
                       <% cart.items.forEach(function(item) { %>
-                      <div class="cart-item rounded-lg border border-gray-200 bg-white p-4 shadow-sm md:p-6" id="cart-item-<%= item.product && item.product._id ? item.product._id : item.product %>">
-                        <div class="space-y-4 md:flex md:items-center md:justify-between md:gap-6 md:space-y-0">
-                          <!-- Product Image -->
-                          <a href="/product-details/<%= item.product && item.product._id ? item.product._id : item.product %>" class="shrink-0 md:order-1">
-                            <div class="h-20 w-20 overflow-hidden rounded">
-                              <img class="h-full w-full object-cover" src="/<%= item.product && item.product.images ? item.product.images[0] : 'default-image.png' %>" alt="<%= item.product && item.product.product_name ? item.product.product_name : 'Product' %>" />
-                            </div>
-                          </a>
-                    
-                          <!-- Quantity Selector -->
-                          <label for="counter-input-<%= item.product && item.product._id ? item.product._id : item.product %>" class="sr-only">Choose quantity:</label>
-                          <div class="flex items-center justify-between md:order-3 md:justify-end">
-                            <div class="flex items-center">
-                              <button type="button" data-input-counter-decrement="counter-input-<%= item.product && item.product._id ? item.product._id : item.product %>" class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-100">
-                                <svg class="h-2.5 w-2.5 text-gray-900" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
-                                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16" />
-                                </svg>
-                              </button>
-                              <input type="text" id="counter-input-<%= item.product && item.product._id ? item.product._id : item.product %>" data-input-counter class="w-10 shrink-0 border-0 bg-transparent text-center text-sm font-medium text-gray-900 focus:outline-none focus:ring-0" placeholder="" value="<%= item.quantity %>" required />
-                              <button type="button" data-input-counter-increment="counter-input-<%= item.product && item.product._id ? item.product._id : item.product %>" class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-100">
-                                <svg class="h-2.5 w-2.5 text-gray-900" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16" />
-                                </svg>
-                              </button>
-                            </div>
-                            <div class="text-end md:order-4 md:w-32">
-                              <p class="text-base font-bold text-gray-900">₹<%= item.item_price.toLocaleString('en-IN') %></p>
-                            </div>
-                          </div>
-                    
-                          <!-- Product Details -->
-                          <div class="w-full min-w-0 flex-1 space-y-4 md:order-2 md:max-w-md">
-                            <a href="/product-details/<%= item.product && item.product._id ? item.product._id : item.product %>" class="text-base font-medium text-gray-900 hover:underline">
-                              <%= item.product && item.product.product_name ? item.product.product_name : 'Product Name Not Available' %>
+                        <div class="cart-item rounded-lg border border-gray-200 bg-white p-4 shadow-sm md:p-6"
+                          id="cart-item-<%= item.product && item.product._id ? item.product._id : item.product %>">
+                          <div class="space-y-4 md:flex md:items-center md:justify-between md:gap-6 md:space-y-0">
+                            <!-- Product Image -->
+                            <a href="/product-details/<%= item.product && item.product._id ? item.product._id : item.product %>"
+                              class="shrink-0 md:order-1">
+                              <div class="h-20 w-20 overflow-hidden rounded">
+                                <img class="h-full w-full object-cover"
+                                  src="/<%= item.product && item.product.images ? item.product.images[0] : 'default-image.png' %>"
+                                  alt="<%= item.product && item.product.product_name ? item.product.product_name : 'Product' %>" />
+                              </div>
                             </a>
-                    
-                            <div class="flex items-center gap-4">
-                              <button type="button" class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 hover:underline">
-                                <svg class="me-1.5 h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.01 6.001C6.5 1 1 8 5.782 13.001L12.011 20l6.23-7C23 8 17.5 1 12.01 6.002Z" />
-                                </svg>
-                                Add to Bucketlist
-                              </button>
-                    
-                              <button id="remove-item-btn-<%= item.product && item.product._id ? item.product._id : item.product %>" data-product-id="<%= item.product && item.product._id ? item.product._id : item.product %>" type="button" class="remove-item-btn inline-flex items-center text-sm font-medium text-red-600 hover:underline">
-                                <svg class="me-1.5 h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
-                                </svg>
-                                Remove
-                              </button>
+
+                            <!-- Quantity Selector -->
+                            <label
+                              for="counter-input-<%= item.product && item.product._id ? item.product._id : item.product %>"
+                              class="sr-only">Choose quantity:</label>
+                            <div class="flex items-center justify-between md:order-3 md:justify-end">
+                              <div class="flex items-center">
+                                <!-- HTML snippet with quantity counter -->
+                                <!-- Quantity Counter Component -->
+                                <!-- HTML: Quantity Counter -->
+                                <!-- HTML: Quantity Counter for a Cart Item -->
+                                <div class="quantity-counter">
+                                  <!-- Decrement Button -->
+                                  <button type="button" data-action="decrement"
+                                    data-item-id="<%= item.product && item.product._id ? item.product._id : item.product %>"
+                                    class="quantity-btn decrement-btn inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-100">
+                                    <svg class="h-2.5 w-2.5 text-gray-900" aria-hidden="true"
+                                      xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
+                                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                        stroke-width="2" d="M1 1h16" />
+                                    </svg>
+                                  </button>
+
+                                  <!-- Quantity Input -->
+                                  <input type="text"
+                                    id="counter-input-<%= item.product && item.product._id ? item.product._id : item.product %>"
+                                    class="quantity-input w-10 shrink-0 border-0 bg-transparent text-center text-sm font-medium text-gray-900 focus:outline-none focus:ring-0"
+                                    value="<%= item.quantity %>" required />
+
+                                  <!-- Increment Button -->
+                                  <button type="button" data-action="increment"
+                                    data-item-id="<%= item.product && item.product._id ? item.product._id : item.product %>"
+                                    class="quantity-btn increment-btn inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-100">
+                                    <svg class="h-2.5 w-2.5 text-gray-900" aria-hidden="true"
+                                      xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                        stroke-width="2" d="M9 1v16M1 9h16" />
+                                    </svg>
+                                  </button>
+                                </div>
+
+                                <script>
+                                  // Wrap in an IIFE to avoid polluting the global scope
+                                  (function () {
+                                    // Use a global flag to ensure the event listener is attached only once
+                                    if (!window.__updateQuantityListenerAttached) {
+                                      document.addEventListener("click", function (e) {
+                                        // Check if the clicked element (or one of its parents) has a data-action attribute
+                                        const actionEl = e.target.closest("[data-action]");
+                                        if (!actionEl) return;
+
+                                        // Stop propagation to prevent multiple triggers in bubbling phases
+                                        e.stopPropagation();
+
+                                        const itemId = actionEl.getAttribute("data-item-id");
+                                        const action = actionEl.getAttribute("data-action");
+                                        const change = action === "increment" ? 1 : -1;
+                                        updateQuantity(itemId, change);
+                                      });
+                                      window.__updateQuantityListenerAttached = true;
+                                    }
+
+                                    // Function to update the quantity on the server and update the UI optimistically
+                                    async function updateQuantity(itemId, change) {
+                                      // Get the quantity input element
+                                      const quantityInput = document.getElementById(`counter-input-${itemId}`);
+                                      // Parse the current quantity (default to 0 if not a valid number)
+                                      const currentQuantity = parseInt(quantityInput.value, 10) || 0;
+                                      const newQuantity = currentQuantity + change;
+
+                                      // Enforce the maximum quantity limit on the client side
+                                      if (newQuantity > 15) {
+                                        console.error('Maximum quantity per product is 15');
+                                        return;
+                                      }
+
+                                      // Optimistically update the UI immediately
+                                      quantityInput.value = newQuantity;
+
+                                      try {
+                                        const response = await fetch('/cart/update-quantity', {
+                                          method: 'PATCH',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ itemId, change })
+                                        });
+                                        const data = await response.json();
+
+                                        if (data.success) {
+                                          if (data.removed) {
+                                            // If the backend indicates the item was removed, remove the counter element from the UI
+                                            quantityInput.parentElement.remove();
+                                          } else {
+                                            // Update the quantity to the value returned by the backend (if provided)
+                                            if (data.updatedItem && typeof data.updatedItem.quantity !== 'undefined') {
+                                              quantityInput.value = data.updatedItem.quantity;
+                                            }
+                                          }
+                                        } else {
+                                          // Revert the UI to the original quantity if an error occurs
+                                          quantityInput.value = currentQuantity;
+                                          console.error('Error updating quantity:', data.message);
+                                        }
+                                      } catch (error) {
+                                        // On network error, revert the optimistic update
+                                        quantityInput.value = currentQuantity;
+                                        console.error('Fetch error:', error);
+                                      }
+                                    }
+                                  })();
+                                </script>
+
+
+
+
+                              </div>
+                              <div class="text-end md:order-4 md:w-32">
+                                <p class="text-base font-bold text-gray-900">₹<%=
+                                    item.item_price.toLocaleString('en-IN') %>
+                                </p>
+                              </div>
+                            </div>
+
+                            <!-- Product Details -->
+                            <div class="w-full min-w-0 flex-1 space-y-4 md:order-2 md:max-w-md">
+                              <a href="/product-details/<%= item.product && item.product._id ? item.product._id : item.product %>"
+                                class="text-base font-medium text-gray-900 hover:underline">
+                                <%= item.product && item.product.product_name ? item.product.product_name
+                                  : 'Product Name Not Available' %>
+                              </a>
+
+                              <div class="flex items-center gap-4">
+                                <button type="button"
+                                  class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 hover:underline">
+                                  <svg class="me-1.5 h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                    width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M12.01 6.001C6.5 1 1 8 5.782 13.001L12.011 20l6.23-7C23 8 17.5 1 12.01 6.002Z" />
+                                  </svg>
+                                  Add to Bucketlist
+                                </button>
+
+                                <button
+                                  id="remove-item-btn-<%= item.product && item.product._id ? item.product._id : item.product %>"
+                                  data-product-id="<%= item.product && item.product._id ? item.product._id : item.product %>"
+                                  type="button"
+                                  class="remove-item-btn inline-flex items-center text-sm font-medium text-red-600 hover:underline">
+                                  <svg class="me-1.5 h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                    width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                      stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+                                  </svg>
+                                  Remove
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                      <% }); %>
+                        <% }); %>
                     </div>
-                    
+
                     <div id="alert-container"></div>
-                    
+
                     <script>
                       function showAlert(message, type = 'success') {
                         const alertContainer = document.getElementById('alert-container');
@@ -109,10 +225,10 @@
                           setTimeout(() => alertDiv.remove(), 300);
                         }, 3000);
                       }
-                    
+
                       // Attach event listeners to all remove buttons
-                      document.querySelectorAll('.remove-item-btn').forEach(function(button) {
-                        button.addEventListener('click', function() {
+                      document.querySelectorAll('.remove-item-btn').forEach(function (button) {
+                        button.addEventListener('click', function () {
                           const productId = this.getAttribute('data-product-id');
                           // Sending productId as a URL parameter in the DELETE request
                           fetch(`/cart/remove-item?productId=${productId}`, {
@@ -121,34 +237,36 @@
                               'Content-Type': 'application/json'
                             }
                           })
-                          .then(response => {
-                            if (response.ok) {
-                              showAlert('Item removed successfully.', 'success');
-                              // Remove the cart item from the DOM
-                              const cartItemElement = document.getElementById('cart-item-' + productId);
-                              if (cartItemElement) {
-                                cartItemElement.remove();
+                            .then(response => {
+                              if (response.ok) {
+                                showAlert('Item removed successfully.', 'success');
+                                // Remove the cart item from the DOM
+                                const cartItemElement = document.getElementById('cart-item-' + productId);
+                                if (cartItemElement) {
+                                  cartItemElement.remove();
+                                }
+                              } else {
+                                showAlert('Failed to remove item.', 'error');
                               }
-                            } else {
-                              showAlert('Failed to remove item.', 'error');
-                            }
-                          })
-                          .catch(error => {
-                            showAlert('Error: ' + error, 'error');
-                          });
+                            })
+                            .catch(error => {
+                              showAlert('Error: ' + error, 'error');
+                            });
                         });
                       });
                     </script>
-                    
-                        <% } else { %>
-                          <div class="flex flex-col items-center justify-center py-12">
-                            <svg class="w-16 h-16 text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.293 2.293a1 1 0 00.293 1.414l1 1a1 1 0 001.414-.293L9 15m0 0l3-6m0 0l3 6m-6 0h6" />
-                            </svg>
-                            <p class="text-xl font-semibold text-gray-700">Your cart is empty.</p>
-                            <p class="text-gray-500 mt-2">Looks like you haven't added any items yet.</p>
-                          </div>
-                          <% } %>
+
+                    <% } else { %>
+                      <div class="flex flex-col items-center justify-center py-12">
+                        <svg class="w-16 h-16 text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                          viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.293 2.293a1 1 0 00.293 1.414l1 1a1 1 0 001.414-.293L9 15m0 0l3-6m0 0l3 6m-6 0h6" />
+                        </svg>
+                        <p class="text-xl font-semibold text-gray-700">Your cart is empty.</p>
+                        <p class="text-gray-500 mt-2">Looks like you haven't added any items yet.</p>
+                      </div>
+                      <% } %>
                 </div>
 
                 <!-- People Also Bought Section -->
@@ -257,28 +375,16 @@
 
                   <span class="mx-12 inline-flex overflow-hidden rounded-md border bg-white shadow-xs">
                     <button
-                      class="inline-block border-e px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:relative"
-                    >
+                      class="inline-block border-e px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:relative">
                       Checkout
                     </button>
-                  
-                    <span
-                      class="inline-block px-4 py-2 text-gray-700 hover:bg-gray-50 focus:relative"
-                      title="View Orders"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="size-4"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"
-                        />
+
+                    <span class="inline-block px-4 py-2 text-gray-700 hover:bg-gray-50 focus:relative"
+                      title="View Orders">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="size-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
                       </svg>
                     </span>
                   </span>
