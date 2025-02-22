@@ -19,7 +19,7 @@ router.get('/auth/google/callback', passport.authenticate('google', {
     res.redirect('/home');
 });
 
-router.use(redirectIfUserLoggedIn);
+// router.use(redirectIfUserLoggedIn);
 
 
 router.get('/', loadPages.landing);

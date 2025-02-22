@@ -257,7 +257,7 @@ const userAuth = {
     if (token) {
       tokenBlacklist.add(token); 
     }
-    res.clearCookie("authToken"); 
+    res.clearCookie('authToken', { path: '/' });
     return res.status(200).redirect("/login");
     }catch(err){
       next(err);

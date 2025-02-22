@@ -17,11 +17,13 @@
     </style>
 </head>
 <body class="bg-gray-50">
+ 
     <%- include('./partials/loading') %>
     <%- include('./partials/header', {currentRoute: '/shop'}, {user: user}) %>
     
     <!-- Products Section -->
     <section class="py-16 px-6 mt-3">
+      <div id="alert-container" class="fixed top-4 right-4 z-50 w-80"></div>
         <%- include('./partials/breadcrumbs', { breadcrumbs }) %>
         <div class="container mx-auto">
             <h1 class="text-4xl font-bold mb-8 text-center text-gray-800">Our Collection</h1>
@@ -140,102 +142,90 @@
                       </a>
                     <% }); %>
                   </div>
-                  
-                  <!-- Custom Tailwind Popup Container -->
-                  <div id="customPopup" class="fixed inset-0 flex items-center justify-center z-50 hidden">
-                    <div class="bg-white p-6 rounded-xl shadow-lg max-w-sm w-full mx-4 text-center">
-                      <div id="popupIcon" class="mb-4"></div>
-                      <h3 id="popupTitle" class="text-lg font-bold text-gray-800 mb-2"></h3>
-                      <p id="popupText" class="text-gray-600"></p>
-                    </div>
-                  </div>
-                  
                   <script>
-                  document.addEventListener("DOMContentLoaded", () => {
-                    // Add click listeners to navigation links (excluding cart buttons)
-                    const navigationLinks = document.querySelectorAll("a:not(.add-to-cart-btn)");
-                    navigationLinks.forEach(link => {
-                      link.addEventListener("click", function() {
-                        showLoader();
-                      });
-                    });
-                  
-                    const addToCartButtons = document.querySelectorAll(".add-to-cart-btn");
-                  
-                    addToCartButtons.forEach(button => {
-                      button.addEventListener("click", async (event) => {
-                        event.preventDefault();
-                        const productId = button.getAttribute("data-product-id");
-                  
-                        try {
-                          showLoader(); // Show loader before cart request
-                          const response = await fetch("/cart/add", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ productId, quantity: 1 })
-                          });
-                  
-                          const result = await response.json();
-                          hideLoader(); // Hide loader after request completes
-                  
-                          if (response.ok) {
-                            showPopup({ type: "success", title: "Added to Cart!", text: result.message, duration: 2000 });
-                          } else {
-                            showPopup({ type: "error", title: "Oops...", text: result.message || "Something went wrong!", duration: 2000 });
-                          }
-                        } catch (error) {
-                          hideLoader(); // Hide loader if there's an error
-                          showPopup({ type: "error", title: "Network Error!", text: "Please check your connection and try again.", duration: 2000 });
-                        }
-                      });
-                    });
-                  });
-                  
-                  /**
-                   * Displays a custom popup with Tailwind styling.
-                   *
-                   * @param {Object} options - Configuration for the popup.
-                   * @param {string} options.type - "success" or "error" (determines icon and color).
-                   * @param {string} options.title - The title of the popup.
-                   * @param {string} options.text - The message text.
-                   * @param {number} [options.duration=2000] - How long (in ms) the popup stays visible.
-                   */
-                  function showPopup({ type, title, text, duration = 2000 }) {
-                    const popup = document.getElementById("customPopup");
-                    const popupIcon = document.getElementById("popupIcon");
-                    const popupTitle = document.getElementById("popupTitle");
-                    const popupText = document.getElementById("popupText");
-                  
-                    // Set icon based on the type
-                    if (type === "success") {
-                      popupIcon.innerHTML = `
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>`;
-                    } else if (type === "error") {
-                      popupIcon.innerHTML = `
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>`;
-                    } else {
-                      popupIcon.innerHTML = "";
+                    function showAlert(message, type = 'success') {
+                        const alertContainer = document.getElementById('alert-container');
+                        
+                        // Create alert element
+                        const alertElement = document.createElement('div');
+                        alertElement.className = `mb-4 p-4 rounded-lg shadow-lg alert-animate-in ${
+                            type === 'success' 
+                                ? 'bg-green-100 border border-green-400 text-green-700' 
+                                : 'bg-red-100 border border-red-400 text-red-700'
+                        }`;
+                        
+                        // Create alert content
+                        alertElement.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        ${type === 'success' 
+                                            ? '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd">'
+                                            : '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd">'
+                                        }
+                                    </svg>
+                                    <span>${message}</span>
+                                </div>
+                                <button class="text-current hover:text-gray-700" onclick="this.parentElement.parentElement.remove()">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        `;
+                        
+                        // Add alert to container
+                        alertContainer.appendChild(alertElement);
+                        
+                        // Remove alert after 3 seconds
+                        setTimeout(() => {
+                            alertElement.classList.remove('alert-animate-in');
+                            alertElement.classList.add('alert-animate-out');
+                            setTimeout(() => alertElement.remove(), 300);
+                        }, 3000);
                     }
-                  
-                    popupTitle.textContent = title;
-                    popupText.textContent = text;
-                  
-                    // Show the popup
-                    popup.classList.remove("hidden");
-                    popup.classList.add("flex");
-                  
-                    // Hide the popup after the specified duration
-                    setTimeout(() => {
-                      popup.classList.add("hidden");
-                      popup.classList.remove("flex");
-                    }, duration);
-                  }
-                  </script>
-                               
+                
+                    document.addEventListener("DOMContentLoaded", () => {
+                        // Add click listeners to navigation links (excluding cart buttons)
+                        const navigationLinks = document.querySelectorAll("a:not(.add-to-cart-btn)");
+                        navigationLinks.forEach(link => {
+                            link.addEventListener("click", function() {
+                                showLoader();
+                            });
+                        });
+                
+                        const addToCartButtons = document.querySelectorAll(".add-to-cart-btn");
+                
+                        addToCartButtons.forEach(button => {
+                            button.addEventListener("click", async (event) => {
+                                event.preventDefault();
+                                event.stopPropagation(); // Prevent event bubbling
+                                const productId = button.getAttribute("data-product-id");
+                
+                                try {
+                                    // Exceptional case: Do not show loader for add-to-cart requests
+                                    const response = await fetch("/cart/add", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ productId, quantity: 1 })
+                                    });
+                
+                                    const result = await response.json();
+                                    hideLoader();
+                
+                                    if (response.ok) {
+                                        showAlert(result.message, 'success');
+                                    } else {
+                                        showAlert(result.message || "Failed to add item to cart", 'error');
+                                    }
+                                } catch (error) {
+                                    hideLoader();
+                                    showAlert("Please login to continue with the cart!", 'error');
+                                }
+                            });
+                        });
+                    });
+                    </script>                              
             <% } %>
 
             <!-- Pagination -->

@@ -36,8 +36,8 @@ const loadPages = {
    * @param {Object} res - Express response object used to render the login page.
    * @param {Function} next - Express next middleware function (not used here).
    */
-  login: (req, res, next) => {
-    res.render("frontend/login", {
+  login: (req, res, next) => { 
+    res.status(200).render("frontend/login", {
       email: "",
       errors: {},
       user: null,

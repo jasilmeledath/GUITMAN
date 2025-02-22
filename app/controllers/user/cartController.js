@@ -4,6 +4,7 @@ const User = require('../../models/userModel');
 const httpStatus = require('../../utils/httpStatus');
 const jwt = require('jsonwebtoken');
 const getUser = require('../../helpers/getUser');
+const getProduct = require('../../helpers/getProduct');
 
 const cartController = {
     addToCart: async (req, res, next) => {
@@ -131,81 +132,86 @@ const cartController = {
         const { itemId, change } = req.body;
         const quantityMaxLimit = 15;
         const quantityMinLimit = 0;
-
+      
         try {
-            const user = await getUser(req, res, next);
-
-            if (change === 1) {
-                // Check if the item is already at the maximum quantity
-                const cart = await Cart.findOne({
-                    user: user._id,
-                    items: {
-                        $elemMatch: {
-                            product: itemId,
-                            quantity: quantityMaxLimit
-                        }
-                    }
-                });
-
-                if (cart) {
-                    return res
-                        .status(httpStatus.UNPROCESSABLE_ENTITY)
-                        .json({ success: false, message: "Quantity limit exceeded!" });
+          const user = await getUser(req, res, next);
+          const product = await getProduct(itemId);
+          let updatedCart;
+          if (change === 1) {
+            
+            const cart = await Cart.findOne({
+              user: user._id,
+              items: {
+                $elemMatch: {
+                  product: itemId,
+                  quantity: quantityMaxLimit
                 }
-
-                const updatedCart = await Cart.findOneAndUpdate(
-                    { user: user._id, "items.product": itemId },
-                    { $inc: { "items.$.quantity": 1 } },
-                    { new: true }
-                );
-
-                return res
-                    .status(httpStatus.OK)
-                    .json({
-                        success: true,
-                        message: "Quantity incremented",
-                        updatedItem: updatedCart.items.find(item => String(item.product) === String(itemId))
-                    });
-            } else {
-                // If the item's quantity is 1, remove it instead of decrementing further
-                const cart = await Cart.findOne({
-                    user: user._id,
-                    items: {
-                        $elemMatch: {
-                            product: itemId,
-                            quantity: quantityMinLimit
-                        }
-                    }
-                });
-
-                if (cart) {
-                    await Cart.updateOne(
-                        { user: user._id },
-                        { $pull: { items: { product: itemId } } }
-                    );
-                    return res
-                        .status(httpStatus.OK)
-                        .json({ success: true, message: "Item removed successfully", removed: true });
-                }
-
-                const updatedCart = await Cart.findOneAndUpdate(
-                    { user: user._id, "items.product": itemId },
-                    { $inc: { "items.$.quantity": -1 } },
-                    { new: true }
-                );
-
-                return res
-                    .status(httpStatus.OK)
-                    .json({
-                        success: true,
-                        message: "Quantity decremented",
-                        updatedItem: updatedCart.items.find(item => String(item.product) === String(itemId))
-                    });
+              }
+            });
+            if (cart) {           
+              return res
+                .status(httpStatus.UNPROCESSABLE_ENTITY)
+                .json({ success: false, message: "Quantity limit exceeded!" });
             }
+      
+            updatedCart = await Cart.findOneAndUpdate(
+              { user: user._id, "items.product": itemId },
+              { $inc: { "items.$.quantity": 1 } },
+              { new: true }
+            );
+          } else {
+            // Check if the quantity is 1 so we remove the item instead of decrementing
+            const cart = await Cart.findOne({
+              user: user._id,
+              items: {
+                $elemMatch: {
+                  product: itemId,
+                  quantity: 1
+                }
+              }
+            });
+      
+            if (cart) {
+              await Cart.updateOne(
+                { user: user._id },
+                { $pull: { items: { product: itemId } } }
+              );
+              updatedCart = await Cart.findOne({ user: user._id });
+            } else {
+              updatedCart = await Cart.findOneAndUpdate(
+                { user: user._id, "items.product": itemId },
+                { $inc: { "items.$.quantity": -1 } },
+                { new: true }
+              );
+            }
+          }
+      
+          // Recalculate cart_subtotal and cart_total based on updated items
+          if (updatedCart) {
+            const newSubtotal = updatedCart.items.reduce(
+              (acc, item) => acc + item.discounted_price * item.quantity,
+              0
+            );
+            const newTotal = newSubtotal + updatedCart.tax + updatedCart.shipping_fee;
+      
+            // Update the cart totals
+            updatedCart.cart_subtotal = newSubtotal;
+            updatedCart.cart_total = newTotal;
+            await updatedCart.save();
+      
+            return res
+              .status(httpStatus.OK)
+              .json({
+                success: true,
+                message: change === 1 ? "Quantity incremented" : "Quantity decremented",
+                updatedCart
+              });
+          }
         } catch (err) {
-            next(err);
+          next(err);
         }
-    },
+      },
+      
 
 };
 var count = 0;

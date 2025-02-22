@@ -1,73 +1,100 @@
-<div id="musical-loader" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
-  <div class="relative">
-    <svg width="120" height="120" viewBox="0 0 120 120" class="animate-spin">
-      <circle cx="60" cy="60" r="54" stroke="#4B5563" stroke-width="8" fill="none" />
-      <circle cx="60" cy="60" r="54" stroke="#818CF8" stroke-width="8" stroke-dasharray="339.292" stroke-dashoffset="339.292" fill="none">
-        <animate attributeName="stroke-dashoffset" dur="1.5s" repeatCount="indefinite" from="339.292" to="0" />
-      </circle>
-    </svg>
-    <div class="absolute inset-0 flex items-center justify-center">
-      <svg width="60" height="60" viewBox="0 0 24 24" fill="#818CF8">
-        <path d="M19.8 6.18l-7.22 4.17a2 2 0 0 1-2.12 0L3.24 6.18a1 1 0 0 1 0-1.73l7.22-4.17a2 2 0 0 1 2.12 0l7.22 4.17a1 1 0 0 1 0 1.73z"/>
-      </svg>
-    </div>
-    <div class="musical-notes">
-      <span class="note">♪</span>
-      <span class="note">♫</span>
-      <span class="note">♩</span>
-      <span class="note">♬</span>
-      <span class="note">♭</span>
-      <span class="note">♮</span>
-    </div>
-  </div>
-</div>
+<div id="musical-loader" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">   
+  <div class="relative">     
+    <svg width="120" height="120" viewBox="0 0 120 120" class="animate-spin">       
+      <circle cx="60" cy="60" r="54" stroke="#4B5563" stroke-width="8" fill="none" />       
+      <circle cx="60" cy="60" r="54" stroke="#818CF8" stroke-width="8" stroke-dasharray="339.292" stroke-dashoffset="339.292" fill="none">         
+        <animate attributeName="stroke-dashoffset" dur="1.5s" repeatCount="indefinite" from="339.292" to="0" />       
+      </circle>     
+    </svg>     
+    <div class="absolute inset-0 flex items-center justify-center">       
+      <svg width="60" height="60" viewBox="0 0 24 24" fill="#818CF8">         
+        <path d="M19.8 6.18l-7.22 4.17a2 2 0 0 1-2.12 0L3.24 6.18a1 1 0 0 1 0-1.73l7.22-4.17a2 2 0 0 1 2.12 0l7.22 4.17a1 1 0 0 1 0 1.73z"/>       
+      </svg>     
+    </div>     
+    <div class="musical-notes">       
+      <span class="note">♪</span>       
+      <span class="note">♫</span>       
+      <span class="note">♩</span>       
+      <span class="note">♬</span>       
+      <span class="note">♭</span>       
+      <span class="note">♮</span>     
+    </div>   
+  </div> 
+</div>  
 
-<style>
-@keyframes circulate {
-  0% { transform: rotate(0deg) translateX(40px) rotate(0deg); }
-  100% { transform: rotate(360deg) translateX(40px) rotate(-360deg); }
-}
+<style> 
+@keyframes circulate {   
+  0% { transform: rotate(0deg) translateX(40px) rotate(0deg); }   
+  100% { transform: rotate(360deg) translateX(40px) rotate(-360deg); } 
+}  
 
-.musical-notes {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
+.musical-notes {   
+  position: absolute;   
+  top: 0;   
+  left: 0;   
+  width: 100%;   
+  height: 100%; 
+}  
 
-.musical-notes .note {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  font-size: 24px;
-  color: #818CF8;
-  animation: circulate 4s linear infinite;
-}
+.musical-notes .note {   
+  position: absolute;   
+  top: 50%;   
+  left: 50%;   
+  font-size: 24px;   
+  color: #818CF8;   
+  animation: circulate 4s linear infinite; 
+}  
 
-.musical-notes .note:nth-child(2) { animation-delay: -0.6666s; }
-.musical-notes .note:nth-child(3) { animation-delay: -1.3333s; }
-.musical-notes .note:nth-child(4) { animation-delay: -2s; }
-.musical-notes .note:nth-child(5) { animation-delay: -2.6666s; }
-.musical-notes .note:nth-child(6) { animation-delay: -3.3333s; }
-</style>
+.musical-notes .note:nth-child(2) { animation-delay: -0.6666s; } 
+.musical-notes .note:nth-child(3) { animation-delay: -1.3333s; } 
+.musical-notes .note:nth-child(4) { animation-delay: -2s; } 
+.musical-notes .note:nth-child(5) { animation-delay: -2.6666s; } 
+.musical-notes .note:nth-child(6) { animation-delay: -3.3333s; } 
+</style>  
 
 <script>
 let activeRequests = 0;
+let navigationTimeout = null;
+let loaderStartTime = null;
+const MIN_DISPLAY_TIME = 500; // 1.5 seconds in milliseconds
 
 function showLoader() {
   activeRequests++;
-  document.getElementById('musical-loader').classList.remove('hidden');
-}
-
-function hideLoader() {
-  activeRequests = Math.max(0, activeRequests - 1); // Ensure it doesn't go negative
-  if (activeRequests === 0) {
-    document.getElementById('musical-loader').classList.add('hidden');
+  if (activeRequests === 1) {
+    loaderStartTime = Date.now();
+    document.getElementById('musical-loader').classList.remove('hidden');
   }
 }
 
-// Intercept AJAX requests to show/hide loader
+function hideLoader() {
+  activeRequests = Math.max(0, activeRequests - 1);
+  if (activeRequests === 0 && loaderStartTime) {
+    const currentTime = Date.now();
+    const elapsedTime = currentTime - loaderStartTime;
+    const remainingTime = Math.max(0, MIN_DISPLAY_TIME - elapsedTime);
+
+    setTimeout(() => {
+      if (activeRequests === 0) { // Double check in case new requests came in
+        document.getElementById('musical-loader').classList.add('hidden');
+        loaderStartTime = null;
+      }
+    }, remainingTime);
+  }
+}
+
+function forceHideLoader() {
+  const currentTime = Date.now();
+  const elapsedTime = loaderStartTime ? currentTime - loaderStartTime : MIN_DISPLAY_TIME;
+  const remainingTime = Math.max(0, MIN_DISPLAY_TIME - elapsedTime);
+
+  setTimeout(() => {
+    activeRequests = 0;
+    document.getElementById('musical-loader').classList.add('hidden');
+    loaderStartTime = null;
+  }, remainingTime);
+}
+
+// Intercept AJAX requests
 (function() {
   const originalXHR = window.XMLHttpRequest;
   window.XMLHttpRequest = function() {
@@ -78,7 +105,7 @@ function hideLoader() {
   };
 })();
 
-// Intercept fetch requests to show/hide loader
+// Intercept fetch requests
 (function() {
   const originalFetch = window.fetch;
   window.fetch = function(...args) {
@@ -95,14 +122,43 @@ function hideLoader() {
   };
 })();
 
-// Handle browser back/forward navigation
-window.addEventListener("popstate", () => {
-  hideLoader();
-});
+// Handle page navigation events
+document.addEventListener("DOMContentLoaded", function() {
+  // Handle all link clicks
+  const links = document.querySelectorAll("a");
+  links.forEach(link => {
+    link.addEventListener("click", function(e) {
+      // Only show loader for navigation links (not download links or cart buttons)
+      if (!link.hasAttribute('download') && !link.classList.contains('add-to-cart-btn')) {
+        showLoader();
+        
+        // Clear any existing navigation timeout
+        if (navigationTimeout) {
+          clearTimeout(navigationTimeout);
+        }
+        
+        // Set a new timeout to force hide the loader
+        navigationTimeout = setTimeout(() => {
+          forceHideLoader();
+        }, 5000); // Fallback timeout after 5 seconds
+      }
+    });
+  });
 
-// Hide loader when user refreshes or leaves the page
-window.addEventListener("beforeunload", () => {
-  hideLoader();
-  activeRequests = 0;
+  // Handle browser back/forward navigation
+  window.addEventListener("popstate", () => {
+    forceHideLoader();
+    if (navigationTimeout) {
+      clearTimeout(navigationTimeout);
+    }
+  });
+
+  // Handle page unload
+  window.addEventListener("beforeunload", () => {
+    forceHideLoader();
+    if (navigationTimeout) {
+      clearTimeout(navigationTimeout);
+    }
+  });
 });
 </script>

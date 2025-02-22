@@ -7,6 +7,7 @@ const redirectIfUserLoggedIn = async(req, res, next) => {
     const token = req.cookies.authToken;
 
     if (!token) {
+
         return next(); 
     }
     try {
@@ -18,7 +19,7 @@ const redirectIfUserLoggedIn = async(req, res, next) => {
         const userId = decoded.id;
         const isUser = await User.findById(userId);
 
-        if (isUser && (req.path === '/login' || req.path === '/signup' || req.path === '/' || req.path.includes('admin'))) {    
+        if (isUser && (req.path === '/login' || req.path === '/signup' || req.path === '/' || req.path.includes('admin'))) {   
             return res.redirect('/home'); 
         }
 
