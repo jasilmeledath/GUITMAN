@@ -130,6 +130,20 @@
                                       quantityInput.value = data.updatedItem.quantity;
                                     }
                                   }
+                                  // If the server returned updated cart summary data, update the totals live.
+                                  if (data.updatedCart) {
+                                    const updatedCart = data.updatedCart;
+                                    const cartSubtotalEl = document.getElementById('cart-subtotal');
+                                    const savingsEl = document.getElementById('savings');
+                                    const shippingFeeEl = document.getElementById('shipping-fee');
+                                    const taxEl = document.getElementById('tax');
+                                    const cartTotalEl = document.getElementById('cart-total');
+                                    if (cartSubtotalEl) cartSubtotalEl.textContent = '₹' + Number(updatedCart.cart_subtotal).toLocaleString('en-IN');
+                                    if (savingsEl) savingsEl.textContent = '-₹' + Number(updatedCart.savings).toLocaleString('en-IN');
+                                    if (shippingFeeEl) shippingFeeEl.textContent = '₹' + Number(updatedCart.shipping_fee).toLocaleString('en-IN');
+                                    if (taxEl) taxEl.textContent = '₹' + Number(updatedCart.tax).toLocaleString('en-IN');
+                                    if (cartTotalEl) cartTotalEl.textContent = '₹' + Number(updatedCart.cart_total).toLocaleString('en-IN');
+                                  }
                                 } else {
                                   quantityInput.value = currentQuantity;
                                   console.error('Error updating quantity:', data.message);
@@ -410,7 +424,7 @@
                     <dt class="text-base font-normal text-gray-500">
                       Original price
                     </dt>
-                    <dd class="text-base font-medium text-gray-900">
+                    <dd id="cart-subtotal" class="text-base font-medium text-gray-900">
                       ₹<%= cart.cart_subtotal.toLocaleString('en-IN') %>
                     </dd>
                   </dl>
@@ -419,7 +433,7 @@
                     <dt class="text-base font-normal text-gray-500">
                       Savings
                     </dt>
-                    <dd class="text-base font-medium text-green-600">
+                    <dd id="savings" class="text-base font-medium text-green-600">
                       -₹<%= savings.toLocaleString('en-IN') %>
                     </dd>
                   </dl>
@@ -428,7 +442,7 @@
                     <dt class="text-base font-normal text-gray-500">
                       Shipping Fee
                     </dt>
-                    <dd class="text-base font-medium text-gray-900">
+                    <dd id="shipping-fee" class="text-base font-medium text-gray-900">
                       ₹<%= cart.shipping_fee.toLocaleString('en-IN') %>
                     </dd>
                   </dl>
@@ -437,7 +451,7 @@
                     <dt class="text-base font-normal text-gray-500">
                       Tax
                     </dt>
-                    <dd class="text-base font-medium text-gray-900">
+                    <dd id="tax" class="text-base font-medium text-gray-900">
                       ₹<%= cart.tax.toLocaleString('en-IN') %>
                     </dd>
                   </dl>
@@ -447,7 +461,7 @@
                   <dt class="text-base font-bold text-gray-900">
                     Total
                   </dt>
-                  <dd class="text-base font-bold text-gray-900">
+                  <dd id="cart-total" class="text-base font-bold text-gray-900">
                     ₹<%= cart.cart_total.toLocaleString('en-IN') %>
                   </dd>
                 </dl>

@@ -137,9 +137,21 @@ const cartController = {
         try {
           const user = await getUser(req, res, next);
           const product = await getProduct(itemId);
+          const productStock = product.stock;
           let updatedCart;
           if (change === 1) {
-            
+            const stockLimit = await Cart.findOne({
+              user: user._id,
+              items: {
+                $elemMatch:{
+                  product: itemId,
+                  quantity: productStock
+                }
+              }
+            })
+            if(stockLimit){
+              return res.status(httpStatus.UNPROCESSABLE_ENTITY).json({success: false, message: "Stock limit exceeded!"})
+            }
             const cart = await Cart.findOne({
               user: user._id,
               items: {
@@ -160,6 +172,7 @@ const cartController = {
               { $inc: { "items.$.quantity": 1 } },
               { new: true }
             );
+
           } else {
             // Check if the quantity is 1 so we remove the item instead of decrementing
             const cart = await Cart.findOne({
