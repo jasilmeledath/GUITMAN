@@ -42,6 +42,11 @@ const cartController = {
                     message: "Product not found."
                 });
             }
+            const productStock = product.stock;
+            if(productStock<=0){
+              return res.status(httpStatus.UNPROCESSABLE_ENTITY)
+              .json({success: false, message: "Product is out of stock. Please contact our team."})
+            }
 
             // Determine final price with discount if an offer exists
             let discounted_price = product.price;
