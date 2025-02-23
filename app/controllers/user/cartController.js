@@ -5,6 +5,7 @@ const httpStatus = require('../../utils/httpStatus');
 const jwt = require('jsonwebtoken');
 const getUser = require('../../helpers/getUser');
 const getProduct = require('../../helpers/getProduct');
+const getCart = require('../../helpers/getCart');
 
 const cartController = {
     addToCart: async (req, res, next) => {
