@@ -15,6 +15,7 @@ const cartSchema = new mongoose.Schema({
   cart_total: { type: Number, required: true }, // Final price after applying tax & shipping
   tax: { type: Number, default: 0 }, // Tax amount on the cart
   shipping_fee: { type: Number, default: 0 }, // Shipping cost
+  savings: { type: Number, default: 0},
   status: {
     type: String,
     enum: ['active', 'checked_out', 'expired', 'abandoned'],

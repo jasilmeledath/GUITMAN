@@ -18,7 +18,8 @@
   <%- include('./partials/loading') %>
   <%- include('./partials/header') %>
 
-  <main class="mx-auto py-16 mt-3">
+  <main class="mx-auto py-16 mt-3 bg-white">
+    <%- include('./partials/breadcrumbs', { breadcrumbs }) %>
     <section class="bg-white py-8 antialiased md:py-16">
       <div class="mx-auto max-w-screen-xl px-4 2xl:px-0">
         <h2 class="text-xl font-semibold text-gray-900 sm:text-2xl">
@@ -130,7 +131,7 @@
                                       quantityInput.value = data.updatedItem.quantity;
                                     }
                                   }
-                                  // If the server returned updated cart summary data, update the totals live.
+                                  // Update order summary live if provided
                                   if (data.updatedCart) {
                                     const updatedCart = data.updatedCart;
                                     const cartSubtotalEl = document.getElementById('cart-subtotal');
@@ -267,6 +268,19 @@
                           if (cartItemElement) {
                             cartItemElement.remove();
                           }
+                          // If no items remain, update the container with empty cart message.
+                          if (document.querySelectorAll('.cart-item').length === 0) {
+                            document.getElementById('cart-items-container').innerHTML = `
+                              <div class="flex flex-col items-center justify-center py-12">
+                                <svg class="w-16 h-16 text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                  viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.293 2.293a1 1 0 00.293 1.414l1 1a1 1 0 001.414-.293L9 15m0 0l3-6m0 0l3 6m-6 0h6" />
+                                </svg>
+                                <p class="text-xl font-semibold text-gray-700">Your cart is empty.</p>
+                                <p class="text-gray-500 mt-2">Looks like you haven't added any items yet.</p>
+                              </div>`;
+                          }
                         } else {
                           showAlert('Failed to remove item.', 'error');
                         }
@@ -398,6 +412,26 @@
           
                       if (response.ok) {
                         showAlert(result.message, 'success');
+                        // Update cart items container and order summary if updated data is returned
+                        if (result.updatedCartHTML) {
+                          document.getElementById('cart-items-container').innerHTML = result.updatedCartHTML;
+                        }
+                        if (result.updatedCart) {
+                          const updatedCart = result.updatedCart;
+                          const cartSubtotalEl = document.getElementById('cart-subtotal');
+                          const savingsEl = document.getElementById('savings');
+                          const shippingFeeEl = document.getElementById('shipping-fee');
+                          const taxEl = document.getElementById('tax');
+                          const cartTotalEl = document.getElementById('cart-total');
+                          if (cartSubtotalEl) cartSubtotalEl.textContent = '₹' + Number(updatedCart.cart_subtotal).toLocaleString('en-IN');
+                          if (savingsEl) savingsEl.textContent = '-₹' + Number(updatedCart.savings).toLocaleString('en-IN');
+                          if (shippingFeeEl) shippingFeeEl.textContent = '₹' + Number(updatedCart.shipping_fee).toLocaleString('en-IN');
+                          if (taxEl) taxEl.textContent = '₹' + Number(updatedCart.tax).toLocaleString('en-IN');
+                          if (cartTotalEl) cartTotalEl.textContent = '₹' + Number(updatedCart.cart_total).toLocaleString('en-IN');
+                        }
+                        setTimeout(()=>{
+                          window.location.reload();
+                        },1000)
                       } else {
                         showAlert(result.message || "Failed to add item to cart", 'error');
                       }
@@ -434,7 +468,7 @@
                       Savings
                     </dt>
                     <dd id="savings" class="text-base font-medium text-green-600">
-                      -₹<%= savings.toLocaleString('en-IN') %>
+                      -₹<%= cart.savings.toLocaleString('en-IN') %>
                     </dd>
                   </dl>
 

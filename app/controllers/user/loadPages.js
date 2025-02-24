@@ -259,7 +259,7 @@ const loadPages = {
       if (!user) {
         return res.status(httpStatus.NOT_FOUND).json({ message: "User not found!" });
       }
-      res.render("frontend/profile", { user });
+      res.render("frontend/profile", { user,currentRoute: req.path, });
     } catch (err) {
       next(err);
     }
@@ -331,11 +331,13 @@ const loadPages = {
         { $match: { isActive: true } },
         { $sample: { size: 4 } }
       ]);
+      const breadcrumbs = [{ label: "Shop", url: "/shop" },{label:"My cart", url: "/cart/view-cart"}];
 
-      res.render('frontend/cart', {
+      res.status(httpStatus.OK).render('frontend/cart', {
         cart,
         products,
         savings,
+        breadcrumbs,
         currentRoute: req.path,
         user: req.user
       });
