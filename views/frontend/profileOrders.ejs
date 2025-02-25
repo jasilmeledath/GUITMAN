@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guitman - My Orders</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-50">
+    <%- include('./partials/loading') %>
+    <%- include('./partials/header') %>
+
+    <div class="flex flex-col md:flex-row min-h-screen pt-20">
+      <%- include('./partials/profileAside') %>
+      <div class="flex-1 overflow-auto pb-20">
+        <div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+          <h1 class="text-2xl font-semibold mb-6">My Orders</h1>
+          <div class="bg-white rounded-lg shadow-sm p-6">
+            <table class="w-full">
+              <thead class="text-left bg-gray-50">
+                <tr>
+                  <th class="p-4 text-sm font-medium text-gray-600">Order ID</th>
+                  <th class="p-4 text-sm font-medium text-gray-600">Date</th>
+                  <th class="p-4 text-sm font-medium text-gray-600">Price</th>
+                  <th class="p-4 text-sm font-medium text-gray-600">Status</th>
+                  <th class="p-4 text-sm font-medium text-gray-600">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr>
+                  <td class="p-4">#FWB12546980</td>
+                  <td class="p-4">27.01.2024</td>
+                  <td class="p-4">$4,799</td>
+                  <td class="p-4">
+                    <span class="px-3 py-1 text-sm rounded-full bg-yellow-100 text-yellow-800">
+                      In transit
+                    </span>
+                  </td>
+                  <td class="p-4">
+                    <button class="text-blue-600 hover:text-blue-800">View details</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="p-4">#FWB12546971</td>
+                  <td class="p-4">11.12.2023</td>
+                  <td class="p-4">$964</td>
+                  <td class="p-4">
+                    <span class="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-800">
+                      Pre-order
+                    </span>
+                  </td>
+                  <td class="p-4">
+                    <button class="text-blue-600 hover:text-blue-800">View details</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <button class="mt-4 text-blue-600 hover:text-blue-800 font-medium">See all orders</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <%- include('./partials/footer') %>
+  </body>
+</html>

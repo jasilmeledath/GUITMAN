@@ -7,6 +7,8 @@ const loadPages = require('../../controllers/user/loadPages');
 const passport = require("../../config/passport");
 const {redirectIfUserLoggedIn} = require("../../middlewares/redirectIfLoggedIn");
 const cartRoutes = require('../user/cartRoutes');
+const profileRoutes = require('../../routes/user/profileRoutes');
+const loadProfilePages = require('../../controllers/user/loadProfilePages')
 
 // Google OAuth routes
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
@@ -41,7 +43,8 @@ router.get('/product-details/:id', loadPages.loadProductDetails);
 
 // Protected routes (require authentication)
 router.get('/home', verifyUser, loadPages.home);
-router.get('/profile/:id', verifyUser, loadPages.userProfile);
+router.use('/profile', verifyUser, profileRoutes);
+router.get('/profile/:id', verifyUser, loadProfilePages.userProfile);
 router.post('/submit-review/:id', verifyUser, userAuth.submitReview);
 router.use('/cart', verifyUser, cartRoutes);
 

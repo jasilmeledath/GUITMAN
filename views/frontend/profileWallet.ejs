@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guitman - Wallet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-50">
+    <%- include('./partials/loading') %>
+    <%- include('./partials/header') %>
+
+    <div class="flex flex-col md:flex-row min-h-screen pt-20">
+      <%- include('./partials/profileAside') %>
+      <div class="flex-1 overflow-auto pb-20">
+        <div class="max-w-3xl mx-auto p-4 md:p-6 lg:p-8">
+          <h1 class="text-2xl font-semibold mb-6">Wallet</h1>
+          <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-gray-600">Current Balance</span>
+              <span class="text-2xl font-semibold">$1,250.00</span>
+            </div>
+            <h2 class="text-xl font-semibold mb-4">Transaction History</h2>
+            <ul class="divide-y divide-gray-100">
+              <li class="p-4 flex justify-between">
+                <span>Added funds</span>
+                <span class="text-green-600">+$200.00</span>
+              </li>
+              <li class="p-4 flex justify-between">
+                <span>Purchase</span>
+                <span class="text-red-600">-$50.00</span>
+              </li>
+              <!-- More transactions -->
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <%- include('./partials/footer') %>
+  </body>
+</html>

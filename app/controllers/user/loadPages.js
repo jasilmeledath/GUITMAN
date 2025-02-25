@@ -5,6 +5,10 @@ const Coupon = require("../../models/couponModel");
 const User = require("../../models/userModel");
 const Cart = require("../../models/cartModel")
 const httpStatus = require("../../utils/httpStatus");
+const getUser = require('../../helpers/getUser');
+const getCart = require('../../helpers/getCart');
+
+
 
 const loadPages = {
   /**
@@ -18,11 +22,12 @@ const loadPages = {
     try {
       const categories = await Category.find({ isBlocked: false });
       const products = await Product.find({ isTopModel: true });
+      //Fetch the cart item quantity to load into the header.
       res.status(httpStatus.OK).render('frontend/landing', {
         products,
         categories,
         currentRoute: req.path,
-        user: req.user || null
+        user: req.user || null,
       });
     } catch (err) {
       next(err);
@@ -74,11 +79,14 @@ const loadPages = {
     try {
       const categories = await Category.find({ isBlocked: false });
       const products = await Product.find({ isTopModel: true });
+      const cart = await getCart(req,res,next)
+      const numOfItemsInCart = cart.items.length;
       res.render("frontend/landing", {
         products,
         categories,
         currentRoute: req.path,
         user: req.user || null,
+        numOfItemsInCart
       });
     } catch (err) {
       next(err);
@@ -94,6 +102,8 @@ const loadPages = {
    */
   loadShop: async (req, res, next) => {
     try {
+      const cart = await getCart(req,res,next)
+      const numOfItemsInCart = cart.items.length;
       const {
         page = 1,
         limit = 8,
@@ -119,7 +129,7 @@ const loadPages = {
         });
 
         if (!categoryDoc) {
-          return res.render("frontend/shop", {
+          return res.status(httpStatus.OK).render("frontend/shop", {
             products: [],
             categories: await Category.find({ isBlocked: false }, "name"),
             currentPage: 1,
@@ -132,6 +142,7 @@ const loadPages = {
             minPrice,
             maxPrice,
             user: req.user || null,
+            numOfItemsInCart
           });
         }
         filter.category = categoryDoc._id;
@@ -162,7 +173,7 @@ const loadPages = {
       const totalPages = Math.ceil(totalProducts / limit);
       const breadcrumbs = [{ label: "Shop", url: "/shop" }];
 
-      res.render("frontend/shop", {
+      res.status(httpStatus.OK).render("frontend/shop", {
         products,
         categories: await Category.find({ isBlocked: false }, "name"),
         currentPage: Number(page),
@@ -176,6 +187,7 @@ const loadPages = {
         minPrice: Number(minPrice),
         maxPrice: Number(maxPrice),
         user: req.user || null,
+        numOfItemsInCart
       });
     } catch (err) {
       next(err);
@@ -229,7 +241,10 @@ const loadPages = {
         { label: product.product_name, url: `/product-details/${product.product_name}` },
       ];
 
-      res.render("frontend/productDetails", {
+      const cart = await getCart(req,res,next)
+      const numOfItemsInCart = cart.items.length;
+
+      res.status(httpStatus.OK).render("frontend/productDetails", {
         product,
         reviews,
         avgRating,
@@ -239,32 +254,12 @@ const loadPages = {
         user: req.user || null,
         breadcrumbs,
         currentRoute: req.path,
+        numOfItemsInCart
       });
     } catch (err) {
       next(err);
     }
   },
-
-  /**
-   * Renders the user's profile page.
-   *
-   * @param {Object} req - Express request object containing the user ID in parameters.
-   * @param {Object} res - Express response object used to render the profile page.
-   * @param {Function} next - Express next middleware function for error handling.
-   */
-  userProfile: async (req, res, next) => {
-    try {
-      const userId = req.params.id;
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(httpStatus.NOT_FOUND).json({ message: "User not found!" });
-      }
-      res.render("frontend/profile", { user,currentRoute: req.path, });
-    } catch (err) {
-      next(err);
-    }
-  },
-
   /**
    * Renders the tuner page.
    *
@@ -289,7 +284,7 @@ const loadPages = {
    * @param {Object} res - Express response object used to render the tuner page.
    * @param {Function} next - Express next middleware function for error handling.
    */
-  loadCart: async (req, res) => {
+  loadCart: async (req, res, next) => {
     try {
       // Assuming the authenticated user's id is available at req.user._id
       const userId = req.user.id;
@@ -332,19 +327,21 @@ const loadPages = {
         { $sample: { size: 4 } }
       ]);
       const breadcrumbs = [{ label: "Shop", url: "/shop" },{label:"My cart", url: "/cart/view-cart"}];
-
       res.status(httpStatus.OK).render('frontend/cart', {
         cart,
         products,
         savings,
         breadcrumbs,
         currentRoute: req.path,
-        user: req.user
+        user: req.user,
+        numOfItemsInCart: cart.items.length,
       });
     } catch (err) {
       next(err);
     }
-  }
+  },
+  
+
 };
 
 module.exports = loadPages;
