@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guitman - Change Email</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-50">
+    <%- include('./partials/loading') %>
+    <%- include('./partials/header') %>
+
+    <div class="flex flex-col md:flex-row min-h-screen pt-20 pb-16 md:pb-0">
+      <%- include('./partials/profileAside') %>
+      
+      <div class="flex-1 overflow-auto">
+        <div class="max-w-3xl mx-auto p-4 md:p-6 lg:p-8">
+          <!-- Header with Back Button -->
+          <div class="flex items-center gap-4 mb-8">
+            <a href="/profile/settings" class="group flex items-center text-sm font-medium text-gray-500 hover:text-gray-700">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Settings
+            </a>
+          </div>
+
+          <!-- Main Content -->
+          <div class="space-y-6">
+            <!-- Current Email Section -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+              <h2 class="text-lg font-medium mb-4">Current Email Address</h2>
+              <div class="flex items-center space-x-3 text-gray-600 bg-gray-50 p-3 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <span class="font-medium"><%= user.email %></span>
+              </div>
+            </div>
+
+            <!-- Change Email Form -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+              <h2 class="text-lg font-medium mb-4">Change Email Address</h2>
+              <form class="space-y-6" id="changeEmailForm">
+                <!-- New Email -->
+                <div class="space-y-2">
+                  <label for="new-email" class="block text-sm font-medium text-gray-700">New Email Address</label>
+                  <div class="relative">
+                    <input 
+                      type="email" 
+                      id="new-email" 
+                      name="new_email" 
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pr-10"
+                      placeholder="Enter your new email address"
+                      required
+                    >
+                    <div class="hidden absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none" id="email-valid-icon">
+                      <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Confirm New Email -->
+                <div class="space-y-2">
+                  <label for="confirm-email" class="block text-sm font-medium text-gray-700">Confirm New Email Address</label>
+                  <div class="relative">
+                    <input 
+                      type="email" 
+                      id="confirm-email" 
+                      name="confirm_email" 
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pr-10"
+                      placeholder="Confirm your new email address"
+                      required
+                    >
+                    <div class="hidden absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none" id="confirm-valid-icon">
+                      <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Current Password -->
+                <div class="space-y-2">
+                  <label for="current-password" class="block text-sm font-medium text-gray-700">Current Password</label>
+                  <div class="relative">
+                    <input 
+                      type="password" 
+                      id="current-password" 
+                      name="current_password" 
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      placeholder="Enter your current password"
+                      required
+                    >
+                    <button 
+                      type="button"
+                      class="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      onclick="togglePasswordVisibility()"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Error Message -->
+                <div class="hidden" id="error-message">
+                  <p class="text-sm text-red-600"></p>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex items-center justify-between pt-4">
+                  <p class="text-sm text-gray-500">
+                    You'll need to verify your new email address
+                  </p>
+                  <button 
+                    type="submit"
+                    class="inline-flex justify-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    id="submit-button"
+                    disabled
+                  >
+                    Change Email
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Information Card -->
+            <div class="bg-blue-50 border border-blue-100 rounded-lg p-4">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-blue-800">Important Information</h3>
+                  <div class="mt-2 text-sm text-blue-700">
+                    <ul class="list-disc pl-5 space-y-1">
+                      <li>You'll receive a verification email at your new address</li>
+                      <li>Your current email will remain active until verified</li>
+                      <li>All notifications will continue to go to your current email until verified</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OTP Verification Modal -->
+    <div id="otpModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center hidden">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 overflow-hidden">
+        <!-- Modal Header -->
+        <div class="bg-indigo-600 px-6 py-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-medium text-white">Email Verification</h3>
+            <button type="button" id="closeModal" class="text-white hover:text-gray-200">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Modal Content -->
+        <div class="px-6 py-4">
+          <div class="text-center mb-6">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 mb-4">
+              <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-1">Verify Your Email</h3>
+            <p class="text-sm text-gray-600">
+              We've sent a 6-digit verification code to
+              <span id="otpEmailDisplay" class="font-medium"></span>
+            </p>
+          </div>
+          
+          <!-- OTP Input Section -->
+          <div class="mb-6">
+            <label for="otp-input" class="block text-sm font-medium text-gray-700 mb-2">Enter Verification Code</label>
+            <div class="flex justify-between gap-2" id="otpInputContainer">
+              <input type="text" maxlength="1" class="otp-input w-12 h-12 text-center text-xl border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" inputmode="numeric" pattern="[0-9]*" autofocus>
+              <input type="text" maxlength="1" class="otp-input w-12 h-12 text-center text-xl border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" inputmode="numeric" pattern="[0-9]*">
+              <input type="text" maxlength="1" class="otp-input w-12 h-12 text-center text-xl border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" inputmode="numeric" pattern="[0-9]*">
+              <input type="text" maxlength="1" class="otp-input w-12 h-12 text-center text-xl border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" inputmode="numeric" pattern="[0-9]*">
+              <input type="text" maxlength="1" class="otp-input w-12 h-12 text-center text-xl border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" inputmode="numeric" pattern="[0-9]*">
+              <input type="text" maxlength="1" class="otp-input w-12 h-12 text-center text-xl border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" inputmode="numeric" pattern="[0-9]*">
+            </div>
+            <p id="otpError" class="mt-2 text-sm text-red-600 hidden">Invalid verification code. Please try again.</p>
+          </div>
+          
+          <!-- Resend Code Section -->
+          <div class="text-center mb-6">
+            <p class="text-sm text-gray-600 mb-1">Didn't receive a code?</p>
+            <div class="flex items-center justify-center">
+              <button 
+                type="button" 
+                id="resendOtp" 
+                class="text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none"
+              >
+                Resend Code
+              </button>
+              <span id="resendTimer" class="text-sm text-gray-500 ml-2 hidden">
+                in <span id="timerCount">60</span>s
+              </span>
+            </div>
+          </div>
+          
+          <!-- Verify Button -->
+          <div>
+            <button 
+              type="button" 
+              id="verifyOtp" 
+              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled
+            >
+              <span id="verifyBtnText">Verify & Change Email</span>
+              <svg id="verifyBtnSpinner" class="animate-spin ml-2 h-4 w-4 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%- include('./partials/footer') %>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('changeEmailForm');
+        const newEmailInput = document.getElementById('new-email');
+        const confirmEmailInput = document.getElementById('confirm-email');
+        const passwordInput = document.getElementById('current-password');
+        const submitButton = document.getElementById('submit-button');
+        const errorMessage = document.getElementById('error-message');
+        const emailValidIcon = document.getElementById('email-valid-icon');
+        const confirmValidIcon = document.getElementById('confirm-valid-icon');
+        
+        // Modal elements
+        const otpModal = document.getElementById('otpModal');
+        const closeModal = document.getElementById('closeModal');
+        const otpEmailDisplay = document.getElementById('otpEmailDisplay');
+        const otpInputs = document.querySelectorAll('.otp-input');
+        const resendOtpBtn = document.getElementById('resendOtp');
+        const resendTimer = document.getElementById('resendTimer');
+        const timerCount = document.getElementById('timerCount');
+        const verifyOtpBtn = document.getElementById('verifyOtp');
+        const verifyBtnText = document.getElementById('verifyBtnText');
+        const verifyBtnSpinner = document.getElementById('verifyBtnSpinner');
+        const otpError = document.getElementById('otpError');
+
+        function validateEmail(email) {
+          const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          return re.test(email);
+        }
+
+        function validateForm() {
+          const newEmail = newEmailInput.value;
+          const confirmEmail = confirmEmailInput.value;
+          const password = passwordInput.value;
+
+          const isValidEmail = validateEmail(newEmail);
+          const emailsMatch = newEmail === confirmEmail;
+          const hasPassword = password.length >= 6;
+
+          emailValidIcon.classList.toggle('hidden', !isValidEmail);
+          confirmValidIcon.classList.toggle('hidden', !emailsMatch);
+
+          submitButton.disabled = !(isValidEmail && emailsMatch && hasPassword);
+
+          if (!isValidEmail) {
+            showError('Please enter a valid email address');
+          } else if (!emailsMatch) {
+            showError('Email addresses do not match');
+          } else {
+            hideError();
+          }
+        }
+
+        function showError(message) {
+          errorMessage.classList.remove('hidden');
+          errorMessage.querySelector('p').textContent = message;
+        }
+
+        function hideError() {
+          errorMessage.classList.add('hidden');
+        }
+        
+        // OTP Input Handling
+        otpInputs.forEach((input, index) => {
+          // Handle input
+          input.addEventListener('input', (e) => {
+            const value = e.target.value;
+            
+            // Only allow numbers
+            if (/^\d*$/.test(value)) {
+              // Auto advance to next input
+              if (value.length === 1 && index < otpInputs.length - 1) {
+                otpInputs[index + 1].focus();
+              }
+            } else {
+              e.target.value = '';
+            }
+            
+            validateOtp();
+          });
+          
+          // Handle backspace
+          input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && index > 0 && input.value === '') {
+              otpInputs[index - 1].focus();
+              otpInputs[index - 1].value = '';
+            }
+          });
+          
+          // Handle paste
+          input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pastedData = e.clipboardData.getData('text');
+            if (/^\d+$/.test(pastedData)) {
+              for (let i = 0; i < Math.min(pastedData.length, otpInputs.length); i++) {
+                otpInputs[i].value = pastedData[i];
+                if (i < otpInputs.length - 1 && i === pastedData.length - 1) {
+                  otpInputs[i + 1].focus();
+                }
+              }
+            }
+            validateOtp();
+          });
+        });
+        
+        function validateOtp() {
+          // Check if all inputs are filled
+          let isComplete = true;
+          let otpValue = '';
+          
+          otpInputs.forEach(input => {
+            if (input.value === '') {
+              isComplete = false;
+            }
+            otpValue += input.value;
+          });
+          
+          verifyOtpBtn.disabled = !isComplete;
+          
+          // Hide error message when user starts typing again
+          otpError.classList.add('hidden');
+          
+          return otpValue;
+        }
+        
+        function startResendTimer() {
+          let seconds = 60;
+          resendOtpBtn.disabled = true;
+          resendTimer.classList.remove('hidden');
+          timerCount.textContent = seconds;
+          
+          const interval = setInterval(() => {
+            seconds--;
+            timerCount.textContent = seconds;
+            
+            if (seconds <= 0) {
+              clearInterval(interval);
+              resendOtpBtn.disabled = false;
+              resendTimer.classList.add('hidden');
+            }
+          }, 1000);
+        }
+        
+        function clearOtpInputs() {
+          otpInputs.forEach(input => {
+            input.value = '';
+          });
+          verifyOtpBtn.disabled = true;
+          otpError.classList.add('hidden');
+        }
+        
+        function openOtpModal(email) {
+          otpEmailDisplay.textContent = email;
+          otpModal.classList.remove('hidden');
+          clearOtpInputs();
+          startResendTimer();
+          // Focus on first input after a slight delay (for animation)
+          setTimeout(() => {
+            otpInputs[0].focus();
+          }, 100);
+        }
+        
+        function closeOtpModal() {
+          otpModal.classList.add('hidden');
+        }
+        
+        // Handle sending OTP and showing modal
+        form.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          
+          const newEmail = newEmailInput.value;
+          const confirmEmail =confirmEmailInput.value
+          const currentPassword = passwordInput.value;
+          
+          // Show loading state
+          submitButton.disabled = true;
+          submitButton.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Sending...
+          `;
+          
+          try {
+            // Send request to backend to initiate OTP
+            const response = await fetch('/profile/update-email-send-otp', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                new_email: newEmail,
+                confirm_email: confirmEmail,
+                current_password: currentPassword
+              })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+              // Reset button state
+              submitButton.disabled = false;
+              submitButton.textContent = 'Change Email';
+              
+              // Show OTP modal
+              openOtpModal(newEmail);
+            } else {
+              // Show error
+              showError(data.message || 'Failed to send verification code. Please try again.');
+              submitButton.disabled = false;
+              submitButton.textContent = 'Change Email';
+            }
+          } catch (error) {
+            showError('An error occurred. Please try again later.');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Change Email';
+          }
+        });
+        
+        // Handle OTP verification
+        verifyOtpBtn.addEventListener('click', async function() {
+          const otp = validateOtp();
+          const newEmail = newEmailInput.value;
+          
+          // Show loading state
+          verifyOtpBtn.disabled = true;
+          verifyBtnText.textContent = 'Verifying...';
+          verifyBtnSpinner.classList.remove('hidden');
+          
+          try {
+            // Send request to verify OTP
+            const response = await fetch('/profile/verify-and-update-email', {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                new_email: newEmail,
+                otp: otp
+              })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+              // Success - redirect to confirmation page or refresh current page
+              window.location.href = '/profile/settings?email_changed=true';
+            } else {
+              // Show error
+              otpError.textContent = data.message || 'Invalid verification code. Please try again.';
+              otpError.classList.remove('hidden');
+              verifyOtpBtn.disabled = false;
+              verifyBtnText.textContent = 'Verify & Change Email';
+              verifyBtnSpinner.classList.add('hidden');
+            }
+          } catch (error) {
+            otpError.textContent = 'An error occurred. Please try again later.';
+            otpError.classList.remove('hidden');
+            verifyOtpBtn.disabled = false;
+            verifyBtnText.textContent = 'Verify & Change Email';
+            verifyBtnSpinner.classList.add('hidden');
+          }
+        });
+        
+        // Handle resend OTP
+        resendOtpBtn.addEventListener('click', async function() {
+          const newEmail = newEmailInput.value;
+          
+          resendOtpBtn.disabled = true;
+          resendOtpBtn.textContent = 'Sending...';
+          
+          try {
+            const response = await fetch('/profile/update-email-resend-otp', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                email: newEmail
+              })
+            });
+            
+            if (response.ok) {
+              // Start timer again
+              resendOtpBtn.textContent = 'Resend Code';
+              startResendTimer();
+            } else {
+              resendOtpBtn.textContent = 'Resend Code';
+              resendOtpBtn.disabled = false;
+            }
+          } catch (error) {
+            resendOtpBtn.textContent = 'Resend Code';
+            resendOtpBtn.disabled = false;
+          }
+        });
+        
+        // Close modal events
+        closeModal.addEventListener('click', closeOtpModal);
+        // Close modal on backdrop click
+        otpModal.addEventListener('click', function(e) {
+          if (e.target === otpModal) {
+            closeOtpModal();
+          }
+        });
+        // Close on escape key
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && !otpModal.classList.contains('hidden')) {
+            closeOtpModal();
+          }
+        });
+        
+        // Initialize form validation events
+        newEmailInput.addEventListener('input', validateForm);
+        confirmEmailInput.addEventListener('input', validateForm);
+        passwordInput.addEventListener('input', validateForm);
+      });
+
+      function togglePasswordVisibility() {
+        const passwordInput = document.getElementById('current-password');
+        passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+      }
+    </script>
+  </body>
+</html>

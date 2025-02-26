@@ -45,15 +45,21 @@ const loadProfilePages = {
 
   profileSettings: async (req, res, next) => {
     try {
+      const {email_changed} = req.query;
       const cart = await getCart(req, res, next);
       const numOfItemsInCart = cart.items.length;
       const user = await getUser(req, res, req);
+      let emailChange = null;
+      if(email_changed){
+        emailChange = true;
+      }
       res
         .status(httpStatus.OK)
         .render("frontend/profileSettings", {
           user,
           currentRoute: req.path,
           numOfItemsInCart,
+          emailChange,
         });
     } catch (err) {
       next(err);
@@ -133,6 +139,40 @@ const loadProfilePages = {
       next(err);
     }
   },
+
+  changeEmail: async(req,res,next) =>{
+    try {
+      const cart = await getCart(req, res, next);
+      const numOfItemsInCart = cart.items.length;
+      const user = await getUser(req, res, req);
+      res
+        .status(httpStatus.OK)
+        .render("frontend/changeEmail", {
+          user,
+          currentRoute: req.path,
+          numOfItemsInCart,
+        });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  changePassword: async(req,res,next)=>{
+    try {
+      const cart = await getCart(req, res, next);
+      const numOfItemsInCart = cart.items.length;
+      const user = await getUser(req, res, req);
+      res
+        .status(httpStatus.OK)
+        .render("frontend/changePassword", {
+          user,
+          currentRoute: req.path,
+          numOfItemsInCart,
+        });
+    } catch (err) {
+      next(err)
+    }
+  }
 
 
 

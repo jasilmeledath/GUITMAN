@@ -80,13 +80,14 @@ const loadPages = {
     try {
       const categories = await Category.find({ isBlocked: false });
       const products = await Product.find({ isTopModel: true });
-      const cart = await getCart(req,res,next)
+      const cart = await getCart(req,res,next);
+      const user = await getUser(req,res,next);
       const numOfItemsInCart = cart.items.length;
       res.render("frontend/landing", {
         products,
         categories,
         currentRoute: req.path,
-        user: req.user || null,
+        user: user || null,
         numOfItemsInCart
       });
     } catch (err) {
@@ -103,6 +104,7 @@ const loadPages = {
    */
   loadShop: async (req, res, next) => {
     try {
+      const user = await getUser(req,res,next);
       const cart = await getCart(req,res,next)
       const numOfItemsInCart = cart.items.length;
       const {
@@ -142,7 +144,7 @@ const loadPages = {
             category,
             minPrice,
             maxPrice,
-            user: req.user || null,
+            user: user || null,
             numOfItemsInCart
           });
         }
@@ -187,7 +189,7 @@ const loadPages = {
         category,
         minPrice: Number(minPrice),
         maxPrice: Number(maxPrice),
-        user: req.user || null,
+        user: user || null,
         numOfItemsInCart
       });
     } catch (err) {
@@ -206,6 +208,7 @@ const loadPages = {
    */
   loadProductDetails: async (req, res, next) => {
     try {
+      const user = await getUser(req,res,next);
       const productId = req.params.id;
       const product = await Product.findById(productId)
         .populate("category")
@@ -252,7 +255,7 @@ const loadPages = {
         ratingCounts,
         relatedProducts,
         coupons,
-        user: req.user || null,
+        user: user || null,
         breadcrumbs,
         currentRoute: req.path,
         numOfItemsInCart

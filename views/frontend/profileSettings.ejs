@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Guitman - Settings</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Add SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body class="bg-gray-50">
@@ -53,7 +55,12 @@
 
                                         // Validate file size (max 2MB)
                                         if (file.size > 2 * 1024 * 1024) {
-                                            alert('File size exceeds 2MB limit. Please select a smaller image.');
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'File Too Large',
+                                                text: 'File size exceeds 2MB limit. Please select a smaller image.',
+                                                confirmButtonColor: '#4f46e5'
+                                            });
                                             return;
                                         }
 
@@ -84,8 +91,13 @@
                                             profileImg.src = data.profile_image_url || data.profileImageUrl;
                                             profileImg.classList.remove('opacity-50');
 
-                                            // Optional: show success message
-                                            alert('Profile image updated successfully!');
+                                            // Show success message with SweetAlert2
+                                            Swal.fire({
+                                                icon: 'success',
+                                                title: 'Success!',
+                                                text: 'Profile image updated successfully!',
+                                                confirmButtonColor: '#4f46e5'
+                                            });
 
                                         } catch (error) {
                                             console.error('Error updating profile image:', error);
@@ -94,8 +106,13 @@
                                             document.querySelector('img[alt="Profile"]').src = originalSrc;
                                             document.querySelector('img[alt="Profile"]').classList.remove('opacity-50');
 
-                                            // Show error message
-                                            alert('Failed to update profile image. Please try again.');
+                                            // Show error message with SweetAlert2
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'Update Failed',
+                                                text: 'Failed to update profile image. Please try again.',
+                                                confirmButtonColor: '#4f46e5'
+                                            });
                                         }
                                     });
                                 });
@@ -105,202 +122,252 @@
                             <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
                                 <h2 class="text-lg font-medium mb-4">Personal Information</h2>
                                 <form id="personal-info-form" class="space-y-4">
-                                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <!-- First Name Field -->
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <!-- First Name Field -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">First
+                                                Name</label>
+                                            <input type="text" name="first_name" id="first-name"
+                                                value="<%= user.first_name %>"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                            <p id="first-name-error" class="hidden mt-1 text-xs text-red-500">Please
+                                                enter a valid first name</p>
+                                        </div>
+                                        <!-- Last Name Field -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Last
+                                                Name</label>
+                                            <input type="text" name="last_name" id="last-name"
+                                                value="<%= user.last_name %>"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                            <p id="last-name-error" class="hidden mt-1 text-xs text-red-500">Please
+                                                enter a valid last name</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Phone Number Field -->
                                     <div>
-                                      <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                                      <input 
-                                        type="text" 
-                                        name="first_name" 
-                                        id="first-name"
-                                        value="<%= user.first_name %>"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                      >
-                                      <p id="first-name-error" class="hidden mt-1 text-xs text-red-500">Please enter a valid first name</p>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                        <div class="relative">
+                                            <div
+                                                class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                                <span class="text-gray-500 sm:text-sm">+91</span>
+                                            </div>
+                                            <input type="tel" name="mobile" id="phone-input" value="<%= user.mobile %>"
+                                                placeholder="Enter 10-digit mobile number" maxlength="10"
+                                                pattern="[6-9][0-9]{9}"
+                                                class="w-full pl-12 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                            <div class="hidden absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"
+                                                id="valid-icon">
+                                                <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24"
+                                                    stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            <div class="hidden absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"
+                                                id="invalid-icon">
+                                                <svg class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24"
+                                                    stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <p class="mt-1 text-xs text-gray-500">Enter a valid Indian mobile number
+                                            starting with 6-9</p>
+                                        <p class="hidden mt-1 text-xs text-red-500" id="phone-error">Please enter a
+                                            valid 10-digit Indian mobile number</p>
                                     </div>
-                                    <!-- Last Name Field -->
-                                    <div>
-                                      <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                                      <input 
-                                        type="text" 
-                                        name="last_name" 
-                                        id="last-name"
-                                        value="<%= user.last_name %>"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                      >
-                                      <p id="last-name-error" class="hidden mt-1 text-xs text-red-500">Please enter a valid last name</p>
+
+                                    <div class="pt-4">
+                                        <button type="submit"
+                                            class="inline-flex justify-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                            Save Changes
+                                        </button>
                                     </div>
-                                  </div>
-                              
-                                  <!-- Phone Number Field -->
-                                  <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                                    <div class="relative">
-                                      <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                        <span class="text-gray-500 sm:text-sm">+91</span>
-                                      </div>
-                                      <input 
-                                        type="tel" 
-                                        name="mobile" 
-                                        id="phone-input"
-                                        value="<%= user.mobile %>"
-                                        placeholder="Enter 10-digit mobile number"
-                                        maxlength="10"
-                                        pattern="[6-9][0-9]{9}"
-                                        class="w-full pl-12 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                      >
-                                      <div class="hidden absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none" id="valid-icon">
-                                        <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                      </div>
-                                      <div class="hidden absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none" id="invalid-icon">
-                                        <svg class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                      </div>
-                                    </div>
-                                    <p class="mt-1 text-xs text-gray-500">Enter a valid Indian mobile number starting with 6-9</p>
-                                    <p class="hidden mt-1 text-xs text-red-500" id="phone-error">Please enter a valid 10-digit Indian mobile number</p>
-                                  </div>
-                              
-                                  <div class="pt-4">
-                                    <button 
-                                      type="submit"
-                                      class="inline-flex justify-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                    >
-                                      Save Changes
-                                    </button>
-                                  </div>
                                 </form>
-                              </div>
-                              
-                              <script>
-                              document.addEventListener('DOMContentLoaded', function() {
-                                // Phone input validation elements
-                                const phoneInput = document.getElementById('phone-input');
-                                const validIcon = document.getElementById('valid-icon');
-                                const invalidIcon = document.getElementById('invalid-icon');
-                                const phoneError = document.getElementById('phone-error');
-                              
-                                // First name and last name validation elements
-                                const firstNameInput = document.getElementById('first-name');
-                                const lastNameInput = document.getElementById('last-name');
-                                const firstNameError = document.getElementById('first-name-error');
-                                const lastNameError = document.getElementById('last-name-error');
-                              
-                                // Validation functions for phone and names
-                                function validateIndianPhoneNumber(phone) {
-                                  const phoneRegex = /^[6-9]\d{9}$/;
-                                  return phoneRegex.test(phone);
-                                }
-                              
-                                function formatPhoneNumber(value) {
-                                  // Remove all non-digit characters
-                                  const cleaned = value.replace(/\D/g, '');
-                                  // Limit to 10 digits
-                                  return cleaned.substring(0, 10);
-                                }
-                              
-                                function updatePhoneValidationUI(isValid) {
-                                  if (phoneInput.value.length > 0) {
-                                    validIcon.classList.toggle('hidden', !isValid);
-                                    invalidIcon.classList.toggle('hidden', isValid);
-                                    phoneError.classList.toggle('hidden', isValid);
-                                    
-                                    // Update input styling
-                                    if (isValid) {
-                                      phoneInput.classList.remove('border-red-300', 'focus:ring-red-500');
-                                      phoneInput.classList.add('border-gray-300', 'focus:ring-indigo-500');
-                                    } else {
-                                      phoneInput.classList.remove('border-gray-300', 'focus:ring-indigo-500');
-                                      phoneInput.classList.add('border-red-300', 'focus:ring-red-500');
+                            </div>
+
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function () {
+                                    // Phone input validation elements
+                                    const phoneInput = document.getElementById('phone-input');
+                                    const validIcon = document.getElementById('valid-icon');
+                                    const invalidIcon = document.getElementById('invalid-icon');
+                                    const phoneError = document.getElementById('phone-error');
+
+                                    // First name and last name validation elements
+                                    const firstNameInput = document.getElementById('first-name');
+                                    const lastNameInput = document.getElementById('last-name');
+                                    const firstNameError = document.getElementById('first-name-error');
+                                    const lastNameError = document.getElementById('last-name-error');
+
+                                    // Validation functions for phone and names
+                                    function validateIndianPhoneNumber(phone) {
+                                        const phoneRegex = /^[6-9]\d{9}$/;
+                                        return phoneRegex.test(phone);
                                     }
-                                  } else {
-                                    // Reset UI when input is empty
-                                    validIcon.classList.add('hidden');
-                                    invalidIcon.classList.add('hidden');
-                                    phoneError.classList.add('hidden');
-                                    phoneInput.classList.remove('border-red-300', 'focus:ring-red-500');
-                                    phoneInput.classList.add('border-gray-300', 'focus:ring-indigo-500');
-                                  }
-                                }
-                              
-                                // Validate a name field (first or last name)
-                                function validateName(input, errorElement) {
-                                  if (input.value.trim() === '') {
-                                    errorElement.classList.remove('hidden');
-                                    input.classList.remove('border-gray-300', 'focus:ring-indigo-500');
-                                    input.classList.add('border-red-300', 'focus:ring-red-500');
-                                    return false;
-                                  } else {
-                                    errorElement.classList.add('hidden');
-                                    input.classList.remove('border-red-300', 'focus:ring-red-500');
-                                    input.classList.add('border-gray-300', 'focus:ring-indigo-500');
-                                    return true;
-                                  }
-                                }
-                              
-                                // Event listeners for input fields
-                                phoneInput.addEventListener('input', function(e) {
-                                  // Format the input value
-                                  const formattedValue = formatPhoneNumber(e.target.value);
-                                  e.target.value = formattedValue;
-                                  
-                                  // Validate and update UI
-                                  const isValid = validateIndianPhoneNumber(formattedValue);
-                                  updatePhoneValidationUI(isValid);
-                                });
-                              
-                                firstNameInput.addEventListener('input', function() {
-                                  validateName(firstNameInput, firstNameError);
-                                });
-                              
-                                lastNameInput.addEventListener('input', function() {
-                                  validateName(lastNameInput, lastNameError);
-                                });
-                              
-                                // Form submission validation
-                                const form = document.getElementById('personal-info-form');
-                                form.addEventListener('submit', function(e) {
-                                  const isPhoneValid = validateIndianPhoneNumber(phoneInput.value);
-                                  const isFirstNameValid = validateName(firstNameInput, firstNameError);
-                                  const isLastNameValid = validateName(lastNameInput, lastNameError);
-                              
-                                  // Update phone UI in case user hasn't triggered input event recently
-                                  updatePhoneValidationUI(isPhoneValid);
-                              
-                                  if (!isPhoneValid || !isFirstNameValid || !isLastNameValid) {
-                                    e.preventDefault();
-                                    // Optionally, set focus on the first invalid input
-                                    if (!isFirstNameValid) {
-                                      firstNameInput.focus();
-                                    } else if (!isLastNameValid) {
-                                      lastNameInput.focus();
-                                    } else if (!isPhoneValid) {
-                                      phoneInput.focus();
+
+                                    function formatPhoneNumber(value) {
+                                        // Remove all non-digit characters
+                                        const cleaned = value.replace(/\D/g, '');
+                                        // Limit to 10 digits
+                                        return cleaned.substring(0, 10);
                                     }
-                                  }
+
+                                    function updatePhoneValidationUI(isValid) {
+                                        if (phoneInput.value.length > 0) {
+                                            validIcon.classList.toggle('hidden', !isValid);
+                                            invalidIcon.classList.toggle('hidden', isValid);
+                                            phoneError.classList.toggle('hidden', isValid);
+
+                                            // Update input styling
+                                            if (isValid) {
+                                                phoneInput.classList.remove('border-red-300', 'focus:ring-red-500');
+                                                phoneInput.classList.add('border-gray-300', 'focus:ring-indigo-500');
+                                            } else {
+                                                phoneInput.classList.remove('border-gray-300', 'focus:ring-indigo-500');
+                                                phoneInput.classList.add('border-red-300', 'focus:ring-red-500');
+                                            }
+                                        } else {
+                                            // Reset UI when input is empty
+                                            validIcon.classList.add('hidden');
+                                            invalidIcon.classList.add('hidden');
+                                            phoneError.classList.add('hidden');
+                                            phoneInput.classList.remove('border-red-300', 'focus:ring-red-500');
+                                            phoneInput.classList.add('border-gray-300', 'focus:ring-indigo-500');
+                                        }
+                                    }
+
+                                    function validateName(input, errorElement) {
+                                        const name = input.value.trim();
+                                        // Only allow letters (both cases) and spaces. This disallows symbols and full stops.
+                                        const nameRegex = /^[A-Za-z\s]+$/;
+
+                                        if (name === '') {
+                                            errorElement.textContent = 'Name cannot be empty';
+                                            errorElement.classList.remove('hidden');
+                                            input.classList.remove('border-gray-300', 'focus:ring-indigo-500');
+                                            input.classList.add('border-red-300', 'focus:ring-red-500');
+                                            return false;
+                                        } else if (!nameRegex.test(name)) {
+                                            errorElement.textContent = 'Name must only contain letters and spaces';
+                                            errorElement.classList.remove('hidden');
+                                            input.classList.remove('border-gray-300', 'focus:ring-indigo-500');
+                                            input.classList.add('border-red-300', 'focus:ring-red-500');
+                                            return false;
+                                        } else {
+                                            errorElement.classList.add('hidden');
+                                            input.classList.remove('border-red-300', 'focus:ring-red-500');
+                                            input.classList.add('border-gray-300', 'focus:ring-indigo-500');
+                                            return true;
+                                        }
+                                    }
+
+
+                                    // Event listeners for input fields
+                                    phoneInput.addEventListener('input', function (e) {
+                                        const formattedValue = formatPhoneNumber(e.target.value);
+                                        e.target.value = formattedValue;
+                                        const isValid = validateIndianPhoneNumber(formattedValue);
+                                        updatePhoneValidationUI(isValid);
+                                    });
+
+                                    firstNameInput.addEventListener('input', function () {
+                                        validateName(firstNameInput, firstNameError);
+                                    });
+
+                                    lastNameInput.addEventListener('input', function () {
+                                        validateName(lastNameInput, lastNameError);
+                                    });
+
+                                    // Form submission with fetch request
+                                    const form = document.getElementById('personal-info-form');
+                                    form.addEventListener('submit', async function (e) {
+                                        e.preventDefault();
+
+                                        const isPhoneValid = validateIndianPhoneNumber(phoneInput.value);
+                                        const isFirstNameValid = validateName(firstNameInput, firstNameError);
+                                        const isLastNameValid = validateName(lastNameInput, lastNameError);
+
+                                        // Update phone UI in case user hasn't triggered input event recently
+                                        updatePhoneValidationUI(isPhoneValid);
+
+                                        if (!isPhoneValid || !isFirstNameValid || !isLastNameValid) {
+                                            // Optionally, set focus on the first invalid input
+                                            if (!isFirstNameValid) {
+                                                firstNameInput.focus();
+                                            } else if (!isLastNameValid) {
+                                                lastNameInput.focus();
+                                            } else if (!isPhoneValid) {
+                                                phoneInput.focus();
+                                            }
+                                            return;
+                                        }
+
+                                        // Prepare data for backend update
+                                        const userData = {
+                                            first_name: firstNameInput.value,
+                                            last_name: lastNameInput.value,
+                                            mobile: phoneInput.value
+                                        };
+
+                                        try {
+                                            const response = await fetch('/profile/update-personal-info', {
+                                                method: 'PUT',
+                                                headers: {
+                                                    'Content-Type': 'application/json'
+                                                },
+                                                credentials: 'same-origin',
+                                                body: JSON.stringify(userData)
+                                            });
+
+                                            if (!response.ok) {
+                                                const errorData = await response.json();
+                                                Swal.fire({
+                                                    icon: 'error',
+                                                    title: 'Update Failed',
+                                                    text: errorData.message || 'Failed to update user details.',
+                                                    confirmButtonColor: '#4f46e5'
+                                                });
+                                                return;
+                                            }
+
+                                            const result = await response.json();
+                                            Swal.fire({
+                                                icon: 'success',
+                                                title: 'Success!',
+                                                text: 'User details updated successfully!',
+                                                confirmButtonColor: '#4f46e5'
+                                            });
+                                        } catch (error) {
+                                            console.error('Error updating user details:', error);
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'Error',
+                                                text: 'An error occurred while updating user details. Please try again later.',
+                                                confirmButtonColor: '#4f46e5'
+                                            });
+                                        }
+                                    });
+
+                                    // Initial validation on page load if there are pre-filled values
+                                    if (phoneInput.value) {
+                                        const isValid = validateIndianPhoneNumber(phoneInput.value);
+                                        updatePhoneValidationUI(isValid);
+                                    }
+                                    if (firstNameInput.value) {
+                                        validateName(firstNameInput, firstNameError);
+                                    }
+                                    if (lastNameInput.value) {
+                                        validateName(lastNameInput, lastNameError);
+                                    }
                                 });
-                              
-                                // Initial validation on page load if there are pre-filled values
-                                if (phoneInput.value) {
-                                  const isValid = validateIndianPhoneNumber(phoneInput.value);
-                                  updatePhoneValidationUI(isValid);
-                                }
-                                if (firstNameInput.value) {
-                                  validateName(firstNameInput, firstNameError);
-                                }
-                                if (lastNameInput.value) {
-                                  validateName(lastNameInput, lastNameError);
-                                }
-                              });
-                              </script>
-                              
-                              
-                              
+                            </script>
 
                             <!-- Email Settings Section -->
+                            <% if(user.password){ %>
                             <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
                                 <h2 class="text-lg font-medium mb-4">Email Settings</h2>
                                 <div class="space-y-4">
@@ -311,13 +378,42 @@
                                             </p>
                                             <p class="text-sm text-gray-500">Your current email address</p>
                                         </div>
-                                        <button type="button"
+                                        <button type="button" id="change-email-btn" 
                                             class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                             Change Email
                                         </button>
+                                        <script>
+                                            const changeEmailBtn = document.getElementById('change-email-btn');
+                                            changeEmailBtn.addEventListener('click', () =>{
+                                                window.location.href ='/profile/update-email';
+                                            })
+                                        </script>
                                     </div>
                                 </div>
                             </div>
+                            <% } else { %>
+                                <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                                    <h2 class="text-lg font-medium mb-4">Email Settings</h2>
+                                    <div class="space-y-4">
+                                      <div class="flex items-center justify-between">
+                                        <div>
+                                          <p class="text-sm font-medium text-gray-900">
+                                            <%= user.email %>
+                                          </p>
+                                          <p class="text-sm text-gray-500">Your current email address</p>
+                                        </div>
+                                        <div class="flex flex-col items-end">
+                                          <button type="button" id="change-email-btn" 
+                                                  class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                                                  disabled>
+                                            Change Email
+                                          </button>
+                                          <p class="mt-2 text-xs text-red-500">Please update your password first to change your email.</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                            <% } %>                                  
 
                             <!-- Password Section -->
                             <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -328,10 +424,16 @@
                                             <p class="text-sm font-medium text-gray-900">Password</p>
                                             <p class="text-sm text-gray-500">Last changed: 3 months ago</p>
                                         </div>
-                                        <button type="button"
+                                        <button type="button" id="change-pass-btn"
                                             class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                            Change Password
+                                            Update Password
                                         </button>
+                                        <script>
+                                            const changePassBtn = document.getElementById('change-pass-btn');
+                                            changePassBtn.addEventListener('click', ()=>{
+                                                window.location.href = '/profile/change-password'
+                                            })
+                                        </script>
                                     </div>
                                 </div>
                             </div>
@@ -346,10 +448,37 @@
                                             <p class="text-sm text-gray-500">Permanently delete your account and all
                                                 associated data</p>
                                         </div>
-                                        <button type="button"
-                                            class="inline-flex items-center px-4 py-2 border border-red-300 rounded-lg shadow-sm text-sm font-medium text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                        <button type="button" id="deactivate-account-btn"
+                                            class="inline-flex items-center px-4 py-2 border border-red-300 rounded-lg shadow-sm text-sm font-medium text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" disabled>
                                             Delete Account
                                         </button>
+                                        <script>
+                                            document.getElementById('delete-account-btn').addEventListener('click', function() {
+                                                Swal.fire({
+                                                    title: 'Are you sure?',
+                                                    text: "You won't be able to revert this! All your data will be permanently deleted.",
+                                                    icon: 'warning',
+                                                    showCancelButton: true,
+                                                    confirmButtonColor: '#ef4444',
+                                                    cancelButtonColor: '#6b7280',
+                                                    confirmButtonText: 'Yes, delete my account!'
+                                                }).then((result) => {
+                                                    if (result.isConfirmed) {
+                                                        // Add your account deletion API call here
+                                                        // Example:
+                                                        // fetch('/profile/delete-account', { method: 'DELETE' })
+                                                        //   .then(response => {...})
+                                                        //   .catch(error => {...});
+                                                        
+                                                        Swal.fire(
+                                                            'Deleted!',
+                                                            'Your account has been deleted.',
+                                                            'success'
+                                                        )
+                                                    }
+                                                })
+                                            });
+                                        </script>
                                     </div>
                                 </div>
                             </div>
@@ -360,15 +489,30 @@
             <%- include('./partials/footer') %>
 
                 <script>
-                    // Preview profile image before upload
-                    document.getElementById('profile-image').addEventListener('change', function (e) {
-                        if (e.target.files && e.target.files[0]) {
-                            const reader = new FileReader();
-                            reader.onload = function (e) {
-                                document.querySelector('img[alt="Profile"]').src = e.target.result;
-                            };
-                            reader.readAsDataURL(e.target.files[0]);
+                    // Check for email change notification
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Check if email was changed (based on the emailChange parameter)
+                        const emailChange = `<%= typeof emailChange !== 'undefined' && emailChange ? 'true' : 'false' %>`;
+                        
+                        if (emailChange) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Email Updated!',
+                                text: 'Your email address has been successfully changed.',
+                                confirmButtonColor: '#4f46e5'
+                            });
                         }
+                        
+                        // Preview profile image before upload
+                        document.getElementById('profile-image').addEventListener('change', function (e) {
+                            if (e.target.files && e.target.files[0]) {
+                                const reader = new FileReader();
+                                reader.onload = function (e) {
+                                    document.querySelector('img[alt="Profile"]').src = e.target.result;
+                                };
+                                reader.readAsDataURL(e.target.files[0]);
+                            }
+                        });
                     });
                 </script>
 </body>

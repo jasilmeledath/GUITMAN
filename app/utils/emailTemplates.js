@@ -110,5 +110,97 @@ This is an automated message. Please do not reply directly to this email.`,
 </html>`
     };
 };
-
-module.exports = { generateSignupEmail };
+const generateUpdatedEmailOtp = (first_name, otp) => {
+    const validityMinutes = 3;
+    const supportEmail = process.env.SUPPORT_EMAIL || 'support@guitman.com';
+    
+    return {
+      subject: "Verify Your Updated Email Address - GuitMan",
+      text: `Dear ${first_name},
+  
+  We received a request to update the email address associated with your GuitMan account.
+  
+  To complete this update and secure your account, please verify your new email address using the following One-Time Password (OTP):
+  
+  Your Verification Code: ${otp}
+  
+  Important Information:
+  • This code will expire in ${validityMinutes} minutes.
+  • It can only be used once.
+  • Do not share this code with anyone.
+  • GuitMan will never ask for this code.
+  
+  If you did not request this change, please contact our support immediately at ${supportEmail}.
+  
+  Thank you for choosing GuitMan.
+  
+  Best regards,
+  The GuitMan Team
+  
+  This is an automated message. Please do not reply directly to this email.`,
+      html: `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Updated Email Address</title>
+  </head>
+  <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333333; background-color: #f9f9f9;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      <!-- Header -->
+      <div style="text-align: center; padding: 20px 0; border-bottom: 2px solid #f0f0f0;">
+        <h1 style="color: #2C3E50; margin: 0; font-size: 24px;">Verify Your Updated Email Address</h1>
+        <p style="color: #7F8C8D; margin: 10px 0 0;">GuitMan Account Update</p>
+      </div>
+  
+      <!-- Main Content -->
+      <div style="padding: 30px 0;">
+        <p style="margin-bottom: 20px;">Dear ${first_name},</p>
+        
+        <p>We received a request to update the email address associated with your GuitMan account. To secure your account and complete this update, please verify your new email address by entering the verification code below:</p>
+        
+        <!-- OTP Section -->
+        <div style="background-color: #F8F9FA; border-radius: 6px; padding: 20px; margin: 25px 0; text-align: center;">
+          <p style="font-size: 14px; color: #666; margin: 0 0 10px;">Your Verification Code:</p>
+          <div style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #2C3E50; font-family: monospace;">
+            ${otp}
+          </div>
+          <p style="font-size: 13px; color: #666; margin: 10px 0 0;">
+            This code will expire in ${validityMinutes} minutes.
+          </p>
+        </div>
+  
+        <!-- Security Notice -->
+        <div style="background-color: #FFF3E0; border-left: 4px solid #FF9800; padding: 15px; margin: 20px 0;">
+          <p style="margin: 0; font-size: 14px; color: #E65100;">
+            <strong>Important:</strong><br>
+            • Do not share this code with anyone<br>
+            • GuitMan will never ask for this code<br>
+            • If you did not request this update, please contact support immediately
+          </p>
+        </div>
+  
+        <!-- Support Section -->
+        <div style="margin: 30px 0; text-align: center;">
+          <p style="color: #666;">Need help? Contact our support team:</p>
+          <a href="mailto:${supportEmail}" style="color: #3498DB; text-decoration: none;">${supportEmail}</a>
+        </div>
+      </div>
+  
+      <!-- Footer -->
+      <div style="text-align: center; padding-top: 20px; border-top: 2px solid #f0f0f0; color: #999; font-size: 12px;">
+        <p>This is an automated message. Please do not reply directly to this email.</p>
+        <p style="margin-top: 10px;">
+          &copy; ${new Date().getFullYear()} GuitMan. All rights reserved.<br>
+          [Company Address]
+        </p>
+      </div>
+    </div>
+  </body>
+  </html>
+  `
+    };
+  };
+  
+module.exports = { generateSignupEmail, generateUpdatedEmailOtp };
