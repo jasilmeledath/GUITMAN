@@ -11,9 +11,12 @@ const rootDir = path.resolve(__dirname, "../../");
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let uploadPath;
-    // Set the upload path based on the URL
+    // Determine upload folder based on route information
     if (req.baseUrl.includes("category")) {
       uploadPath = path.join(rootDir, "public/uploads/category-images");
+    } else if (req.baseUrl.includes("profile")) {
+      // New subfolder for profile images
+      uploadPath = path.join(rootDir, "public/uploads/profile-images");
     } else {
       uploadPath = path.join(rootDir, "public/uploads/product-images");
     }
@@ -47,7 +50,7 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB file size limit
 });
 
-// Middleware for resizing images
+// Middleware for resizing images (for product/category uploads, if needed)
 const resizeImages = async (req, res, next) => {
   if (!req.files || req.files.length === 0) {
     return next();
@@ -68,7 +71,6 @@ const resizeImages = async (req, res, next) => {
 
       if (index === 0) {
         // For the first image, resize by width only (preserving aspect ratio)
-        // so that the full image is visible in product cards.
         resizedFileName = `original-${timestamp}-${file.originalname}`;
         resizedFilePath = path.join(resizedDir, resizedFileName);
 
@@ -77,7 +79,7 @@ const resizeImages = async (req, res, next) => {
           .jpeg({ quality: 90 })
           .toFile(resizedFilePath);
       } else {
-        // For all other images, use the current square cropping (800x800, cover)
+        // For all other images, use square cropping (800x800, cover)
         resizedFileName = `resized-${timestamp}-${file.originalname}`;
         resizedFilePath = path.join(resizedDir, resizedFileName);
 

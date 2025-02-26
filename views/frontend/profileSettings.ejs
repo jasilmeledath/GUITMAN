@@ -1,44 +1,376 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Guitman - Settings</title>
     <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="bg-gray-50">
-    <%- include('./partials/loading') %>
-    <%- include('./partials/header') %>
+</head>
 
-    <div class="flex flex-col md:flex-row min-h-screen pt-20">
-      <%- include('./partials/profileAside') %>
-      <div class="flex-1 overflow-auto pb-20">
-        <div class="max-w-3xl mx-auto p-4 md:p-6 lg:p-8">
-          <h1 class="text-2xl font-semibold mb-6">Settings</h1>
-          <form class="bg-white rounded-lg shadow-sm p-6 space-y-6">
-            <div>
-              <label class="block text-sm font-medium text-gray-700">First Name</label>
-              <input type="text" name="first_name" value="<%= user.first_name %>" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+<body class="bg-gray-50">
+    <%- include('./partials/loading') %>
+        <%- include('./partials/header') %>
+
+            <div class="flex flex-col md:flex-row min-h-screen pt-20 pb-16 md:pb-0">
+                <%- include('./partials/profileAside') %>
+                    <div class="flex-1 overflow-auto">
+                        <div class="max-w-3xl mx-auto p-4 md:p-6 lg:p-8">
+                            <div class="flex items-center justify-between mb-8">
+                                <h1 class="text-2xl font-semibold">Account Settings</h1>
+                            </div>
+
+                            <!-- Profile Image Section -->
+                            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                                <h2 class="text-lg font-medium mb-4">Profile Image</h2>
+                                <div class="flex items-start space-x-4">
+                                    <div class="relative group">
+                                        <img src="<%= user.profile_image || '/ui/dprofile.jpg' %>" alt="Profile"
+                                            class="w-24 h-24 rounded-full object-cover border-2 border-gray-200" />
+                                        <label
+                                            class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                            <span class="text-white text-sm">Change</span>
+                                            <input type="file" accept="image/*" class="hidden" id="profile-image"
+                                                name="profile_image" />
+                                        </label>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-600 mb-2">Upload a new profile picture</p>
+                                        <p class="text-xs text-gray-500">Recommended: Square image, at least 400x400
+                                            pixels. Maximum file size: 2MB.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <script>
+                                document.addEventListener('DOMContentLoaded', () => {
+                                    const profileImageInput = document.getElementById('profile-image');
+
+                                    profileImageInput.addEventListener('change', async (event) => {
+                                        const file = event.target.files[0];
+
+                                        if (!file) return;
+
+                                        // Validate file size (max 2MB)
+                                        if (file.size > 2 * 1024 * 1024) {
+                                            alert('File size exceeds 2MB limit. Please select a smaller image.');
+                                            return;
+                                        }
+
+                                        // Create FormData to send the file
+                                        const formData = new FormData();
+                                        formData.append('profile_image', file);
+
+                                        try {
+                                            // Show loading state
+                                            const profileImg = document.querySelector('img[alt="Profile"]');
+                                            const originalSrc = profileImg.src;
+                                            profileImg.classList.add('opacity-50');
+
+                                            // Send PUT request to backend
+                                            const response = await fetch('/profile/update-profile-image', {
+                                                method: 'PUT',
+                                                body: formData,
+                                                credentials: 'same-origin' // Include cookies if needed for authentication
+                                            });
+
+                                            if (!response.ok) {
+                                                throw new Error('Failed to update profile image');
+                                            }
+
+                                            const data = await response.json();
+
+                                            // Update the image with the new one from the server
+                                            profileImg.src = data.profile_image_url || data.profileImageUrl;
+                                            profileImg.classList.remove('opacity-50');
+
+                                            // Optional: show success message
+                                            alert('Profile image updated successfully!');
+
+                                        } catch (error) {
+                                            console.error('Error updating profile image:', error);
+
+                                            // Revert to original image on error
+                                            document.querySelector('img[alt="Profile"]').src = originalSrc;
+                                            document.querySelector('img[alt="Profile"]').classList.remove('opacity-50');
+
+                                            // Show error message
+                                            alert('Failed to update profile image. Please try again.');
+                                        }
+                                    });
+                                });
+                            </script>
+
+                            <!-- Personal Information Section -->
+                            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                                <h2 class="text-lg font-medium mb-4">Personal Information</h2>
+                                <form id="personal-info-form" class="space-y-4">
+                                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <!-- First Name Field -->
+                                    <div>
+                                      <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                                      <input 
+                                        type="text" 
+                                        name="first_name" 
+                                        id="first-name"
+                                        value="<%= user.first_name %>"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                      >
+                                      <p id="first-name-error" class="hidden mt-1 text-xs text-red-500">Please enter a valid first name</p>
+                                    </div>
+                                    <!-- Last Name Field -->
+                                    <div>
+                                      <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                                      <input 
+                                        type="text" 
+                                        name="last_name" 
+                                        id="last-name"
+                                        value="<%= user.last_name %>"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                      >
+                                      <p id="last-name-error" class="hidden mt-1 text-xs text-red-500">Please enter a valid last name</p>
+                                    </div>
+                                  </div>
+                              
+                                  <!-- Phone Number Field -->
+                                  <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                    <div class="relative">
+                                      <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                        <span class="text-gray-500 sm:text-sm">+91</span>
+                                      </div>
+                                      <input 
+                                        type="tel" 
+                                        name="mobile" 
+                                        id="phone-input"
+                                        value="<%= user.mobile %>"
+                                        placeholder="Enter 10-digit mobile number"
+                                        maxlength="10"
+                                        pattern="[6-9][0-9]{9}"
+                                        class="w-full pl-12 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                      >
+                                      <div class="hidden absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none" id="valid-icon">
+                                        <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                      </div>
+                                      <div class="hidden absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none" id="invalid-icon">
+                                        <svg class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                      </div>
+                                    </div>
+                                    <p class="mt-1 text-xs text-gray-500">Enter a valid Indian mobile number starting with 6-9</p>
+                                    <p class="hidden mt-1 text-xs text-red-500" id="phone-error">Please enter a valid 10-digit Indian mobile number</p>
+                                  </div>
+                              
+                                  <div class="pt-4">
+                                    <button 
+                                      type="submit"
+                                      class="inline-flex justify-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                    >
+                                      Save Changes
+                                    </button>
+                                  </div>
+                                </form>
+                              </div>
+                              
+                              <script>
+                              document.addEventListener('DOMContentLoaded', function() {
+                                // Phone input validation elements
+                                const phoneInput = document.getElementById('phone-input');
+                                const validIcon = document.getElementById('valid-icon');
+                                const invalidIcon = document.getElementById('invalid-icon');
+                                const phoneError = document.getElementById('phone-error');
+                              
+                                // First name and last name validation elements
+                                const firstNameInput = document.getElementById('first-name');
+                                const lastNameInput = document.getElementById('last-name');
+                                const firstNameError = document.getElementById('first-name-error');
+                                const lastNameError = document.getElementById('last-name-error');
+                              
+                                // Validation functions for phone and names
+                                function validateIndianPhoneNumber(phone) {
+                                  const phoneRegex = /^[6-9]\d{9}$/;
+                                  return phoneRegex.test(phone);
+                                }
+                              
+                                function formatPhoneNumber(value) {
+                                  // Remove all non-digit characters
+                                  const cleaned = value.replace(/\D/g, '');
+                                  // Limit to 10 digits
+                                  return cleaned.substring(0, 10);
+                                }
+                              
+                                function updatePhoneValidationUI(isValid) {
+                                  if (phoneInput.value.length > 0) {
+                                    validIcon.classList.toggle('hidden', !isValid);
+                                    invalidIcon.classList.toggle('hidden', isValid);
+                                    phoneError.classList.toggle('hidden', isValid);
+                                    
+                                    // Update input styling
+                                    if (isValid) {
+                                      phoneInput.classList.remove('border-red-300', 'focus:ring-red-500');
+                                      phoneInput.classList.add('border-gray-300', 'focus:ring-indigo-500');
+                                    } else {
+                                      phoneInput.classList.remove('border-gray-300', 'focus:ring-indigo-500');
+                                      phoneInput.classList.add('border-red-300', 'focus:ring-red-500');
+                                    }
+                                  } else {
+                                    // Reset UI when input is empty
+                                    validIcon.classList.add('hidden');
+                                    invalidIcon.classList.add('hidden');
+                                    phoneError.classList.add('hidden');
+                                    phoneInput.classList.remove('border-red-300', 'focus:ring-red-500');
+                                    phoneInput.classList.add('border-gray-300', 'focus:ring-indigo-500');
+                                  }
+                                }
+                              
+                                // Validate a name field (first or last name)
+                                function validateName(input, errorElement) {
+                                  if (input.value.trim() === '') {
+                                    errorElement.classList.remove('hidden');
+                                    input.classList.remove('border-gray-300', 'focus:ring-indigo-500');
+                                    input.classList.add('border-red-300', 'focus:ring-red-500');
+                                    return false;
+                                  } else {
+                                    errorElement.classList.add('hidden');
+                                    input.classList.remove('border-red-300', 'focus:ring-red-500');
+                                    input.classList.add('border-gray-300', 'focus:ring-indigo-500');
+                                    return true;
+                                  }
+                                }
+                              
+                                // Event listeners for input fields
+                                phoneInput.addEventListener('input', function(e) {
+                                  // Format the input value
+                                  const formattedValue = formatPhoneNumber(e.target.value);
+                                  e.target.value = formattedValue;
+                                  
+                                  // Validate and update UI
+                                  const isValid = validateIndianPhoneNumber(formattedValue);
+                                  updatePhoneValidationUI(isValid);
+                                });
+                              
+                                firstNameInput.addEventListener('input', function() {
+                                  validateName(firstNameInput, firstNameError);
+                                });
+                              
+                                lastNameInput.addEventListener('input', function() {
+                                  validateName(lastNameInput, lastNameError);
+                                });
+                              
+                                // Form submission validation
+                                const form = document.getElementById('personal-info-form');
+                                form.addEventListener('submit', function(e) {
+                                  const isPhoneValid = validateIndianPhoneNumber(phoneInput.value);
+                                  const isFirstNameValid = validateName(firstNameInput, firstNameError);
+                                  const isLastNameValid = validateName(lastNameInput, lastNameError);
+                              
+                                  // Update phone UI in case user hasn't triggered input event recently
+                                  updatePhoneValidationUI(isPhoneValid);
+                              
+                                  if (!isPhoneValid || !isFirstNameValid || !isLastNameValid) {
+                                    e.preventDefault();
+                                    // Optionally, set focus on the first invalid input
+                                    if (!isFirstNameValid) {
+                                      firstNameInput.focus();
+                                    } else if (!isLastNameValid) {
+                                      lastNameInput.focus();
+                                    } else if (!isPhoneValid) {
+                                      phoneInput.focus();
+                                    }
+                                  }
+                                });
+                              
+                                // Initial validation on page load if there are pre-filled values
+                                if (phoneInput.value) {
+                                  const isValid = validateIndianPhoneNumber(phoneInput.value);
+                                  updatePhoneValidationUI(isValid);
+                                }
+                                if (firstNameInput.value) {
+                                  validateName(firstNameInput, firstNameError);
+                                }
+                                if (lastNameInput.value) {
+                                  validateName(lastNameInput, lastNameError);
+                                }
+                              });
+                              </script>
+                              
+                              
+                              
+
+                            <!-- Email Settings Section -->
+                            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                                <h2 class="text-lg font-medium mb-4">Email Settings</h2>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-900">
+                                                <%= user.email %>
+                                            </p>
+                                            <p class="text-sm text-gray-500">Your current email address</p>
+                                        </div>
+                                        <button type="button"
+                                            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                            Change Email
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Password Section -->
+                            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                                <h2 class="text-lg font-medium mb-4">Password Settings</h2>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-900">Password</p>
+                                            <p class="text-sm text-gray-500">Last changed: 3 months ago</p>
+                                        </div>
+                                        <button type="button"
+                                            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                            Change Password
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Danger Zone -->
+                            <div class="bg-white rounded-lg shadow-sm p-6 border border-red-100">
+                                <h2 class="text-lg font-medium text-red-600 mb-4">Danger Zone</h2>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-900">Delete Account</p>
+                                            <p class="text-sm text-gray-500">Permanently delete your account and all
+                                                associated data</p>
+                                        </div>
+                                        <button type="button"
+                                            class="inline-flex items-center px-4 py-2 border border-red-300 rounded-lg shadow-sm text-sm font-medium text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                            Delete Account
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Last Name</label>
-              <input type="text" name="last_name" value="<%= user.last_name %>" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Email Address</label>
-              <input type="email" name="email" value="<%= user.email %>" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Phone Number</label>
-              <input type="text" name="mobile" value="<%= user.mobile %>" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-            </div>
-            <button type="submit" class="mt-4 inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
-              Save Changes
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-    <%- include('./partials/footer') %>
-  </body>
+
+            <%- include('./partials/footer') %>
+
+                <script>
+                    // Preview profile image before upload
+                    document.getElementById('profile-image').addEventListener('change', function (e) {
+                        if (e.target.files && e.target.files[0]) {
+                            const reader = new FileReader();
+                            reader.onload = function (e) {
+                                document.querySelector('img[alt="Profile"]').src = e.target.result;
+                            };
+                            reader.readAsDataURL(e.target.files[0]);
+                        }
+                    });
+                </script>
+</body>
+
 </html>

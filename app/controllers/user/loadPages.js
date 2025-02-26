@@ -28,6 +28,7 @@ const loadPages = {
         categories,
         currentRoute: req.path,
         user: req.user || null,
+        numOfItemsInCart: 0,
       });
     } catch (err) {
       next(err);
