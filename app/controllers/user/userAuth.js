@@ -200,8 +200,8 @@ const userAuth = {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "Strict",
-        maxAge: 3600000, // 1 hour
-      });
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
+      });      
 
       return res.status(200).json({
         success: true,

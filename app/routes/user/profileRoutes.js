@@ -3,7 +3,6 @@ const router =  express.Router();
 const loadProfilePages = require('../../controllers/user/loadProfilePages');
 const profileControls = require('../../controllers/user/userProfileControls');
 const { upload, resizeImages, } = require('../../config/multer');
-const { profile } = require('console');
 
 router.get('/addresses', loadProfilePages.profileAddresses);
 router.get('/wallet')
@@ -18,6 +17,9 @@ router.patch('/update-password', profileControls.updatePassword);
 router.put('/update-email-send-otp', profileControls.sendOtp);
 router.put('/update-email-resend-otp', profileControls.resendOtp);
 router.patch('/verify-and-update-email', profileControls.verifyAndUpdateEmail);
+router.post('/address-add', profileControls.addAddress);
+router.post('/address-update', profileControls.updateAddress);
+router.delete('/address-delete', profileControls.deleteAddress);
 
 
 module.exports = router;

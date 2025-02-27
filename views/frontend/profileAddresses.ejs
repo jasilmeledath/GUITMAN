@@ -5,37 +5,696 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Guitman - Delivery Addresses</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <!-- SweetAlert2 for professional looking popups -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <style>
+      /* Custom SweetAlert2 styling */
+      .swal2-popup {
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+      .swal2-title {
+        font-weight: 600;
+        color: #1F2937;
+      }
+      .swal2-confirm {
+        background-color: #4F46E5 !important;
+        border-radius: 0.5rem !important;
+        padding: 0.75rem 1.5rem !important;
+        font-weight: 500 !important;
+      }
+      .swal2-confirm:focus {
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3) !important;
+      }
+      .swal2-cancel {
+        background-color: #F3F4F6 !important;
+        color: #4B5563 !important;
+        border-radius: 0.5rem !important;
+        padding: 0.75rem 1.5rem !important;
+        font-weight: 500 !important;
+      }
+      [x-cloak] { display: none !important; }
+    </style>
   </head>
-  <body class="bg-gray-50">
+  <body class="bg-gray-50" x-data>
     <%- include('./partials/loading') %>
     <%- include('./partials/header') %>
-
+    
     <div class="flex flex-col md:flex-row min-h-screen pt-20">
       <%- include('./partials/profileAside') %>
       <div class="flex-1 overflow-auto pb-20">
         <div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
-          <h1 class="text-2xl font-semibold mb-6">Delivery Addresses</h1>
-          <div class="bg-white rounded-lg shadow-sm p-6">
-            <div class="space-y-4">
-              <!-- Example address -->
-              <div class="p-4 border rounded-lg">
-                <h2 class="font-semibold">Home</h2>
-                <p class="text-gray-700">123 Main Street, Apartment 4B, New York, NY 10001</p>
-                <button class="mt-2 text-blue-600 hover:text-blue-800 text-sm">Edit</button>
+          <h1 class="text-2xl font-semibold mb-6 text-gray-800">Delivery Addresses</h1>
+          <div class="bg-white rounded-lg shadow-md p-6 border border-gray-100">
+            <% if (addresses && addresses.length > 0) { %>
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <% addresses.forEach(address => { %>
+                  <div class="p-5 border border-gray-200 rounded-lg relative group hover:border-indigo-200 hover:shadow-md transition-all duration-200">
+                    <div class="absolute top-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        class="text-gray-600 hover:text-indigo-600 p-1.5 rounded-full hover:bg-indigo-50 transition-colors" 
+                        @click="
+                          $store.addressForm.isEdit = true;
+                          $store.addressForm.id = '<%= address._id %>';
+                          $store.addressForm.name = '<%= address.name %>';
+                          $store.addressForm.email = '<%= address.email %>';
+                          $store.addressForm.contactNumber = '<%= address.contact_number %>';
+                          $store.addressForm.alternateNumber = '<%= address.alternate_number || '' %>';
+                          $store.addressForm.country = '<%= address.country %>';
+                          $store.addressForm.updateStates();
+                          setTimeout(() => { $store.addressForm.state = '<%= address.state %>'; }, 100);
+                          $store.addressForm.address = '<%= address.address %>';
+                          $store.addressForm.pincode = '<%= address.pincode %>';
+                          $store.addressForm.landmark = '<%= address.landmark || '' %>';
+                          $store.addressForm.addressType = '<%= address.address_type %>';
+                          $store.addressForm.showModal = true;
+                        "
+                        aria-label="Edit address"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                      </button>
+                      <button 
+                        class="text-gray-600 hover:text-red-600 p-1.5 rounded-full hover:bg-red-50 transition-colors" 
+                        @click="
+                          $store.deleteConfirm.id = '<%= address._id %>';
+                          $store.deleteConfirm.showModal = true;
+                        "
+                        aria-label="Delete address"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                    <span class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2.5 py-1 rounded-full mb-2 font-medium"><%= address.address_type %></span>
+                    <h2 class="font-semibold text-gray-900"><%= address.name %></h2>
+                    <p class="text-gray-700 mt-1"><%= address.address %></p>
+                    <p class="text-gray-700"><%= address.state %>, <%= address.country %> - <%= address.pincode %></p>
+                    <% if (address.landmark) { %>
+                      <p class="text-gray-700">Landmark: <%= address.landmark %></p>
+                    <% } %>
+                    <p class="text-gray-700 mt-1.5">
+                      <span class="inline-flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                        <%= address.contact_number %>
+                      </span>
+                    </p>
+                  </div>
+                <% }) %>
               </div>
-              <div class="p-4 border rounded-lg">
-                <h2 class="font-semibold">Work</h2>
-                <p class="text-gray-700">456 Business Rd, Suite 800, Los Angeles, CA 90001</p>
-                <button class="mt-2 text-blue-600 hover:text-blue-800 text-sm">Edit</button>
+            <% } else { %>
+              <div class="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <h3 class="text-lg font-medium text-gray-700 mb-2">No addresses added yet</h3>
+                <p class="text-gray-500 mb-5 max-w-md mx-auto">Add your first delivery address to make checkout easier and faster</p>
               </div>
-            </div>
-            <button class="mt-4 inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+            <% } %>
+            <button 
+              class="mt-8 inline-flex items-center justify-center bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 shadow-sm font-medium"
+              @click="
+                $store.addressForm.reset();
+                $store.addressForm.showModal = true;
+              "
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
               Add New Address
             </button>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Add/Edit Address Modal -->
+    <div x-data x-cloak x-show="$store.addressForm.showModal" class="fixed inset-0 bg-black bg-opacity-70 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+      <div 
+        @click.outside="$store.addressForm.showModal = false"
+        x-show="$store.addressForm.showModal" 
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 transform scale-95"
+        x-transition:enter-end="opacity-100 transform scale-100"
+        class="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-auto border border-gray-200"
+      >
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-indigo-50 to-white">
+          <h3 class="text-xl font-semibold text-gray-800" x-text="$store.addressForm.isEdit ? 'Edit Address' : 'Add New Address'"></h3>
+          <button @click="$store.addressForm.showModal = false" class="text-gray-400 hover:text-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-full p-1">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="p-6">
+          <form id="addressForm" @submit.prevent="$store.addressForm.saveAddress()" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Full Name Field -->
+              <div>
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Full Name*</label>
+                <input 
+                  type="text" 
+                  id="name" 
+                  x-model="$store.addressForm.name" 
+                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                  required
+                >
+                <span x-show="$store.addressForm.errors.name" class="text-red-500 text-xs" x-text="$store.addressForm.errors.name"></span>
+              </div>
+              <!-- Email Field -->
+              <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email*</label>
+                <input 
+                  type="email" 
+                  id="email" 
+                  x-model="$store.addressForm.email" 
+                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                  required
+                >
+                <span x-show="$store.addressForm.errors.email" class="text-red-500 text-xs" x-text="$store.addressForm.errors.email"></span>
+              </div>
+              <!-- Contact Number Field -->
+              <div>
+                <label for="contactNumber" class="block text-sm font-medium text-gray-700 mb-1">Contact Number*</label>
+                <input 
+                  type="tel" 
+                  id="contactNumber" 
+                  x-model="$store.addressForm.contactNumber" 
+                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                  required
+                >
+                <span x-show="$store.addressForm.errors.contactNumber" class="text-red-500 text-xs" x-text="$store.addressForm.errors.contactNumber"></span>
+              </div>
+              <!-- Alternate Number Field -->
+              <div>
+                <label for="alternateNumber" class="block text-sm font-medium text-gray-700 mb-1">Alternate Number</label>
+                <input 
+                  type="tel" 
+                  id="alternateNumber" 
+                  x-model="$store.addressForm.alternateNumber" 
+                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                >
+              </div>
+              <!-- Country Field -->
+              <div>
+                <label for="country" class="block text-sm font-medium text-gray-700 mb-1">Country*</label>
+                <select 
+                  id="country" 
+                  x-model="$store.addressForm.country" 
+                  @change="$store.addressForm.updateStates()"
+                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
+                  required
+                >
+                  <option value="">Select Country</option>
+                  <option value="United States">United States</option>
+                  <option value="Canada">Canada</option>
+                  <option value="India">India</option>
+                  <option value="United Kingdom">United Kingdom</option>
+                  <option value="Australia">Australia</option>
+                </select>
+                <span x-show="$store.addressForm.errors.country" class="text-red-500 text-xs" x-text="$store.addressForm.errors.country"></span>
+              </div>
+              <!-- State/Province Field -->
+              <div>
+                <label for="state" class="block text-sm font-medium text-gray-700 mb-1">State/Province*</label>
+                <select 
+                  id="state" 
+                  x-model="$store.addressForm.state" 
+                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
+                  required
+                >
+                  <option value="">Select State</option>
+                  <template x-for="state in $store.addressForm.statesList" :key="state">
+                    <option :value="state" x-text="state"></option>
+                  </template>
+                </select>
+                <span x-show="$store.addressForm.errors.state" class="text-red-500 text-xs" x-text="$store.addressForm.errors.state"></span>
+              </div>
+              <!-- Address Field -->
+              <div class="md:col-span-2">
+                <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Address*</label>
+                <textarea 
+                  id="address" 
+                  x-model="$store.addressForm.address" 
+                  rows="3" 
+                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 resize-none"
+                  required
+                ></textarea>
+                <span x-show="$store.addressForm.errors.address" class="text-red-500 text-xs" x-text="$store.addressForm.errors.address"></span>
+              </div>
+              <!-- Pincode/ZIP Field -->
+              <div>
+                <label for="pincode" class="block text-sm font-medium text-gray-700 mb-1">Pincode/ZIP*</label>
+                <input 
+                  type="text" 
+                  id="pincode" 
+                  x-model="$store.addressForm.pincode" 
+                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                  required
+                >
+                <span x-show="$store.addressForm.errors.pincode" class="text-red-500 text-xs" x-text="$store.addressForm.errors.pincode"></span>
+              </div>
+              <!-- Landmark Field -->
+              <div>
+                <label for="landmark" class="block text-sm font-medium text-gray-700 mb-1">Landmark</label>
+                <input 
+                  type="text" 
+                  id="landmark" 
+                  x-model="$store.addressForm.landmark" 
+                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                >
+              </div>
+              <!-- Address Type Field -->
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Address Type*</label>
+                <div class="flex space-x-6 mt-1">
+                  <label class="inline-flex items-center">
+                    <input type="radio" x-model="$store.addressForm.addressType" value="Home" class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" required>
+                    <span class="ml-2 text-gray-700">Home</span>
+                  </label>
+                  <label class="inline-flex items-center">
+                    <input type="radio" x-model="$store.addressForm.addressType" value="Office" class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" required>
+                    <span class="ml-2 text-gray-700">Office</span>
+                  </label>
+                  <label class="inline-flex items-center">
+                    <input type="radio" x-model="$store.addressForm.addressType" value="Other" class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" required>
+                    <span class="ml-2 text-gray-700">Other</span>
+                  </label>
+                </div>
+                <span x-show="$store.addressForm.errors.addressType" class="text-red-500 text-xs" x-text="$store.addressForm.errors.addressType"></span>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="p-6 border-t border-gray-100 flex justify-end space-x-4 bg-gray-50">
+          <button 
+            @click="$store.addressForm.showModal = false" 
+            class="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 font-medium transition-colors duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+          >
+            Cancel
+          </button>
+          <button 
+            @click="$store.addressForm.saveAddress()" 
+            class="px-5 py-2.5 border border-transparent rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 font-medium transition-colors duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          >
+            Save Address
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div x-cloak x-show="$store.deleteConfirm.showModal" class="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+      <div 
+        @click.outside="$store.deleteConfirm.showModal = false"
+        x-show="$store.deleteConfirm.showModal" 
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 transform scale-95"
+        x-transition:enter-end="opacity-100 transform scale-100"
+        class="bg-white rounded-lg shadow-lg max-w-md w-full"
+      >
+        <div class="p-6">
+          <div class="text-center">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-50 mb-4">
+              <svg class="h-10 w-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">Delete Address</h3>
+            <p class="text-gray-600 mb-0">Are you sure you want to delete this address? This action cannot be undone.</p>
+          </div>
+        </div>
+        <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3 rounded-b-lg">
+          <button 
+            @click="$store.deleteConfirm.showModal = false" 
+            class="px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+          >
+            Cancel
+          </button>
+          <button 
+            @click="$store.deleteConfirm.deleteAddress()" 
+            class="px-4 py-2.5 border border-transparent rounded-lg text-white bg-red-600 hover:bg-red-700 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('alpine:init', () => {
+        Alpine.store('addressForm', {
+          showModal: false,
+          isEdit: false,
+          id: '',
+          name: '',
+          email: '',
+          contactNumber: '',
+          alternateNumber: '',
+          country: '',
+          state: '',
+          address: '',
+          pincode: '',
+          landmark: '',
+          addressType: 'Home',
+          statesList: [],
+          errors: {},
+          statesByCountry: {
+            'United States': ['Alabama', 'Alaska', 'Arizona', 'California', 'Colorado', 'Florida', 'New York', 'Texas'],
+            'Canada': ['Alberta', 'British Columbia', 'Ontario', 'Quebec'],
+            'India': [
+                "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+                "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand",
+                "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+                "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan",
+                "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh",
+                "Uttarakhand", "West Bengal"
+            ],
+            'United Kingdom': ['England', 'Scotland', 'Wales', 'Northern Ireland'],
+            'Australia': ['New South Wales', 'Victoria', 'Queensland', 'Western Australia'],
+            'Germany': [
+                'Baden-Württemberg', 'Bavaria', 'Berlin', 'Brandenburg', 'Bremen',
+                'Hamburg', 'Hesse', 'Lower Saxony', 'Mecklenburg-Vorpommern',
+                'North Rhine-Westphalia', 'Rhineland-Palatinate', 'Saarland',
+                'Saxony', 'Saxony-Anhalt', 'Thuringia'
+            ],
+            'Brazil': [
+                'Acre', 'Alagoas', 'Amapá', 'Amazonas', 'Bahia', 'Ceará',
+                'Distrito Federal', 'Espírito Santo', 'Goiás', 'Maranhão',
+                'Mato Grosso', 'Mato Grosso do Sul', 'Minas Gerais', 'Pará',
+                'Paraíba', 'Paraná', 'Pernambuco', 'Piauí', 'Rio de Janeiro',
+                'Rio Grande do Norte', 'Rio Grande do Sul', 'Rondônia', 'Roraima',
+                'Santa Catarina', 'São Paulo', 'Sergipe', 'Tocantins'
+            ],
+            'China': [
+                'Anhui', 'Fujian', 'Gansu', 'Guangdong', 'Guangxi', 'Guizhou',
+                'Hainan', 'Hebei', 'Heilongjiang', 'Henan', 'Hubei', 'Hunan',
+                'Jiangsu', 'Jiangxi', 'Jilin', 'Liaoning', 'Qinghai', 'Shaanxi',
+                'Shandong', 'Shanxi', 'Sichuan', 'Yunnan', 'Zhejiang',
+                'Beijing', 'Chongqing', 'Shanghai', 'Tianjin'
+            ],
+            'France': [
+                'Île-de-France', 'Provence-Alpes-Côte d\'Azur', 'Auvergne-Rhône-Alpes',
+                'Nouvelle-Aquitaine', 'Occitanie', 'Grand Est', 'Hauts-de-France',
+                'Bretagne', 'Normandie', 'Centre-Val de Loire', 'Bourgogne-Franche-Comté',
+                'Corse'
+            ],
+            'Mexico': [
+                'Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche',
+                'Chiapas', 'Chihuahua', 'Coahuila', 'Colima', 'Durango', 'Guanajuato',
+                'Guerrero', 'Hidalgo', 'Jalisco', 'Mexico City', 'Michoacán',
+                'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro',
+                'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco',
+                'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas'
+            ],
+            'South Africa': [
+                'Eastern Cape', 'Free State', 'Gauteng', 'KwaZulu-Natal', 'Limpopo',
+                'Mpumalanga', 'North West', 'Northern Cape', 'Western Cape'
+            ],
+            'Japan': [
+                'Hokkaido', 'Aomori', 'Iwate', 'Miyagi', 'Akita', 'Yamagata', 'Fukushima',
+                'Ibaraki', 'Tochigi', 'Gunma', 'Saitama', 'Chiba', 'Tokyo', 'Kanagawa',
+                'Niigata', 'Toyama', 'Ishikawa', 'Fukui', 'Yamanashi', 'Nagano', 'Gifu',
+                'Shizuoka', 'Aichi', 'Mie', 'Shiga', 'Kyoto', 'Osaka', 'Hyogo', 'Nara',
+                'Wakayama', 'Tottori', 'Shimane', 'Okayama', 'Hiroshima', 'Yamaguchi',
+                'Tokushima', 'Kagawa', 'Ehime', 'Kochi', 'Fukuoka', 'Saga', 'Nagasaki',
+                'Kumamoto', 'Oita', 'Miyazaki', 'Kagoshima', 'Okinawa'
+            ],
+            'Italy': [
+                'Abruzzo', 'Basilicata', 'Calabria', 'Campania', 'Emilia-Romagna',
+                'Friuli-Venezia Giulia', 'Lazio', 'Liguria', 'Lombardy', 'Marche',
+                'Molise', 'Piedmont', 'Sardinia', 'Sicily', 'Trentino-Alto Adige/Südtirol',
+                'Umbria', 'Veneto'
+            ],
+            'Spain': [
+                'Andalusia', 'Aragon', 'Asturias', 'Balearic Islands', 'Basque Country',
+                'Canary Islands', 'Cantabria', 'Castile and León', 'Castilla–La Mancha',
+                'Catalonia', 'Extremadura', 'Galicia', 'La Rioja', 'Madrid', 'Murcia',
+                'Navarre', 'Valencian Community'
+            ]
+          },
+          
+          reset() {
+            this.isEdit = false;
+            this.id = '';
+            this.name = '';
+            this.email = '';
+            this.contactNumber = '';
+            this.alternateNumber = '';
+            this.country = '';
+            this.state = '';
+            this.address = '';
+            this.pincode = '';
+            this.landmark = '';
+            this.addressType = 'Home';
+            this.statesList = [];
+            this.errors = {};
+          },
+          
+          updateStates() {
+            if (this.country && this.statesByCountry[this.country]) {
+              this.statesList = this.statesByCountry[this.country];
+              this.state = '';
+            } else {
+              this.statesList = [];
+              this.state = '';
+            }
+          },
+          
+          validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+          },
+          
+          validateForm() {
+            this.errors = {};
+            let valid = true;
+            if (!this.name.trim()) {
+              this.errors.name = "Full Name is required";
+              valid = false;
+            }
+            if (!this.email.trim()) {
+              this.errors.email = "Email is required";
+              valid = false;
+            } else if (!this.validateEmail(this.email)) {
+              this.errors.email = "Invalid email format";
+              valid = false;
+            }
+            if (!this.contactNumber.trim()) {
+              this.errors.contactNumber = "Contact Number is required";
+              valid = false;
+            }
+            if (!this.country.trim()) {
+              this.errors.country = "Country is required";
+              valid = false;
+            }
+            if (!this.state.trim()) {
+              this.errors.state = "State/Province is required";
+              valid = false;
+            }
+            if (!this.address.trim()) {
+              this.errors.address = "Address is required";
+              valid = false;
+            }
+            if (!this.pincode.trim()) {
+              this.errors.pincode = "Pincode/ZIP is required";
+              valid = false;
+            }
+            if (!this.addressType.trim()) {
+              this.errors.addressType = "Address Type is required";
+              valid = false;
+            }
+            return valid;
+          },
+          
+          saveAddress() {
+            if (!this.validateForm()) {
+              // Do not proceed if the form is invalid; errors will be displayed
+              return;
+            }
+            
+            const formData = {
+              name: this.name,
+              email: this.email,
+              contact_number: this.contactNumber,
+              alternate_number: this.alternateNumber,
+              country: this.country,
+              state: this.state,
+              address: this.address,
+              pincode: this.pincode,
+              landmark: this.landmark,
+              address_type: this.addressType
+            };
+            
+            if (this.isEdit) {
+              formData.id = this.id;
+            }
+            
+            // Show loading indicator
+            Swal.fire({
+              title: 'Processing...',
+              text: 'Please wait while we save your address',
+              allowOutsideClick: false,
+              allowEscapeKey: false,
+              showConfirmButton: false,
+              didOpen: () => {
+                Swal.showLoading();
+              }
+            });
+            
+            fetch(this.isEdit ? '/profile/address-update' : '/profile/address-add', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+              },
+              body: JSON.stringify(formData)
+            })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+              return response.json();
+            })
+            .then(data => {
+              // Close the modal first
+              this.showModal = false;
+              
+              if (data.success == true) {
+                Swal.fire({
+                  title: this.isEdit ? 'Address Updated!' : 'Address Added!',
+                  text: data.message || (this.isEdit ? 'Your address has been updated successfully.' : 'Your address has been added successfully.'),
+                  icon: 'success',
+                  confirmButtonText: 'Great!',
+                  confirmButtonColor: '#4F46E5',
+                  customClass: {
+                    confirmButton: 'px-4 py-2 rounded-lg'
+                  }
+                }).then(() => {
+                  window.location.reload();
+                });
+              } else {
+                Swal.fire({
+                  title: 'Something went wrong',
+                  text: data.message || 'Failed to save address. Please try again.',
+                  icon: 'error',
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#4F46E5',
+                  customClass: {
+                    confirmButton: 'px-4 py-2 rounded-lg'
+                  }
+                });
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              this.showModal = false;
+              
+              Swal.fire({
+                title: 'Error',
+                text: 'An unexpected error occurred. Please try again later.',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#4F46E5',
+                customClass: {
+                  confirmButton: 'px-4 py-2 rounded-lg'
+                }
+              });
+            });
+          }
+        });
+        
+        Alpine.store('deleteConfirm', {
+          showModal: false,
+          id: '',
+          
+          deleteAddress() {
+            if (!this.id) return;
+            
+            // Show loading indicator
+            Swal.fire({
+              title: 'Processing...',
+              text: 'Please wait while we delete your address',
+              allowOutsideClick: false,
+              allowEscapeKey: false,
+              showConfirmButton: false,
+              didOpen: () => {
+                Swal.showLoading();
+              }
+            });
+            
+            fetch('/profile/address-delete', {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+              },
+              body: JSON.stringify({ addressId: this.id })
+            })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+              return response.json();
+            })
+            .then(data => {
+              // Close the modal first
+              this.showModal = false;
+              
+              if (data.success == true) {
+                Swal.fire({
+                  title: 'Address Deleted!',
+                  text: data.message || 'Your address has been deleted successfully.',
+                  icon: 'success',
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#4F46E5',
+                  customClass: {
+                    confirmButton: 'px-4 py-2 rounded-lg'
+                  }
+                }).then(() => {
+                  window.location.reload();
+                });
+              } else {
+                Swal.fire({
+                  title: 'Something went wrong',
+                  text: data.message || 'Failed to delete address. Please try again.',
+                  icon: 'error',
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#4F46E5',
+                  customClass: {
+                    confirmButton: 'px-4 py-2 rounded-lg'
+                  }
+                });
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              this.showModal = false;
+              
+              Swal.fire({
+                title: 'Error',
+                text: 'An unexpected error occurred. Please try again later.',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#4F46E5',
+                customClass: {
+                  confirmButton: 'px-4 py-2 rounded-lg'
+                }
+              });
+            });
+          }
+        });
+      });
+    </script>
+    
     <%- include('./partials/footer') %>
   </body>
 </html>

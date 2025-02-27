@@ -485,14 +485,13 @@
                         </div>
                     </div>
             </div>
-
             <%- include('./partials/footer') %>
 
                 <script>
                     // Check for email change notification
                     document.addEventListener('DOMContentLoaded', function() {
-                        // Check if email was changed (based on the emailChange parameter)
-                        const emailChange = `<%= typeof emailChange !== 'undefined' && emailChange ? 'true' : 'false' %>`;
+                        // eslint-disable-next-line
+                        const emailChange = <%= typeof emailChange !== 'undefined' && emailChange ? 'true' : 'false' %>;
                         
                         if (emailChange) {
                             Swal.fire({

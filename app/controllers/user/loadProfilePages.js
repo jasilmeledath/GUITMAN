@@ -1,9 +1,8 @@
-const Coupon = require("../../models/couponModel");
-const User = require("../../models/userModel");
-const Cart = require("../../models/cartModel");
 const httpStatus = require("../../utils/httpStatus");
 const getUser = require('../../helpers/getUser');
 const getCart = require('../../helpers/getCart');
+const getAddresses = require("../../helpers/getAddresses");
+
 
 const loadProfilePages = {
   /**
@@ -15,9 +14,11 @@ const loadProfilePages = {
    */
   userProfile: async (req, res, next) => {
     try {
+      const addresses = await getAddresses(req,res,next);
       const cart = await getCart(req, res, next);
       const numOfItemsInCart = cart.items.length;
       const user = await getUser(req, res, next);
+      
       if (!user) {
         return res
           .status(httpStatus.NOT_FOUND)
@@ -29,6 +30,7 @@ const loadProfilePages = {
           user,
           currentRoute: req.path,
           numOfItemsInCart,
+          addresses: addresses || null,
         });
     } catch (err) {
       next(err);
@@ -53,6 +55,8 @@ const loadProfilePages = {
       if(email_changed){
         emailChange = true;
       }
+      console.log(emailChange);
+      
       res
         .status(httpStatus.OK)
         .render("frontend/profileSettings", {
@@ -103,6 +107,7 @@ const loadProfilePages = {
       const cart = await getCart(req, res, next);
       const numOfItemsInCart = cart.items.length;
       const user = await getUser(req, res, req);
+      const addresses = await getAddresses(req,res,next);
 
       res
         .status(httpStatus.OK)
@@ -110,6 +115,7 @@ const loadProfilePages = {
           user,
           currentRoute: req.path,
           numOfItemsInCart,
+          addresses: addresses || null,
         });
     } catch (err) {
       next(err);
