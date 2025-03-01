@@ -125,7 +125,16 @@
 
                                 if (data.success) {
                                   if (data.removed) {
-                                    quantityInput.parentElement.remove();
+                                    const cartItem = quantityInput.closest('.cart-item');
+                                    if (cartItem) {
+                                      cartItem.remove();
+                                    }
+                                    
+                                    // Check if cart is empty now
+                                    const cartItems = document.querySelectorAll('.cart-item');
+                                    if (cartItems.length === 0) {
+                                      showEmptyCartMessage();
+                                    }
                                   } else {
                                     if (data.updatedItem && typeof data.updatedItem.quantity !== 'undefined') {
                                       quantityInput.value = data.updatedItem.quantity;
@@ -133,17 +142,7 @@
                                   }
                                   // Update order summary live if provided
                                   if (data.updatedCart) {
-                                    const updatedCart = data.updatedCart;
-                                    const cartSubtotalEl = document.getElementById('cart-subtotal');
-                                    const savingsEl = document.getElementById('savings');
-                                    const shippingFeeEl = document.getElementById('shipping-fee');
-                                    const taxEl = document.getElementById('tax');
-                                    const cartTotalEl = document.getElementById('cart-total');
-                                    if (cartSubtotalEl) cartSubtotalEl.textContent = '₹' + Number(updatedCart.cart_subtotal).toLocaleString('en-IN');
-                                    if (savingsEl) savingsEl.textContent = '-₹' + Number(updatedCart.savings).toLocaleString('en-IN');
-                                    if (shippingFeeEl) shippingFeeEl.textContent = '₹' + Number(updatedCart.shipping_fee).toLocaleString('en-IN');
-                                    if (taxEl) taxEl.textContent = '₹' + Number(updatedCart.tax).toLocaleString('en-IN');
-                                    if (cartTotalEl) cartTotalEl.textContent = '₹' + Number(updatedCart.cart_total).toLocaleString('en-IN');
+                                    updateOrderSummary(data.updatedCart);
                                   }
                                 } else {
                                   quantityInput.value = currentQuantity;
@@ -231,6 +230,35 @@
               <div id="alert-container"></div>
 
               <script>
+                // Function to update the order summary with new cart data
+                function updateOrderSummary(updatedCart) {
+                  const cartSubtotalEl = document.getElementById('cart-subtotal');
+                  const savingsEl = document.getElementById('savings');
+                  const shippingFeeEl = document.getElementById('shipping-fee');
+                  const taxEl = document.getElementById('tax');
+                  const cartTotalEl = document.getElementById('cart-total');
+                  
+                  if (cartSubtotalEl) cartSubtotalEl.textContent = '₹' + Number(updatedCart.cart_subtotal).toLocaleString('en-IN');
+                  if (savingsEl) savingsEl.textContent = '-₹' + Number(updatedCart.savings).toLocaleString('en-IN');
+                  if (shippingFeeEl) shippingFeeEl.textContent = '₹' + Number(updatedCart.shipping_fee).toLocaleString('en-IN');
+                  if (taxEl) taxEl.textContent = '₹' + Number(updatedCart.tax).toLocaleString('en-IN');
+                  if (cartTotalEl) cartTotalEl.textContent = '₹' + Number(updatedCart.cart_total).toLocaleString('en-IN');
+                }
+
+                // Function to show empty cart message
+                function showEmptyCartMessage() {
+                  document.getElementById('cart-items-container').innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-12">
+                      <svg class="w-16 h-16 text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.293 2.293a1 1 0 00.293 1.414l1 1a1 1 0 001.414-.293L9 15m0 0l3-6m0 0l3 6m-6 0h6" />
+                      </svg>
+                      <p class="text-xl font-semibold text-gray-700">Your cart is empty.</p>
+                      <p class="text-gray-500 mt-2">Looks like you haven't added any items yet.</p>
+                    </div>`;
+                }
+
                 function showAlert(message, type = 'success') {
                   const alertContainer = document.getElementById('alert-container');
                   const alertDiv = document.createElement('div');
@@ -260,26 +288,24 @@
                         'Content-Type': 'application/json'
                       }
                     })
-                      .then(response => {
-                        if (response.ok) {
+                      .then(response => response.json())
+                      .then(data => {
+                        if (data.success) {
                           showAlert('Item removed successfully.', 'success');
                           // Remove the cart item from the DOM
                           const cartItemElement = document.getElementById('cart-item-' + productId);
                           if (cartItemElement) {
                             cartItemElement.remove();
                           }
-                          // If no items remain, update the container with empty cart message.
+                          
+                          // Update order summary with the updated cart data
+                          if (data.updatedCart) {
+                            updateOrderSummary(data.updatedCart);
+                          }
+                          
+                          // If no items remain, update the container with empty cart message
                           if (document.querySelectorAll('.cart-item').length === 0) {
-                            document.getElementById('cart-items-container').innerHTML = `
-                              <div class="flex flex-col items-center justify-center py-12">
-                                <svg class="w-16 h-16 text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                  viewBox="0 0 24 24" stroke="currentColor">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.293 2.293a1 1 0 00.293 1.414l1 1a1 1 0 001.414-.293L9 15m0 0l3-6m0 0l3 6m-6 0h6" />
-                                </svg>
-                                <p class="text-xl font-semibold text-gray-700">Your cart is empty.</p>
-                                <p class="text-gray-500 mt-2">Looks like you haven't added any items yet.</p>
-                              </div>`;
+                            showEmptyCartMessage();
                           }
                         } else {
                           showAlert('Failed to remove item.', 'error');
@@ -417,17 +443,7 @@
                           document.getElementById('cart-items-container').innerHTML = result.updatedCartHTML;
                         }
                         if (result.updatedCart) {
-                          const updatedCart = result.updatedCart;
-                          const cartSubtotalEl = document.getElementById('cart-subtotal');
-                          const savingsEl = document.getElementById('savings');
-                          const shippingFeeEl = document.getElementById('shipping-fee');
-                          const taxEl = document.getElementById('tax');
-                          const cartTotalEl = document.getElementById('cart-total');
-                          if (cartSubtotalEl) cartSubtotalEl.textContent = '₹' + Number(updatedCart.cart_subtotal).toLocaleString('en-IN');
-                          if (savingsEl) savingsEl.textContent = '-₹' + Number(updatedCart.savings).toLocaleString('en-IN');
-                          if (shippingFeeEl) shippingFeeEl.textContent = '₹' + Number(updatedCart.shipping_fee).toLocaleString('en-IN');
-                          if (taxEl) taxEl.textContent = '₹' + Number(updatedCart.tax).toLocaleString('en-IN');
-                          if (cartTotalEl) cartTotalEl.textContent = '₹' + Number(updatedCart.cart_total).toLocaleString('en-IN');
+                          updateOrderSummary(result.updatedCart);
                         }
                         setTimeout(()=>{
                           window.location.reload();
@@ -463,14 +479,7 @@
                     </dd>
                   </dl>
 
-                  <dl class="flex items-center justify-between gap-4">
-                    <dt class="text-base font-normal text-gray-500">
-                      Savings
-                    </dt>
-                    <dd id="savings" class="text-base font-medium text-green-600">
-                      -₹<%= cart.savings.toLocaleString('en-IN') %>
-                    </dd>
-                  </dl>
+                
 
                   <dl class="flex items-center justify-between gap-4">
                     <dt class="text-base font-normal text-gray-500">
@@ -499,55 +508,13 @@
                     ₹<%= cart.cart_total.toLocaleString('en-IN') %>
                   </dd>
                 </dl>
-              </div>
-
-              <span class="mx-12 inline-flex overflow-hidden rounded-md border bg-white shadow-xs">
-                <button
-                  class="inline-block border-e px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:relative">
-                  Checkout
-                </button>
-
-                <span class="inline-block px-4 py-2 text-gray-700 hover:bg-gray-50 focus:relative"
-                  title="View Orders">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                    stroke="currentColor" class="size-4">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
-                  </svg>
-                </span>
-              </span>
-
-              <div class="flex items-center justify-center gap-2">
-                <span class="text-sm font-normal text-gray-500">
-                  or
-                </span>
-                <a href="/products" title=""
-                  class="inline-flex items-center gap-2 text-sm font-medium text-primary-700 underline hover:no-underline">
-                  Continue Shopping
-                  <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                    viewBox="0 0 24 24">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 12H5m14 0-4 4m4-4-4-4" />
-                  </svg>
-                </a>
-              </div>
-            </div>
-
-            <div class="space-y-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
-              <form class="space-y-4">
-                <div>
-                  <label for="voucher" class="mb-2 block text-sm font-medium text-gray-900">
-                    Do you have a voucher or gift card?
-                  </label>
-                  <input type="text" id="voucher"
-                    class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500"
-                    placeholder="" required />
+                <!-- Checkout Button -->
+                <div class="mt-6">
+                  <a href="/cart/checkout" class="w-full inline-block bg-indigo-600 hover:bg-indigo-700 text-white text-center font-semibold py-3 px-4 rounded-lg shadow-md transition-colors duration-200">
+                    Proceed to Checkout
+                  </a>
                 </div>
-                <button type="submit"
-                  class="flex w-full items-center justify-center rounded-lg bg-primary-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-800 focus:outline-none focus:ring-4 focus:ring-primary-300">
-                  Apply Code
-                </button>
-              </form>
+              </div>
             </div>
           </div>
         </div>
@@ -556,17 +523,6 @@
   </main>
 
   <%- include('./partials/footer') %>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const links = document.querySelectorAll("a");
-      links.forEach((link) => {
-        link.addEventListener("click", function () {
-          showLoader();
-        });
-      });
-    });
-  </script>
+  
 </body>
-
 </html>

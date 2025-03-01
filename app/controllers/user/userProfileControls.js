@@ -6,6 +6,7 @@ const { createOtp } = require('../../services/otpService');
 const { generateUpdatedEmailOtp } = require('../../utils/emailTemplates');
 const { sendEmail } = require('../../services/emailService');
 const Address = require('../../models/addressModel');
+const DebitCard = require('../../models/debitCardModel');
 
 
 const profileControls = {
@@ -323,7 +324,31 @@ const profileControls = {
         } catch (err) {
             next(err);
         }
-    }
+    },
+
+    addCard: async(req,res,next)=>{
+        try {
+            const {cardNumber, cardHolder, expiry, cardType, last4} = req.body;
+            if(!cardNumber || !cardHolder || !expiry || !cardType || !last4){
+                return res.status(httpStatus.BAD_REQUEST)
+                .json({success: false, message:"Missing card credentials, Please fill all the fileds!" })
+            }
+            const user = await getUser(req,res,next);
+            const userId = user._id;
+            const debitCard = new DebitCard({
+                cardHolder,
+                cardNumber,
+                expiry,
+                cardType,
+                last4,
+                user: userId,
+            })
+            await debitCard.save();
+            res.status(httpStatus.OK).json({success:true, message:"Debit card added!"})
+        } catch (err) {
+            next(err)
+        }
+    } 
 
 }
 module.exports = profileControls;

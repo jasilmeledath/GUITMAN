@@ -11,6 +11,7 @@ router.get('/bucket-list', loadProfilePages.profileBucketList);
 router.get('/settings', loadProfilePages.profileSettings);
 router.get('/update-email', loadProfilePages.changeEmail)
 router.get('/change-password', loadProfilePages.changePassword);
+router.get('/wallet', loadProfilePages.profileWallet)
 router.put('/update-profile-image', upload.single('profile_image'), profileControls.updateProfileImage);
 router.put('/update-personal-info',profileControls.updateUserInfo);
 router.patch('/update-password', profileControls.updatePassword);
@@ -20,6 +21,8 @@ router.patch('/verify-and-update-email', profileControls.verifyAndUpdateEmail);
 router.post('/address-add', profileControls.addAddress);
 router.post('/address-update', profileControls.updateAddress);
 router.delete('/address-delete', profileControls.deleteAddress);
+router.post('/card-add', profileControls.addCard)
+router.get('/order-details/:orderId', loadProfilePages.orderDetails)
 
 
 module.exports = router;

@@ -1,0 +1,145 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+    <%- include('./partials/meta') %>
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/backend/imgs/theme/favicon.svg">
+    <!-- Template CSS -->
+    <link href="/backend/css/main.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+    <div class="screen-overlay"></div>
+    <%- include('./partials/leftNav') %>
+    <main class="main-wrap">
+        <%- include('./partials/header') %>
+        <section class="content-main">
+            <div class="content-header">
+                <div>
+                    <h2 class="content-title card-title">Order List</h2>
+                    <p>Lorem ipsum dolor sit amet.</p>
+                </div>
+                <div>
+                    <form method="GET" action="/admin/orders" class="d-flex">
+                        <input type="text" name="search" placeholder="Search order ID" class="form-control bg-white" value="<%= searchQuery %>">
+                        <select name="status" class="form-select ms-2">
+                            <option value="">Status</option>
+                            <option value="pending" <%= statusFilter === 'pending' ? 'selected' : '' %>>Pending</option>
+                            <option value="processing" <%= statusFilter === 'processing' ? 'selected' : '' %>>Processing</option>
+                            <option value="shipped" <%= statusFilter === 'shipped' ? 'selected' : '' %>>Shipped</option>
+                            <option value="delivered" <%= statusFilter === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                            <option value="cancelled" <%= statusFilter === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                        </select>
+                        <select name="limit" class="form-select ms-2">
+                            <option value="20" <%= limit == 20 ? 'selected' : '' %>>Show 20</option>
+                            <option value="30" <%= limit == 30 ? 'selected' : '' %>>Show 30</option>
+                            <option value="40" <%= limit == 40 ? 'selected' : '' %>>Show 40</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary ms-2">Search</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <header class="card-header">
+                    <div class="row gx-3">
+                        <!-- Additional search/filter elements can be added here if needed -->
+                    </div>
+                </header> <!-- card-header end// -->
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#ID</th>
+                                    <th scope="col">Email</th>
+                                    <th scope="col">Total</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Date</th>
+                                    <th scope="col" class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (orders.length === 0) { %>
+                                    <tr>
+                                        <td colspan="7" class="text-center">No orders found</td>
+                                    </tr>
+                                <% } else { %>
+                                    <% orders.forEach(function(order) { %>
+                                        <tr>
+                                            <td><%= order.order_id %></td>
+                                            <td><%= order.user ? order.user.email : 'N/A' %></td>
+                                            <td>₹<%= order.total.toFixed(2) %></td>
+                                            <td>
+                                                <% if(order.order_status === 'pending') { %>
+                                                    <span class="badge rounded-pill alert-warning">Pending</span>
+                                                <% } else if(order.order_status === 'processing') { %>
+                                                    <span class="badge rounded-pill alert-info">Processing</span>
+                                                <% } else if(order.order_status === 'shipped') { %>
+                                                    <span class="badge rounded-pill alert-primary">Shipped</span>
+                                                <% } else if(order.order_status === 'delivered') { %>
+                                                    <span class="badge rounded-pill alert-success">Delivered</span>
+                                                <% } else if(order.order_status === 'cancelled') { %>
+                                                    <span class="badge rounded-pill alert-danger">Canceled</span>
+                                                <% } else { %>
+                                                    <span class="badge rounded-pill alert-secondary"><%= order.order_status %></span>
+                                                <% } %>
+                                            </td>
+                                            <td><%= new Date(order.timestamp).toLocaleDateString() %></td>
+                                            <td class="text-end">
+                                                <a href="/admin/dashboard/orders/details/<%= order.order_id %>" class="btn btn-md rounded font-sm">View </a>
+                                            </td>
+                                        </tr>
+                                    <% }); %>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div> <!-- table-responsive //end -->
+                </div> <!-- card-body end// -->
+            </div> <!-- card end// -->
+            <div class="pagination-area mt-15 mb-50">
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination justify-content-start">
+                        <% if (currentPage > 1) { %>
+                            <li class="page-item">
+                                <a class="page-link" href="?page=<%= currentPage - 1 %>&search=<%= searchQuery %>&status=<%= statusFilter %>&limit=<%= limit %>">
+                                    <i class="material-icons md-chevron_left"></i>
+                                </a>
+                            </li>
+                        <% } else { %>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="material-icons md-chevron_left"></i></span>
+                            </li>
+                        <% } %>
+                        <% for (let i = 1; i <= totalPages; i++) { %>
+                            <% if (i === currentPage) { %>
+                                <li class="page-item active">
+                                    <span class="page-link"><%= i %></span>
+                                </li>
+                            <% } else { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=<%= i %>&search=<%= searchQuery %>&status=<%= statusFilter %>&limit=<%= limit %>"><%= i %></a>
+                                </li>
+                            <% } %>
+                        <% } %>
+                        <% if (currentPage < totalPages) { %>
+                            <li class="page-item">
+                                <a class="page-link" href="?page=<%= currentPage + 1 %>&search=<%= searchQuery %>&status=<%= statusFilter %>&limit=<%= limit %>">
+                                    <i class="material-icons md-chevron_right"></i>
+                                </a>
+                            </li>
+                        <% } else { %>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="material-icons md-chevron_right"></i></span>
+                            </li>
+                        <% } %>
+                    </ul>
+                </nav>
+            </div>
+        </section> <!-- content-main end// -->
+        <%- include('./partials/footer') %>
+    </main>
+    <%- include('./partials/scriptsLinks') %>
+</body>
+
+</html>

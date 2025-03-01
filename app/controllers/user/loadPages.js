@@ -2,11 +2,13 @@ const Product = require("../../models/productModel");
 const Category = require("../../models/categoryModel");
 const Review = require("../../models/reviewModel");
 const Coupon = require("../../models/couponModel");
-const User = require("../../models/userModel");
 const Cart = require("../../models/cartModel")
 const httpStatus = require("../../utils/httpStatus");
 const getUser = require('../../helpers/getUser');
 const getCart = require('../../helpers/getCart');
+const getAddresses = require('../../helpers/getAddresses');
+const getDebitCards = require('../../helpers/getDebitCards');
+const Order = require('../../models/orderModel');
 
 
 
@@ -42,7 +44,7 @@ const loadPages = {
    * @param {Object} res - Express response object used to render the login page.
    * @param {Function} next - Express next middleware function (not used here).
    */
-  login: (req, res, next) => { 
+  login: (req, res, next) => {
     res.status(200).render("frontend/login", {
       email: "",
       errors: {},
@@ -80,15 +82,15 @@ const loadPages = {
     try {
       const categories = await Category.find({ isBlocked: false });
       const products = await Product.find({ isTopModel: true });
-      const cart = await getCart(req,res,next);
-      const user = await getUser(req,res,next);
-      const numOfItemsInCart = cart.items.length;
+      const cart = await getCart(req, res, next);
+      const user = await getUser(req, res, next);
+      const numOfItemsInCart = cart?.items.length;
       res.render("frontend/landing", {
         products,
         categories,
         currentRoute: req.path,
         user: user || null,
-        numOfItemsInCart
+        numOfItemsInCart: numOfItemsInCart || null
       });
     } catch (err) {
       next(err);
@@ -104,8 +106,8 @@ const loadPages = {
    */
   loadShop: async (req, res, next) => {
     try {
-      const user = await getUser(req,res,next);
-      const cart = await getCart(req,res,next)
+      const user = await getUser(req, res, next);
+      const cart = await getCart(req, res, next)
       const numOfItemsInCart = cart.items.length;
       const {
         page = 1,
@@ -208,7 +210,7 @@ const loadPages = {
    */
   loadProductDetails: async (req, res, next) => {
     try {
-      const user = await getUser(req,res,next);
+      const user = await getUser(req, res, next);
       const productId = req.params.id;
       const product = await Product.findById(productId)
         .populate("category")
@@ -245,7 +247,7 @@ const loadPages = {
         { label: product.product_name, url: `/product-details/${product.product_name}` },
       ];
 
-      const cart = await getCart(req,res,next)
+      const cart = await getCart(req, res, next)
       const numOfItemsInCart = cart.items.length;
 
       res.status(httpStatus.OK).render("frontend/productDetails", {
@@ -330,7 +332,9 @@ const loadPages = {
         { $match: { isActive: true } },
         { $sample: { size: 4 } }
       ]);
-      const breadcrumbs = [{ label: "Shop", url: "/shop" },{label:"My cart", url: "/cart/view-cart"}];
+      console.log(cart);
+      
+      const breadcrumbs = [{ label: "Shop", url: "/shop" }, { label: "My cart", url: "/cart/view-cart" }];
       res.status(httpStatus.OK).render('frontend/cart', {
         cart,
         products,
@@ -344,7 +348,112 @@ const loadPages = {
       next(err);
     }
   },
-  
+
+  loadCheckout: async (req, res, next) => {
+    try {
+      const cart = await getCart(req, res, next);
+      if(!cart.items.length){
+        return res.status(httpStatus.FORBIDDEN).redirect('/cart/view-cart');
+      }
+
+      const user = await getUser(req, res, next);
+      const addresses = await getAddresses(req, res, next);
+      const cards = await getDebitCards(req, res, next);
+      const cartId = cart._id;
+      const cartWithProduct = await Cart.findById(cartId).populate('items.product');
+
+      const cartTotals = {
+        subtotal: cart ? cart.cart_subtotal : 0,
+        tax: cart ? cart.tax : 0,
+        shipping: cart ? cart.shipping_fee : 0,
+        total: cart ? cart.cart_total : 0
+      };
+
+      res.status(httpStatus.OK).render('frontend/checkout', {
+        user: req.user,
+        addresses,
+        cards,
+        cart: cartWithProduct,
+        cartTotals,
+        breadcrumbs: null,
+        currentRoute: req.path,
+        user: user,
+        numOfItemsInCart: cart.items.length,
+      });
+
+    } catch (err) {
+      next(err);
+    }
+  },
+  orderConfirmation: async (req, res, next) => {
+    try {
+        const user = await getUser(req, res, next);
+        const { orderId } = req.params;
+        // Find the order by its order_id and populate related fields
+        const order = await Order.findOne({ order_id: orderId })
+            .populate('items.product')
+            .populate('address');
+
+        if (!order) {
+            return res.status(404).send('Order not found');
+        }
+
+        // Prepare order data for the EJS template.
+        // Rename shipping fee to shippingCost to avoid collision with shipping address.
+        const orderData = {
+            number: order.order_id,
+            date: new Date(order.timestamp).toLocaleDateString(),
+            paymentMethod: order.payment_method,
+            shippingMethod: 'Standard Shipping', // Default value – update if needed
+            items: order.items.map(item => ({
+                image: item.product.image || '/path/to/default-image.jpg',
+                name: item.product.name,
+                variant: item.product.variant || '',
+                size: item.product.size || '',
+                quantity: item.quantity,
+                price: item.price
+            })),
+            subtotal: order.subtotal,
+            shippingCost: order.shipping, // renamed property for cost
+            discount: order.discount,
+            tax: order.tax,
+            total: order.total,
+            // Build shipping and billing objects from the Address document
+            shipping: {
+                name: order.address.full_name,
+                address1: order.address.address,
+                address2: order.address.landmark || '',
+                city: order.address.state, // Adjust if your Address model adds a city field
+                state: order.address.state,
+                zip: order.address.pincode,
+                country: order.address.country,
+                phone: order.address.contact_number
+            },
+            billing: {
+                name: order.address.full_name,
+                address1: order.address.address,
+                address2: order.address.landmark || '',
+                city: order.address.state,
+                state: order.address.state,
+                zip: order.address.pincode,
+                country: order.address.country,
+                phone: order.address.contact_number
+            },
+            email: order.address.email
+        };
+        console.log(order);
+        
+        res.render('frontend/orderConfirmed', { 
+          order: orderData, 
+          breadcrumbs: null,
+          currentRoute: req.path,
+          user: user,
+          numOfItemsInCart: 0,  });
+    } catch (err) {
+        next(err);
+    }
+}
+
 
 };
 

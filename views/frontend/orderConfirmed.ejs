@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmed | Your Store</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+              950: '#082f49',
+            },
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Add AOS library for scroll animations -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+</head>
+<body class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen flex flex-col">
+  
+  <!-- Include Header Partial -->
+  <%- include('partials/header') %>
+  
+  <main class="flex-grow container mx-auto px-4 pt-20 pb-12 md:pt-24 md:pb-16">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-4 sm:mb-0">Order Details</h1>
+      <div class="hidden md:flex items-center space-x-2 text-sm text-gray-500">
+        <span class="flex items-center">
+          <span class="flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold mr-2">1</span>
+          Cart
+        </span>
+        <i class="fas fa-chevron-right text-xs mx-2 text-primary-300"></i>
+        <span class="flex items-center">
+          <span class="flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold mr-2">2</span>
+          Checkout
+        </span>
+        <i class="fas fa-chevron-right text-xs mx-2 text-primary-300"></i>
+        <span class="flex items-center font-medium text-primary-700">
+          <span class="flex items-center justify-center w-6 h-6 rounded-full bg-primary-600 text-white text-xs font-semibold mr-2">3</span>
+          Confirmation
+        </span>
+      </div>
+    </div>
+    <!-- Order Confirmation Section -->
+    <div class="max-w-3xl mx-auto">
+      <!-- Success Message -->
+      <div class="bg-white rounded-xl shadow-lg p-8 mb-8" data-aos="fade-up" data-aos-duration="1000">
+        <div class="flex flex-col items-center text-center mb-6">
+          <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 animate-pulse">
+            <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+          <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-2">Thank You!</h1>
+          <h2 class="text-2xl font-bold text-primary-600 mb-3">Your Order is Confirmed</h2>
+          <p class="text-gray-600 max-w-md">We've received your order and are getting it ready. A confirmation email has been sent to your inbox.</p>
+          
+          <div class="mt-6 w-full max-w-sm bg-primary-50 rounded-lg p-4 border border-primary-100">
+            <div class="flex items-center space-x-3">
+              <div class="flex-shrink-0">
+                <i class="fas fa-truck text-primary-600"></i>
+              </div>
+              <div class="text-left">
+                <p class="text-sm font-medium text-primary-700">Estimated Delivery</p>
+                <p class="text-gray-600 text-sm">
+                  <%= new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) %>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="border-t border-gray-200 pt-4">
+          <div class="flex flex-col md:flex-row justify-between mb-4">
+            <div class="mb-4 md:mb-0 px-4 py-2 bg-gray-50 rounded-lg">
+              <h2 class="text-sm font-medium text-gray-500">Order Number</h2>
+              <p class="text-gray-800 font-semibold text-lg"><%= order.number %></p>
+            </div>
+            <div class="mb-4 md:mb-0 px-4 py-2 bg-gray-50 rounded-lg">
+              <h2 class="text-sm font-medium text-gray-500">Date</h2>
+              <p class="text-gray-800 font-semibold"><%= order.date %></p>
+            </div>
+            <div class="mb-4 md:mb-0 px-4 py-2 bg-gray-50 rounded-lg">
+              <h2 class="text-sm font-medium text-gray-500">Payment Method</h2>
+              <p class="text-gray-800 font-semibold"><%= order.paymentMethod %></p>
+            </div>
+            <div class="px-4 py-2 bg-gray-50 rounded-lg">
+              <h2 class="text-sm font-medium text-gray-500">Shipping Method</h2>
+              <p class="text-gray-800 font-semibold"><%= order.shippingMethod %></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Order Details -->
+      <div class="bg-white rounded-xl shadow-lg p-6 mb-8" data-aos="fade-up" data-aos-delay="200">
+        <div class="flex items-center mb-4">
+          <i class="fas fa-box-open text-primary-600 mr-3"></i>
+          <h2 class="text-xl font-bold text-gray-800">Order Summary</h2>
+        </div>
+        
+        <!-- Order Items -->
+        <div class="border-b border-gray-200 pb-4 mb-4">
+          <% order.items.forEach(function(item, index) { %>
+            <div class="flex items-center py-4 border-b border-gray-100 last:border-b-0 transition-all hover:bg-gray-50 rounded-lg p-2" data-aos="fade-up" data-aos-delay="<%= 200 + (index * 100) %>">
+              <div class="h-20 w-20 rounded-lg bg-gray-100 overflow-hidden mr-4 shadow-sm">
+                <img src="<%= item.image %>" alt="<%= item.name %>" class="h-full w-full object-cover">
+              </div>
+              <div class="flex-grow">
+                <h3 class="text-base font-medium text-gray-800"><%= item.name %></h3>
+                <p class="text-sm text-gray-500">
+                  <% if (item.variant) { %>
+                    <%= item.variant %>
+                  <% } %>
+                  <% if (item.size) { %>
+                    • Size: <%= item.size %>
+                  <% } %>
+                </p>
+                <div class="flex justify-between mt-1">
+                  <p class="text-sm text-gray-600">Qty: <%= item.quantity %></p>
+                  <p class="text-sm font-medium text-gray-800">&#8377;<%= item.price.toFixed(2) %></p>
+                </div>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+        
+        <!-- Order Totals -->
+        <div class="space-y-3 bg-gray-50 p-4 rounded-lg">
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Subtotal</span>
+            <span class="text-gray-800 font-medium">&#8377;<%= order.subtotal.toFixed(2) %></span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Shipping</span>
+            <span class="text-gray-800 font-medium">&#8377;<%= order.shippingCost.toFixed(2) %></span>
+          </div>
+          <% if (order.discount && order.discount > 0) { %>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Discount</span>
+              <span class="text-green-600 font-medium">-&#8377;<%= order.discount.toFixed(2) %></span>
+            </div>
+          <% } %>
+          <% if (order.tax && order.tax > 0) { %>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Tax</span>
+              <span class="text-gray-800 font-medium">&#8377;<%= order.tax.toFixed(2) %></span>
+            </div>
+          <% } %>
+          <div class="flex justify-between pt-3 border-t border-gray-200 text-lg font-bold">
+            <span class="text-gray-800">Total</span>
+            <span class="text-primary-700">&#8377;<%= order.total.toFixed(2) %></span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Shipping and Billing Information -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-lg p-6" data-aos="fade-right" data-aos-delay="300">
+          <div class="flex items-center mb-4">
+            <i class="fas fa-truck text-primary-600 mr-3"></i>
+            <h2 class="text-xl font-bold text-gray-800">Shipping Address</h2>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-4">
+            <address class="not-italic text-gray-600">
+              <p class="font-medium text-gray-800 mb-2"><%= order.shipping.name %></p>
+              <p><%= order.shipping.address1 %></p>
+              <% if (order.shipping.address2) { %>
+                <p><%= order.shipping.address2 %></p>
+              <% } %>
+              <p><%= order.shipping.city %>, <%= order.shipping.state %> <%= order.shipping.zip %></p>
+              <p><%= order.shipping.country %></p>
+              <% if (order.shipping.phone) { %>
+                <p class="mt-2 flex items-center"><i class="fas fa-phone text-primary-500 mr-2"></i><%= order.shipping.phone %></p>
+              <% } %>
+            </address>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6" data-aos="fade-left" data-aos-delay="400">
+          <div class="flex items-center mb-4">
+            <i class="fas fa-credit-card text-primary-600 mr-3"></i>
+            <h2 class="text-xl font-bold text-gray-800">Billing Address</h2>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-4">
+            <address class="not-italic text-gray-600">
+              <p class="font-medium text-gray-800 mb-2"><%= order.billing.name %></p>
+              <p><%= order.billing.address1 %></p>
+              <% if (order.billing.address2) { %>
+                <p><%= order.billing.address2 %></p>
+              <% } %>
+              <p><%= order.billing.city %>, <%= order.billing.state %> <%= order.billing.zip %></p>
+              <p><%= order.billing.country %></p>
+              <% if (order.billing.phone) { %>
+                <p class="mt-2 flex items-center"><i class="fas fa-phone text-primary-500 mr-2"></i><%= order.billing.phone %></p>
+              <% } %>
+            </address>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Next Steps -->
+      <div class="bg-white rounded-xl shadow-lg p-6 mb-8" data-aos="fade-up" data-aos-delay="500">
+        <div class="flex items-center mb-4">
+          <i class="fas fa-clipboard-list text-primary-600 mr-3"></i>
+          <h2 class="text-xl font-bold text-gray-800">What's Next?</h2>
+        </div>
+        <div class="space-y-6">
+          <div class="flex bg-blue-50 p-4 rounded-lg transition-transform hover:scale-102">
+            <div class="flex-shrink-0 mr-4">
+              <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <h3 class="text-md font-medium text-blue-800">Order Confirmation Email</h3>
+              <p class="text-sm text-blue-600">We've sent a confirmation email to <span class="font-semibold"><%= order.email %></span>. Please check your inbox and spam folder.</p>
+            </div>
+          </div>
+          
+          <div class="flex bg-green-50 p-4 rounded-lg transition-transform hover:scale-102">
+            <div class="flex-shrink-0 mr-4">
+              <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <h3 class="text-md font-medium text-green-800">Order Updates</h3>
+              <p class="text-sm text-green-600">You'll receive real-time updates when your order is processed, shipped, and out for delivery.</p>
+            </div>
+          </div>
+          
+          <div class="flex bg-purple-50 p-4 rounded-lg transition-transform hover:scale-102">
+            <div class="flex-shrink-0 mr-4">
+              <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <h3 class="text-md font-medium text-purple-800">Need Help?</h3>
+              <p class="text-sm text-purple-600">Our support team is available 24/7. Contact us at <a href="mailto:support@yourstore.com" class="text-purple-600 font-semibold hover:underline">support@yourstore.com</a> or call <a href="tel:+18001234567" class="text-purple-600 font-semibold hover:underline">1-800-123-4567</a></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Call to Action -->
+      <div class="flex flex-col sm:flex-row gap-4 justify-center" data-aos="fade-up" data-aos-delay="600">
+        <a href="/profile/orders" class="inline-flex justify-center items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200">
+          <i class="fas fa-history mr-2"></i> View Order History
+        </a>
+        <a href="/" class="inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 shadow-md hover:shadow-lg transition-all duration-200">
+          <i class="fas fa-shopping-bag mr-2"></i> Continue Shopping
+        </a>
+      </div>
+    </div>
+  </main>
+  
+  <!-- Include Footer Partial -->
+  <%- include('partials/footer') %>
+  
+  <!-- Confetti Effect -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script>
+    // Initialize animations
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize AOS animations
+      AOS.init();
+      
+      // Trigger confetti
+      setTimeout(function() {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+      }, 500);
+    });
+  </script>
+  
+  <!-- Order Tracking Script -->
+  <script>
+    // This is a placeholder for order tracking functionality
+    const trackOrder = () => {
+      console.log('Order tracking initiated');
+      // Add actual tracking implementation here
+    }
+    
+    // Show a toast message
+    const showToast = (message) => {
+      const toast = document.createElement('div');
+      toast.className = 'fixed bottom-4 right-4 bg-primary-600 text-white py-2 px-4 rounded-lg shadow-lg z-50 animate-fade-in-up';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.classList.add('animate-fade-out');
+        setTimeout(() => {
+          document.body.removeChild(toast);
+        }, 500);
+      }, 3000);
+    }
+    
+    // Show welcome toast
+    setTimeout(() => {
+      showToast('Thank you for your purchase!');
+    }, 2000);
+  </script>
+  
+  <style>
+    /* Custom animations */
+    @keyframes fade-in-up {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes fade-out {
+      from {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+      }
+    }
+    
+    .animate-fade-in-up {
+      animation: fade-in-up 0.3s ease-out forwards;
+    }
+    
+    .animate-fade-out {
+      animation: fade-out 0.5s ease-out forwards;
+    }
+    
+    .hover\:scale-102:hover {
+      transform: scale(1.02);
+      transition: transform 0.2s ease;
+    }
+  </style>
+</body>
+</html>

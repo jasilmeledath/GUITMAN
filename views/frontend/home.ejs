@@ -10,11 +10,36 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        .alert-animate-in {
+            animation: slideIn 0.3s ease-out forwards;
+        }
+        .alert-animate-out {
+            animation: slideOut 0.3s ease-out forwards;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        .new-badge {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body class="bg-white">
     <%- include('./partials/loading') %>
     <%- include('./partials/header') %>
+    
+    <!-- Alert Container with high z-index to show above header -->
+    <div id="alert-container" class="fixed top-20 right-8 z-[10000]"></div>
 
     <!-- Hero Section -->
     <section class="relative bg-gradient-to-r from-gray-900 to-black overflow-hidden h-screen">
@@ -40,6 +65,81 @@
 
     <!-- Categories -->
     <%- include('./partials/catagories') %>
+
+    <!-- New Arrivals -->
+    <section class="py-16 px-6 bg-gray-50">
+        <div class="container mx-auto">
+            <div class="flex items-center justify-center mb-12">
+                <div class="relative">
+                    <h2 class="text-3xl font-bold text-center text-gray-800">NEW ARRIVALS</h2>
+                    <div class="absolute -top-4 -right-12">
+                        <span class="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full new-badge">NEW</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8" id="newArrivalsContainer">
+                <% 
+                const tenDaysAgo = new Date();
+                tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+                
+                const newProducts = products.filter(product => {
+                    // Assuming product has a createdAt or publishedAt field
+                    const productDate = new Date(product.createdAt || product.publishedAt || product.timestamp);
+                    return productDate >= tenDaysAgo;
+                });
+                
+                if (newProducts.length === 0) { %>
+                    <div class="col-span-full text-center py-8">
+                        <p class="text-gray-500 text-lg">No new arrivals at the moment. Check back soon!</p>
+                    </div>
+                <% } else {
+                    newProducts.forEach(product => { %>
+                        <a href="/product-details/<%=product._id%>" class="group">
+                            <div class="product-card bg-white p-6 rounded-xl shadow-sm group-hover:shadow-lg transition-shadow duration-300 flex flex-col h-[27rem] relative overflow-hidden">
+                                <div class="absolute -right-12 -top-12 rotate-45">
+                                    <div class="bg-red-500 text-white py-1 px-12 text-xs font-bold shadow-md">NEW</div>
+                                </div>
+                                <div class="relative flex-1 overflow-hidden">
+                                    <img src="/<%= product.images[0] %>" 
+                                        alt="<%= product.product_name %>" 
+                                        class="w-full h-64 object-contain mb-4 rounded-lg transition-transform duration-300 group-hover:scale-105">
+                                    <button class="absolute top-3 right-3 bg-white p-2 rounded-full shadow-sm hover:bg-gray-100 transition-colors duration-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600 hover:text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="mt-4">
+                                    <h3 class="font-semibold text-lg mb-2 text-gray-800 truncate"><%= product.product_name %></h3>
+                                    <div class="flex items-center justify-between mb-3">
+                                        <span class="text-2xl font-bold text-indigo-600">₹<%= product.price.toLocaleString('en-IN') %></span>
+                                        <button class="p-2 bg-indigo-100 rounded-full hover:bg-indigo-200 transition-colors duration-200 add-to-cart-btn" 
+                                                data-product-id="<%= product._id %>">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        Added <%= Math.ceil((new Date() - new Date(product.createdAt || product.publishedAt || product.timestamp)) / (1000 * 60 * 60 * 24)) %> days ago
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    <% });
+                } %>
+            </div>
+            
+            <% if (newProducts && newProducts.length > 0) { %>
+                <div class="flex justify-center mt-8">
+                    <a href="/shop?filter=new" class="bg-red-500 text-white px-8 py-3 rounded-full hover:bg-red-600 transition-colors font-semibold">
+                        View All New Arrivals
+                    </a>
+                </div>
+            <% } %>
+        </div>
+    </section>
 
     <!-- Top Models -->
     <section class="py-16 px-6 bg-white">
@@ -89,7 +189,7 @@
                     
                     // Create alert content
                     alertElement.innerHTML = `
-                        <div class="flex justify-between items-center">
+                        <div class="flex justify-between items-center z-[1000]">
                             <div class="flex items-center">
                                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                     ${type === 'success' 

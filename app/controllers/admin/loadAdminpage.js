@@ -5,6 +5,7 @@ const Offer = require("../../models/offerModel");
 const Product = require("../../models/productModel");
 const httpStatus = require("../../utils/httpStatus");
 const { adminErrors } = require("../../utils/messages");
+const Order = require('../../models/orderModel');
 
 
 const loadAdminPage = {
@@ -287,6 +288,92 @@ const loadAdminPage = {
       next(err);
     }
   },
+  /**
+ * Controller function to list orders for the admin panel.
+ * Supports pagination, search (by order ID), and status filtering.
+ *
+ * Query Parameters:
+ *  - page: (number) current page, defaults to 1
+ *  - limit: (number) orders per page, defaults to 20
+ *  - search: (string) search term for order_id
+ *  - status: (string) order status filter (pending, processing, shipped, delivered, cancelled)
+ *
+ * Renders: views/admin/orders.ejs with variables:
+ *   orders, currentPage, totalPages, searchQuery, statusFilter, limit
+ */
+getOrders : async (req, res, next) => {
+  try {
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 20;
+    let searchQuery = req.query.search || '';
+    let statusFilter = req.query.status || '';
+
+    let filter = {};
+
+    if (searchQuery) {
+      // Search order_id using a case-insensitive regex
+      filter.order_id = { $regex: searchQuery, $options: 'i' };
+    }
+
+    if (statusFilter) {
+      // Filter by order_status; assuming stored in lowercase
+      filter.order_status = statusFilter.toLowerCase();
+    }
+
+    const skip = (page - 1) * limit;
+    const totalOrders = await Order.countDocuments(filter);
+    const totalPages = Math.ceil(totalOrders / limit);
+
+    const orders = await Order.find(filter)
+      .populate('user', 'name email')
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    res.render('backend/orders', {
+      orders,
+      currentPage: page,
+      totalPages,
+      searchQuery,
+      statusFilter,
+      limit
+    });
+  } catch (error) {
+    next(error);
+  }
+},
+orderDetail: async (req, res, next) => {
+  try {
+    const orderId = req.params.orderId; // e.g. /order-details/:orderId
+    const order = await Order.findOne({ order_id: orderId })
+      .populate('items.product')
+      .populate('user')
+      .populate('address')
+      .lean();
+
+    if (!order) {
+      return res.status(httpStatus.NOT_FOUND).send("Order not found");
+    }
+
+    // Format the timestamp for display
+    order.formattedDate = new Date(order.timestamp).toLocaleString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric'
+    });
+
+    // Calculate total items (if needed)
+    order.totalItems = order.items.reduce((sum, item) => sum + item.quantity, 0);
+
+    res.status(httpStatus.OK).render('backend/orderDetails', { order });
+  } catch (err) {
+    next(err);
+  }
+}
 };
 
 module.exports = loadAdminPage;

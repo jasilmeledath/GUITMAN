@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout - Guitman</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+              950: '#082f49',
+            },
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f9fafb;
+    }
+    .checkout-input {
+      @apply mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 py-2 px-3 text-sm;
+    }
+    .checkout-section {
+      @apply bg-white p-6 rounded-lg shadow-sm border border-gray-300;
+    }
+    .section-title {
+      @apply text-xl font-semibold text-gray-900 pb-3 border-b border-gray-200 mb-5;
+    }
+    .payment-radio {
+      @apply relative;
+    }
+    .payment-radio input[type="radio"] {
+      @apply absolute opacity-0;
+    }
+    .payment-radio label {
+      @apply flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 bg-white;
+    }
+    .payment-radio input[type="radio"]:checked + label {
+      @apply border-primary-500 ring-2 ring-primary-500/20;
+    }
+    .payment-radio input[type="radio"]:focus + label {
+      @apply ring-2 ring-primary-500/40;
+    }
+    .payment-radio .payment-icon {
+      @apply flex items-center justify-center w-10 h-10 rounded-full bg-primary-100 text-primary-600;
+    }
+    .address-radio input[type="radio"] + label .radio-dot {
+    @apply w-3 h-3 rounded-full bg-primary-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity;
+  }
+  
+  .address-radio input[type="radio"]:checked + label .radio-dot {
+    @apply opacity-100;
+  }
+  
+  .address-radio input[type="radio"]:checked + label {
+    @apply border-primary-600 ring-2 ring-primary-600/20;
+  }
+
+  </style>
+</head>
+<body class="bg-gray-50">
+  <%- include('./partials/loading') %>
+  <%- include('./partials/header') %>
+
+  <!-- Main content with improved spacing and visual hierarchy -->
+  <main class="max-w-7xl mx-auto pt-28 pb-20 px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-4 sm:mb-0">Checkout</h1>
+      <div class="hidden md:flex items-center space-x-2 text-sm text-gray-500">
+        <span class="flex items-center">
+          <span class="flex items-center justify-center w-6 h-6 rounded-full bg-primary-500 text-white text-xs mr-2">1</span>
+          Cart
+        </span>
+        <i class="fas fa-chevron-right text-xs mx-2"></i>
+        <span class="flex items-center font-medium text-primary-700">
+          <span class="flex items-center justify-center w-6 h-6 rounded-full bg-primary-500 text-white text-xs mr-2">2</span>
+          Checkout
+        </span>
+        <i class="fas fa-chevron-right text-xs mx-2"></i>
+        <span class="flex items-center">
+          <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-200 text-gray-600 text-xs mr-2">3</span>
+          Confirmation
+        </span>
+      </div>
+    </div>
+    
+    <!-- Mobile-first grid layout with improved order for mobile -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <!-- Order summary first on mobile for better UX -->
+      <div class="lg:col-span-5 lg:order-2 space-y-6">
+        <!-- Order Summary Section -->
+        <div class="checkout-section sticky top-24">
+          <h3 class="section-title flex items-center">
+            <i class="fas fa-shopping-cart text-primary-500 mr-2"></i>
+            Order Summary
+          </h3>
+          
+          <!-- Cart Items -->
+          <div class="mt-4 space-y-4">
+            <% if (cart && cart.items && cart.items.length > 0) { %>
+              <div class="max-h-80 overflow-y-auto pr-2 space-y-3">
+                <% cart.items.forEach(function(item) { %>
+                  <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                    <div class="flex items-center">
+                      <a href="/product-details/<%= item.product._id %>" class="flex-shrink-0">
+                        <img class="h-16 w-16 object-cover rounded-md shadow-sm border border-gray-200"  
+                          src="/<%= item.product.images[0] %>"
+                          alt="<%= item.product && item.product.product_name ? item.product.product_name : 'Product' %>">
+                      </a>
+                      <div class="ml-4">
+                        <a href="/product-details/<%= item.product._id %>" class="hover:text-primary-600">
+                          <h4 class="text-sm font-medium text-gray-900 line-clamp-2">
+                            <%= item.product.product_name %>
+                          </h4>
+                        </a>
+                        <div class="mt-1 flex items-center">
+                          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                            Qty: <%= item.quantity %>
+                          </span>
+                          <% if (item.discounted_price && item.discounted_price < item.item_price) { %>
+                            <span class="ml-2 text-xs text-gray-500 line-through">₹<%= item.item_price.toFixed(2) %></span>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                    <p class="text-sm font-medium text-gray-900">
+                      ₹<%= (item.discounted_price || item.item_price).toFixed(2) %>
+                    </p>
+                  </div>
+                <% }); %>
+              </div>
+            <% } else { %>
+              <div class="text-center py-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 text-gray-500 mb-4">
+                  <i class="fas fa-shopping-cart text-2xl"></i>
+                </div>
+                <p class="text-gray-600">Your cart is currently empty.</p>
+                <a href="/" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700">
+                  Continue Shopping
+                </a>
+              </div>
+            <% } %>
+          </div>  
+
+          <!-- Coupon Section -->
+          <div class="mt-6 border-t border-gray-100 pt-6">
+            <div class="flex items-center">
+              <div class="flex-grow relative">
+                <input 
+                  type="text" 
+                  id="coupon-code"
+                  placeholder="Enter coupon code" 
+                  class="pl-3 pr-10 py-2.5 w-full border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                >
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <i class="fas fa-tag text-gray-400"></i>
+                </div>
+              </div>
+              <button id="apply-coupon" class="bg-primary-600 text-white px-4 py-2.5 rounded-r-md hover:bg-primary-700 transition-colors text-sm font-medium flex items-center">
+                <span>Apply</span>
+              </button>
+            </div>
+            
+            <!-- Active coupon example (hidden by default) -->
+            <div id="active-coupon" class="mt-3 bg-green-50 border border-green-200 rounded-md p-3 flex justify-between items-center hidden">
+              <div class="flex items-center">
+                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                <span class="text-sm text-green-800 font-medium">WELCOME10 applied!</span>
+              </div>
+              <button class="text-xs text-red-600 hover:text-red-800">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Price Summary -->
+          <div class="mt-6 space-y-3 bg-gray-50 p-4 rounded-lg">
+            <div class="flex justify-between">
+              <span class="text-sm text-gray-600">Subtotal</span>
+              <span class="text-sm font-medium text-gray-900">₹<%= cartTotals.subtotal.toFixed(2) %></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-gray-600">Shipping</span>
+              <% if (cartTotals.shipping > 0) { %>
+                <span class="text-sm font-medium text-gray-900">₹<%= cartTotals.shipping.toFixed(2) %></span>
+              <% } else { %>
+                <span class="text-sm font-medium text-green-600">Free</span>
+              <% } %>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-gray-600">Tax</span>
+              <span class="text-sm font-medium text-gray-900">₹<%= cartTotals.tax.toFixed(2) %></span>
+            </div>
+            <% if (cartTotals.discount && cartTotals.discount > 0) { %>
+              <div class="flex justify-between text-green-600">
+                <span class="text-sm">Discount</span>
+                <span class="text-sm font-medium">-₹<%= cartTotals.discount.toFixed(2) %></span>
+              </div>
+            <% } %>
+            <div class="flex justify-between pt-3 border-t border-gray-200">
+              <span class="text-base font-medium text-gray-900">Total</span>
+              <span class="text-base font-bold text-primary-600">₹<%= cartTotals.total.toFixed(2) %></span>
+            </div>
+          </div>
+
+          <!-- Security/Trust signals -->
+          <div class="mt-6 grid grid-cols-2 gap-3">
+            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+              <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-green-100 text-green-600">
+                <i class="fas fa-lock"></i>
+              </div>
+              <div class="ml-3">
+                <h4 class="text-xs font-medium text-gray-900">Secure Payment</h4>
+                <p class="text-xs text-gray-500">256-bit SSL encryption</p>
+              </div>
+            </div>
+            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+              <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                <i class="fas fa-truck"></i>
+              </div>
+              <div class="ml-3">
+                <h4 class="text-xs font-medium text-gray-900">Fast Delivery</h4>
+                <p class="text-xs text-gray-500">2-3 business days</p>
+              </div>
+            </div>
+            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+              <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-purple-100 text-purple-600">
+                <i class="fas fa-shield-alt"></i>
+              </div>
+              <div class="ml-3">
+                <h4 class="text-xs font-medium text-gray-900">Warranty</h4>
+                <p class="text-xs text-gray-500">1 year manufacturer</p>
+              </div>
+            </div>
+            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+              <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                <i class="fas fa-exchange-alt"></i>
+              </div>
+              <div class="ml-3">
+                <h4 class="text-xs font-medium text-gray-900">Easy Returns</h4>
+                <p class="text-xs text-gray-500">30 day return policy</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order button -->
+          <button id="place-order" type="submit" class="w-full mt-6 bg-primary-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors">
+            <i class="fas fa-lock mr-2"></i> Place Order
+          </button>
+          
+          <!-- Terms acceptance -->
+          <p class="mt-3 text-xs text-center text-gray-500">
+            By placing your order, you agree to our 
+            <a href="/terms" class="text-primary-600 hover:underline">Terms of Service</a> and 
+            <a href="/privacy" class="text-primary-600 hover:underline">Privacy Policy</a>
+          </p>
+        </div>
+      </div>
+
+      <!-- Left column (Contact, Shipping, Payment) -->
+      <div class="lg:col-span-7 lg:order-1 space-y-6">
+        <!-- Shipping Address Section -->
+        <div class="checkout-section">
+          <div class="flex justify-between items-center">
+            <h2 class="section-title">
+              <i class="fas fa-map-marker-alt text-primary-500 mr-2"></i>
+              Shipping Address
+            </h2>
+            <a href="/profile/address-add" class="text-primary-600 hover:text-primary-800 text-sm font-medium flex items-center">
+              <i class="fas fa-edit mr-1"></i> Manage Addresses
+            </a>
+          </div>
+          <div class="mt-4">
+            <% if (addresses && addresses.length > 0) { %>
+              <div class="space-y-4">
+                <% addresses.forEach(function(address, index) { %>
+                  <div style="position: relative; margin-bottom: 1rem;">
+                    <input
+                      type="radio"
+                      id="address-<%= address._id %>"
+                      name="selectedAddress"
+                      value="<%= address._id %>"
+                      <%= index === 0 ? 'checked' : '' %>
+                      style="position: absolute; opacity: 0; width: 0; height: 0;"
+                      onchange="this.parentNode.querySelector('label').classList.toggle('selected', this.checked)"
+                    >
+                    <label 
+                      for="address-<%= address._id %>" 
+                      class="address-label"
+                      style="display: flex; align-items: flex-start; background-color: white; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s ease; position: relative;"
+                      <%- index === 0 ? 'class="selected"' : '' %>
+                    >
+                      <div style="flex-shrink: 0; margin-top: 0.25rem;">
+                        <div style="height: 1.25rem; width: 1.25rem; border-radius: 50%; border: 2px solid #d1d5db; position: relative; display: inline-block;">
+                          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); height: 0.75rem; width: 0.75rem; border-radius: 50%; background-color: #6366f1; opacity: 0; transition: opacity 0.2s;"></div>
+                        </div>
+                      </div>
+                      <div style="margin-left: 0.75rem; flex-grow: 1;">
+                        <p style="font-weight: 600; color: #111827;"><%= address.full_name %></p>
+                        <p style="color: #4b5563; font-size: 0.875rem; margin-top: 0.25rem;"><%= address.address %>, <%= address.city %>, <%= address.state %>, <%= address.pincode %></p>
+                        <div style="display: flex; align-items: center; margin-top: 0.5rem;">
+                          <span style="display: inline-flex; align-items: center; padding: 0.125rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; background-color: #e0e7ff; color: #4f46e5;">
+                            <%= address.address_type %>
+                          </span>
+                          <a href="/addresses/edit/<%= address._id %>" style="margin-left: 1rem; font-size: 0.75rem; color: #4f46e5;">Edit</a>
+                        </div>
+                      </div>
+                    </label>
+                    <style>
+                      input[type="radio"]:checked + label {
+                        border-color: #6366f1;
+                      }
+                      input[type="radio"]:checked + label > div:first-child > div > div {
+                        opacity: 1;
+                      }
+                      label.address-label:hover {
+                        border-color: #a5b4fc;
+                      }
+                    </style>
+                  </div>
+                <% }); %>
+              </div>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Payment Method Section -->
+        <div class="checkout-section">
+          <h2 class="section-title">
+            <i class="fas fa-credit-card text-primary-500 mr-2"></i>
+            Payment Method
+          </h2>
+          <div class="mt-4 space-y-4">
+            <div class="payment-radio">
+              <input id="credit-card" name="payment-method" type="radio" checked value="credit-card">
+              <label for="credit-card" class="group">
+                <div class="flex items-center">
+                  <div class="payment-icon">
+                    <i class="fas fa-credit-card"></i>
+                  </div>
+                  <span class="ml-3 font-medium text-gray-900">Credit Card</span>
+                </div>
+                <div class="flex space-x-2">
+                  <i class="fab fa-cc-visa text-blue-700 text-xl"></i>
+                  <i class="fab fa-cc-mastercard text-red-500 text-xl"></i>
+                  <i class="fab fa-cc-amex text-blue-500 text-xl"></i>
+                </div>
+              </label>
+            </div>
+            
+            <div class="payment-radio">
+              <input id="upi" name="payment-method" type="radio" value="upi">
+              <label for="upi" class="group">
+                <div class="flex items-center">
+                  <div class="payment-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                  </div>
+                  <span class="ml-3 font-medium text-gray-900">UPI Payment</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/1200px-UPI-Logo-vector.svg.png" alt="UPI" class="h-6">
+                </div>
+              </label>
+            </div>
+            
+            <div class="payment-radio">
+              <input id="cod" name="payment-method" type="radio" value="cod">
+              <label for="cod" class="group">
+                <div class="flex items-center">
+                  <div class="payment-icon">
+                    <i class="fas fa-hand-holding-usd"></i>
+                  </div>
+                  <span class="ml-3 font-medium text-gray-900">Cash on Delivery</span>
+                </div>
+                <div class="text-green-600 text-sm font-medium">
+                  <i class="fas fa-shield-alt mr-1"></i> Pay when you receive
+                </div>
+              </label>
+            </div>
+          </div>
+            
+          <!-- Credit Card Form - Only visible when credit card is selected -->
+          <div id="credit-card-form" class="mt-6 p-5 border border-gray-200 rounded-lg bg-gray-50">
+            <div class="grid grid-cols-1 sm:grid-cols-6 gap-4 sm:gap-6">
+              <div class="sm:col-span-6">
+                <label for="card-number" class="block text-sm font-medium text-gray-700">Card number</label>
+                <div class="mt-1 relative rounded-md shadow-sm">
+                  <input 
+                    type="text" 
+                    id="card-number" 
+                    name="card-number" 
+                    placeholder="XXXX XXXX XXXX XXXX" 
+                    class="checkout-input pl-3 pr-10"
+                    maxlength="19"
+                  >
+                  <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <i class="fas fa-credit-card text-gray-400"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="sm:col-span-6">
+                <label for="card-holder" class="block text-sm font-medium text-gray-700">Card holder name</label>
+                <input 
+                  type="text" 
+                  id="card-holder" 
+                  name="card-holder" 
+                  placeholder="Name on card" 
+                  class="checkout-input"
+                >
+              </div>
+              <div class="sm:col-span-4">
+                <label for="expiration-date" class="block text-sm font-medium text-gray-700">Expiration date (MM/YY)</label>
+                <input 
+                  type="text" 
+                  id="expiration-date" 
+                  name="expiration-date" 
+                  placeholder="MM/YY" 
+                  class="checkout-input"
+                  maxlength="5"
+                >
+              </div>
+              <div class="sm:col-span-2">
+                <label for="cvc" class="block text-sm font-medium text-gray-700">CVC</label>
+                <div class="mt-1 relative rounded-md shadow-sm">
+                  <input 
+                    type="text" 
+                    id="cvc" 
+                    name="cvc" 
+                    placeholder="XXX" 
+                    class="checkout-input"
+                    maxlength="3"
+                  >
+                  <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <i class="fas fa-question-circle text-gray-400 cursor-help" title="3-digit security code on the back of your card"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Save card checkbox -->
+            <div class="mt-4 flex items-start">
+              <div class="flex items-center h-5">
+                <input id="save-card" name="save-card" type="checkbox" class="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500">
+              </div>
+              <div class="ml-3 text-sm">
+                <label for="save-card" class="font-medium text-gray-700">Save card for future payments</label>
+                <p class="text-gray-500">Your card information will be stored securely</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Debit Cards Section - Only visible when credit card is selected -->
+          <div id="debit-cards-section" class="mt-6">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-medium text-gray-900">Saved Cards</h3>
+              <a href="/cards/add" class="text-primary-600 hover:text-primary-800 text-sm font-medium flex items-center">
+                <i class="fas fa-plus-circle mr-1"></i> Add Card
+              </a>
+            </div>
+            <% if (cards && cards.length > 0) { %>
+              <div class="space-y-3">
+                <% cards.forEach(function(card, index) { %>
+                  <div class="relative overflow-hidden border rounded-lg hover:border-primary-500 transition-colors group bg-white">
+                    <input 
+                      type="radio" 
+                      id="card-<%= card._id %>" 
+                      name="selectedCard" 
+                      value="<%= card._id %>" 
+                      class="sr-only"
+                    >
+                    <label for="card-<%= card._id %>" class="block cursor-pointer">
+                      <div class="flex items-center p-4">
+                        <div class="flex-shrink-0 mr-4">
+                          <% if (card.cardType === 'Visa') { %>
+                            <i class="fab fa-cc-visa text-blue-700 text-2xl"></i>
+                          <% } else if (card.cardType === 'Mastercard') { %>
+                            <i class="fab fa-cc-mastercard text-red-500 text-2xl"></i>
+                          <% } else if (card.cardType === 'Amex') { %>
+                            <i class="fab fa-cc-amex text-blue-500 text-2xl"></i>
+                          <% } else { %>
+                            <i class="fas fa-credit-card text-gray-700 text-2xl"></i>
+                          <% } %>
+                        </div>
+                        <div>
+                          <p class="font-medium text-gray-900"><%= card.cardHolder %></p>
+                          <p class="text-gray-700 text-sm">•••• •••• •••• <%= card.last4 %></p>
+                          <p class="text-gray-500 text-xs mt-1">Expires <%= card.expiryMonth %>/<%= card.expiryYear %></p>
+                        </div>
+                        <div class="ml-auto">
+                          <div class="w-5 h-5 border-2 rounded-full flex items-center justify-center border-gray-300 group-hover:border-primary-500">
+                            <div class="hidden w-3 h-3 rounded-full bg-primary-500 card-radio-dot"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="absolute inset-x-0 bottom-0 h-1 bg-primary-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
+                    </label>
+                  </div>
+                <% }); %>
+              </div>
+            <% } else { %>
+              <div class="text-center py-6 border-2 border-dashed rounded-lg">
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 text-primary-600 mb-3">
+                  <i class="fas fa-credit-card"></i>
+                </div>
+                <p class="text-gray-600 mb-3">No saved cards found</p>
+                <a href="/cards/add" class="inline-flex items-center px-3 py-1.5 border border-primary-600 rounded-md text-sm font-medium text-primary-600 hover:bg-primary-50">
+                  <i class="fas fa-plus mr-1"></i> Add New Card
+                </a>
+              </div>
+            <% } %>
+          </div>
+        </div>
+        
+        <!-- Help Section - Hidden on mobile, visible on desktop -->
+        <div class="checkout-section hidden lg:block ">
+          <h3 class="font-medium text-gray-900 flex items-center mb-3">
+            <i class="fas fa-headset text-primary-500 mr-2"></i>
+            Need Help?
+          </h3>
+          <div class="space-y-3">
+            <div class="flex items-center text-sm">
+              <div class="w-8 text-gray-400">
+                <i class="fas fa-envelope"></i>
+              </div>
+              <span>Email: <a href="/cdn-cgi/l/email-protection#06757376766974724661736f726b67682865696b" class="text-primary-600 hover:underline"><span class="__cf_email__" data-cfemail="80f3f5f0f0eff2f4c0e7f5e9f4ede1eeaee3efed">[email&#160;protected]</span></a></span>
+            </div>
+            <div class="flex items-center text-sm">
+              <div class="w-8 text-gray-400">
+                <i class="fas fa-phone"></i>
+              </div>
+              <span>Call us: <span class="font-medium"> +91 808 974 2255</span></span>
+            </div>
+            <div class="flex items-center text-sm">
+              <div class="w-8 text-gray-400">
+                <i class="fas fa-comment-dots"></i>
+              </div>
+              <span>Live chat: <a href="#" class="text-primary-600 hover:underline">Click here</a></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <%- include('./partials/footer') %>
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Create alert component to DOM
+      const alertContainer = document.createElement('div');
+      alertContainer.innerHTML = `
+        <div id="custom-alert" class="fixed top-4 right-4 max-w-md z-[1000] transform transition-transform duration-300 translate-x-full">
+          <div class="bg-white rounded-lg shadow-lg border-l-4 border-red-500 p-4 flex items-start">
+            <div class="flex-shrink-0 text-red-500 mt-0.5">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3 flex-1">
+              <p id="alert-message" class="text-sm text-gray-800 font-medium"></p>
+            </div>
+            <button type="button" class="ml-4 text-gray-400 hover:text-gray-500 focus:outline-none" onclick="dismissAlert()">
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(alertContainer);
+  
+      // Function to show custom alert
+      window.showAlert = function(message, type = 'error') {
+        const alertEl = document.getElementById('custom-alert');
+        const alertMessage = document.getElementById('alert-message');
+        
+        // Set message
+        alertMessage.textContent = message;
+        
+        // Set color based on type
+        const borderEl = alertEl.querySelector('div');
+        const iconEl = alertEl.querySelector('svg');
+        
+        if (type === 'error') {
+          borderEl.classList.remove('border-green-500', 'border-blue-500', 'border-yellow-500');
+          borderEl.classList.add('border-red-500');
+          iconEl.classList.remove('text-green-500', 'text-blue-500', 'text-yellow-500');
+          iconEl.classList.add('text-red-500');
+        } else if (type === 'success') {
+          borderEl.classList.remove('border-red-500', 'border-blue-500', 'border-yellow-500');
+          borderEl.classList.add('border-green-500');
+          iconEl.classList.remove('text-red-500', 'text-blue-500', 'text-yellow-500');
+          iconEl.classList.add('text-green-500');
+          
+          // Replace error icon with check icon for success
+          iconEl.innerHTML = `
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          `;
+        }
+        
+        // Show alert
+        alertEl.classList.remove('translate-x-full');
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+          dismissAlert();
+        }, 5000);
+      };
+  
+      // Function to dismiss alert
+      window.dismissAlert = function() {
+        const alertEl = document.getElementById('custom-alert');
+        alertEl.classList.add('translate-x-full');
+      };
+  
+      // Replace existing alert calls
+      const originalAlert = window.alert;
+      window.alert = function(message) {
+        showAlert(message);
+      };
+  
+      // Link click loading
+      const links = document.querySelectorAll("a");
+      links.forEach(link => {
+        link.addEventListener("click", function() {
+          showLoader();
+        });
+      });
+  
+      // Payment method toggle
+      const paymentRadios = document.querySelectorAll('input[name="payment-method"]');
+      const creditCardForm = document.getElementById('credit-card-form');
+      const debitCardsSection = document.getElementById('debit-cards-section');
+  
+      // Format credit card number with spaces
+      const cardNumberInput = document.getElementById('card-number');
+      if (cardNumberInput) {
+        cardNumberInput.addEventListener('input', function(e) {
+          let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+          let formattedValue = '';
+          for (let i = 0; i < value.length; i++) {
+            if (i > 0 && i % 4 === 0) {
+              formattedValue += ' ';
+            }
+            formattedValue += value[i];
+          }
+          e.target.value = formattedValue;
+        });
+      }
+  
+      // Format expiration date
+      const expirationInput = document.getElementById('expiration-date');
+      if (expirationInput) {
+        expirationInput.addEventListener('input', function(e) {
+          let value = e.target.value.replace(/\D/g, '');
+          if (value.length > 2) {
+            value = value.substring(0, 2) + '/' + value.substring(2, 4);
+          }
+          e.target.value = value;
+        });
+      }
+  
+      // Show/hide credit card form and debit cards section based on payment method
+      function updatePaymentSections() {
+        const isCreditCardSelected = document.getElementById('credit-card').checked;
+        if (isCreditCardSelected) {
+          creditCardForm.classList.remove('hidden');
+          debitCardsSection.classList.remove('hidden');
+        } else {
+          creditCardForm.classList.add('hidden');
+          debitCardsSection.classList.add('hidden');
+        }
+      }
+  
+      // Initialize payment sections
+      updatePaymentSections();
+  
+      // Update when payment method changes
+      paymentRadios.forEach(radio => {
+        radio.addEventListener('change', updatePaymentSections);
+      });
+  
+      // UPDATED: Address radio button styling
+      const addressRadios = document.querySelectorAll('input[name="selectedAddress"]');
+      
+      // Initialize address radio buttons on page load
+      function initializeAddressRadios() {
+        if (!addressRadios || addressRadios.length === 0) return;
+        
+        addressRadios.forEach(radio => {
+          // Try to find the label, first by checking if it's a parent element, then by using the 'for' attribute
+          const label = radio.closest('label') || document.querySelector(`label[for="${radio.id}"]`);
+          
+          // Only proceed if we found a label
+          if (label) {
+            // Add selected styling to the initially checked radio button's label
+            if (radio.checked) {
+              label.classList.add('selected-address');
+              label.style.borderColor = '#6366f1';
+            }
+            
+            // Add event listener for change
+            radio.addEventListener('change', function() {
+              // Remove styling from all labels
+              document.querySelectorAll('.selected-address').forEach(el => {
+                el.classList.remove('selected-address');
+                el.style.borderColor = '';
+              });
+              
+              // Add styling to selected label
+              label.classList.add('selected-address');
+              label.style.borderColor = '#6366f1';
+            });
+          }
+        });
+      }
+  
+      // Run the initialization
+      initializeAddressRadios();
+  
+      // Card radio button styling
+      const cardRadios = document.querySelectorAll('input[name="selectedCard"]');
+      if (cardRadios && cardRadios.length > 0) {
+        cardRadios.forEach(radio => {
+          const label = radio.closest('label');
+          if (!label) return; // Skip if no label found
+          
+          const dot = label.querySelector('.card-radio-dot');
+          if (!dot) return; // Skip if no dot element found
+          
+          if (radio.checked) {
+            dot.classList.remove('hidden');
+          }
+          
+          radio.addEventListener('change', function() {
+            // Hide all dots
+            document.querySelectorAll('.card-radio-dot').forEach(d => d.classList.add('hidden'));
+            // Show dot for checked radio
+            if (this.checked) {
+              dot.classList.remove('hidden');
+            }
+          });
+        });
+      }
+  
+      // Coupon code functionality
+      const applyCouponBtn = document.getElementById('apply-coupon');
+      const couponInput = document.getElementById('coupon-code');
+      const activeCoupon = document.getElementById('active-coupon');
+      if (applyCouponBtn && couponInput && activeCoupon) {
+        applyCouponBtn.addEventListener('click', function() {
+          if (couponInput.value.trim() !== '') {
+            activeCoupon.classList.remove('hidden');
+            // Here you would typically make an AJAX call to validate the coupon
+          }
+        });
+        // Remove coupon when clicking the X button
+        const removeCouponBtn = activeCoupon.querySelector('button');
+        if (removeCouponBtn) {
+          removeCouponBtn.addEventListener('click', function() {
+            activeCoupon.classList.add('hidden');
+            couponInput.value = '';
+          });
+        }
+      }
+  
+      // Place order button loading state with prevention of multiple calls
+      let isOrderProcessing = false;
+      const placeOrderBtn = document.getElementById('place-order');
+      if (placeOrderBtn) {
+        placeOrderBtn.addEventListener('click', async function(e) {
+          e.preventDefault();
+          if (isOrderProcessing) return; // Prevent multiple calls
+          isOrderProcessing = true;
+          
+          try {
+            console.log('invoked');
+            
+            // Disable button and show loading state
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+  
+            // Get selected address
+            const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked');
+            if (!selectedAddress) {
+              throw new Error('Please select a shipping address');
+            }
+  
+            // Get selected payment method
+            const selectedPayment = document.querySelector('input[name="payment-method"]:checked');
+            if (!selectedPayment) {
+              throw new Error('Please select a payment method');
+            }
+  
+            // Get card details if credit card is selected
+            let cardDetails = null;
+            if (selectedPayment.value === 'credit-card') {
+              const savedCard = document.querySelector('input[name="selectedCard"]:checked');
+              if (savedCard) {
+                cardDetails = {
+                  cardId: savedCard.value
+                };
+              } else {
+                cardDetails = {
+                  cardNumber: document.getElementById('card-number').value.replace(/\s/g, ''),
+                  cardHolder: document.getElementById('card-holder').value,
+                  expirationDate: document.getElementById('expiration-date').value,
+                  cvc: document.getElementById('cvc').value
+                };
+  
+                // Validate card details
+                if (!cardDetails.cardNumber || !cardDetails.cardHolder || !cardDetails.expirationDate || !cardDetails.cvc) {
+                  throw new Error('Please fill in all card details');
+                }
+              }
+            }
+  
+            // Get coupon code if applied
+            const couponCode = document.getElementById('coupon-code').value;
+  
+            // Prepare order data
+            const orderData = {
+              addressId: selectedAddress.value,
+              paymentMethod: selectedPayment.value,
+              cardDetails: cardDetails,
+              couponCode: couponCode || null
+            };
+  
+            // Send order to backend
+            const response = await fetch('/cart/create-order', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                // Add any authentication headers if needed
+                // 'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify(orderData)
+            });
+  
+            if (!response.ok) {
+              throw new Error('Failed to place order');
+            }
+  
+            const result = await response.json();
+  
+            // Show success message or redirect to confirmation page
+            if (result.success) {
+              window.location.href = `/cart/order-confirmation/${result.orderId}`;
+            } else {
+              throw new Error(result.message || 'Failed to place order');
+            }
+  
+          } catch (error) {
+            // Reset button state
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-lock mr-2"></i> Place Order';
+            isOrderProcessing = false;
+            // Show error message with custom alert instead of JavaScript alert
+            showAlert(error.message, 'error');
+          }
+        });
+      }
+    });
+  </script>
+  
+  
+</body>
+</html>

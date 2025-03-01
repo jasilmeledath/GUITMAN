@@ -45,7 +45,7 @@ const cartController = {
       const productStock = product.stock;
       if (productStock <= 0) {
         return res.status(httpStatus.UNPROCESSABLE_ENTITY)
-          .json({ success: false, message: "Product is out of stock. Please contact our team." })
+          .json({ success: false, message: "Product is out of stock. Please contact our team." });
       }
 
       // Determine final price with discount if an offer exists
@@ -75,7 +75,8 @@ const cartController = {
           cart_subtotal: discounted_price * quantity,
           cart_total: discounted_price * quantity, // Initial total before tax/shipping
           tax: 0,
-          shipping_fee: 0
+          shipping_fee: 0,
+          savings: 0
         });
       } else {
         // Check if product is already in the cart
@@ -98,6 +99,14 @@ const cartController = {
         // Recalculate cart_subtotal
         cart.cart_subtotal = cart.items.reduce((total, item) => {
           return total + (item.quantity * item.discounted_price);
+        }, 0);
+
+        // Recalculate savings (if discounted_price is lower than original price)
+        cart.savings = cart.items.reduce((total, item) => {
+          if (item.discounted_price < item.item_price) {
+            return total + (item.item_price - item.discounted_price) * item.quantity;
+          }
+          return total;
         }, 0);
 
         // Update cart_total (subtotal + tax + shipping)
@@ -123,22 +132,68 @@ const cartController = {
       const productId = req.query.productId;
       if (!productId) {
         return res.status(httpStatus.BAD_REQUEST)
-          .json({ message: "Error removing item, please try again later!" });
+          .json({ success: false, message: "Error removing item, please try again later!" });
       }
+  
       const user = await getUser(req, res, next);
-      await Cart.updateOne({ user: user._id }, { $pull: { items: { product: productId } } })
-      return res.status(httpStatus.OK).json({ message: "Item removed success fully;" })
+  
+      // Find the user's cart
+      const cart = await Cart.findOne({ user: user._id });
+      if (!cart) {
+        return res.status(httpStatus.NOT_FOUND)
+          .json({ success: false, message: "Cart not found" });
+      }
+  
+      // Find the item to remove using productId. Convert ObjectId to string for comparison.
+      const itemToRemove = cart.items.find(item => item.product.toString() === productId);
+      if (!itemToRemove) {
+        return res.status(httpStatus.BAD_REQUEST)
+          .json({ success: false, message: "Item not found in cart" });
+      }
+  
+      // Remove the item from the cart items array
+      cart.items = cart.items.filter(item => item.product.toString() !== productId);
+  
+      // Recalculate cart_subtotal from remaining items
+      let newSubtotal = cart.items.reduce((acc, item) => acc + (item.quantity * item.discounted_price), 0);
+      cart.cart_subtotal = newSubtotal;
+  
+      // Recalculate savings
+      let newSavings = cart.items.reduce((acc, item) => {
+         if (item.discounted_price < item.item_price) {
+             return acc + ((item.item_price - item.discounted_price) * item.quantity);
+         }
+         return acc;
+      }, 0);
+      cart.savings = newSavings;
+  
+      // Update cart_total: cart_subtotal + tax + shipping_fee
+      cart.cart_total = cart.cart_subtotal + cart.tax + cart.shipping_fee;
+  
+      await cart.save();
+  
+      return res.status(httpStatus.OK)
+        .json({ 
+          success: true, 
+          message: "Item removed successfully",
+          updatedCart: {
+            cart_subtotal: cart.cart_subtotal,
+            savings: cart.savings,
+            shipping_fee: cart.shipping_fee,
+            tax: cart.tax,
+            cart_total: cart.cart_total
+          }
+        });
     } catch (err) {
-      next(err)
+      next(err);
     }
   },
-
-  // updateItemQuantity controller in cartController.js
+  
   updateItemQuantity: async (req, res, next) => {
     const { itemId, change } = req.body;
     const quantityMaxLimit = 15;
     const quantityMinLimit = 0;
-
+  
     try {
       const user = await getUser(req, res, next);
       const product = await getProduct(itemId);
@@ -153,9 +208,9 @@ const cartController = {
               quantity: productStock
             }
           }
-        })
+        });
         if (stockLimit) {
-          return res.status(httpStatus.UNPROCESSABLE_ENTITY).json({ success: false, message: "Stock limit exceeded!" })
+          return res.status(httpStatus.UNPROCESSABLE_ENTITY).json({ success: false, message: "Stock limit exceeded!" });
         }
         const cart = await Cart.findOne({
           user: user._id,
@@ -167,17 +222,16 @@ const cartController = {
           }
         });
         if (cart) {
-          return res
-            .status(httpStatus.UNPROCESSABLE_ENTITY)
+          return res.status(httpStatus.UNPROCESSABLE_ENTITY)
             .json({ success: false, message: "Quantity limit exceeded!" });
         }
-
+  
         updatedCart = await Cart.findOneAndUpdate(
           { user: user._id, "items.product": itemId },
           { $inc: { "items.$.quantity": 1 } },
           { new: true }
         );
-
+  
       } else {
         // Check if the quantity is 1 so we remove the item instead of decrementing
         const cart = await Cart.findOne({
@@ -189,7 +243,7 @@ const cartController = {
             }
           }
         });
-
+  
         if (cart) {
           await Cart.updateOne(
             { user: user._id },
@@ -204,34 +258,40 @@ const cartController = {
           );
         }
       }
-
+  
       // Recalculate cart_subtotal and cart_total based on updated items
       if (updatedCart) {
         const newSubtotal = updatedCart.items.reduce(
           (acc, item) => acc + item.discounted_price * item.quantity,
           0
         );
-        const newTotal = newSubtotal + updatedCart.tax + updatedCart.shipping_fee;
-
-        // Update the cart totals
         updatedCart.cart_subtotal = newSubtotal;
+  
+        // Recalculate savings
+        const newSavings = updatedCart.items.reduce((acc, item) => {
+          if (item.discounted_price < item.item_price) {
+            return acc + (item.item_price - item.discounted_price) * item.quantity;
+          }
+          return acc;
+        }, 0);
+        updatedCart.savings = newSavings;
+  
+        const newTotal = updatedCart.cart_subtotal + updatedCart.tax + updatedCart.shipping_fee;
         updatedCart.cart_total = newTotal;
         await updatedCart.save();
-
-        return res
-          .status(httpStatus.OK)
-          .json({
-            success: true,
-            message: change === 1 ? "Quantity incremented" : "Quantity decremented",
-            updatedCart
-          });
+  
+        return res.status(httpStatus.OK).json({
+          success: true,
+          message: change === 1 ? "Quantity incremented" : "Quantity decremented",
+          updatedCart,
+          updatedItem: updatedCart.items.find(item => item.product.toString() === itemId)
+        });
       }
     } catch (err) {
       next(err);
     }
   },
-
-
 };
+
 var count = 0;
 module.exports = cartController;

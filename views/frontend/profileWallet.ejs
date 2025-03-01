@@ -4,38 +4,582 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Guitman - Wallet</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- SweetAlert2 (Required for using Swal) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Alpine.js -->
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: '#f0f9ff',
+                100: '#e0f2fe',
+                200: '#bae6fd',
+                300: '#7dd3fc',
+                400: '#38bdf8',
+                500: '#0ea5e9',
+                600: '#0284c7',
+                700: '#0369a1',
+                800: '#075985',
+                900: '#0c4a6e',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      .transaction-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+    </style>
   </head>
-  <body class="bg-gray-50">
+  <body class="bg-gray-50 text-gray-800">
     <%- include('./partials/loading') %>
     <%- include('./partials/header') %>
-
+    
     <div class="flex flex-col md:flex-row min-h-screen pt-20">
       <%- include('./partials/profileAside') %>
       <div class="flex-1 overflow-auto pb-20">
-        <div class="max-w-3xl mx-auto p-4 md:p-6 lg:p-8">
-          <h1 class="text-2xl font-semibold mb-6">Wallet</h1>
-          <div class="bg-white rounded-lg shadow-sm p-6">
-            <div class="flex items-center justify-between mb-4">
-              <span class="text-gray-600">Current Balance</span>
-              <span class="text-2xl font-semibold">$1,250.00</span>
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <!-- Page Title -->
+          <div class="px-4 sm:px-0 mb-8">
+            <h1 class="text-2xl font-semibold text-gray-900">My Wallet</h1>
+            <p class="mt-1 text-sm text-gray-600">Manage your wallet balance and view transaction history</p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Wallet Balance Card -->
+             
+            <div class="lg:col-span-1">
+              <div class="bg-white overflow-hidden shadow-sm rounded-xl">
+                <div class="p-6">
+                  <h2 class="text-lg font-medium text-gray-900 mb-4">Wallet Balance</h2>
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm text-gray-500">Available Balance</p>
+                      <p class="text-3xl font-bold text-gray-900">₹1,250.00</p>
+                    </div>
+                    <div class="bg-primary-100 p-3 rounded-full">
+                      <i class="fas fa-wallet text-primary-600 text-xl"></i>
+                    </div>
+                  </div>
+                  
+                  <div class="mt-6 grid grid-cols-2 gap-4">
+                    <button class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                      <i class="fas fa-plus mr-2"></i> Add Money
+                    </button>
+                    <button class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                      <i class="fas fa-arrow-right mr-2"></i> Purchase
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <!-- Quick Stats -->
+              <div class="mt-6 grid grid-cols-2 gap-4">
+                <div class="bg-white overflow-hidden shadow-sm rounded-xl p-4">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-green-100 rounded-full p-3">
+                      <i class="fas fa-arrow-down text-green-600"></i>
+                    </div>
+                    <div class="ml-4">
+                      <p class="text-sm font-medium text-gray-500">Income</p>
+                      <p class="text-lg font-semibold text-gray-900">₹2,450.00</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-white overflow-hidden shadow-sm rounded-xl p-4">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-red-100 rounded-full p-3">
+                      <i class="fas fa-arrow-up text-red-600"></i>
+                    </div>
+                    <div class="ml-4">
+                      <p class="text-sm font-medium text-gray-500">Spent</p>
+                      <p class="text-lg font-semibold text-gray-900">₹1,200.00</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Wallet Cards -->
+              <div x-data="cardStore()">
+                <!-- Wallet Cards -->
+                <div class="mt-6 bg-white overflow-hidden shadow-sm rounded-xl">
+                  <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                      <h2 class="text-lg font-medium text-gray-900">Payment Methods</h2>
+                      <!-- Use a link or button to trigger modal (adjust href or onclick as needed) -->
+                      <button @click="openModal()" class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                        <i class="fas fa-plus mr-1"></i> Add New
+                      </button>
+                    </div>
+                    <% if (debitCards && debitCards.length > 0) { %>
+                      <div class="space-y-4">
+                        <% debitCards.forEach((card) => { %>
+                          <div class="relative rounded-xl p-4 text-white overflow-hidden <%= card.cardType === 'VISA' ? 'bg-gradient-to-r from-blue-500 to-blue-700' : 'bg-gradient-to-r from-gray-800 to-gray-900' %>">
+                            <div class="absolute top-0 right-0 mt-4 mr-4">
+                              <i class="<%= card.cardType === 'VISA' ? 'fab fa-cc-visa text-2xl opacity-80' : 'fab fa-cc-mastercard text-2xl opacity-80' %>"></i>
+                            </div>
+                            <div class="mb-6">
+                              <p class="text-xs font-medium opacity-80"><%= card.cardType %> CARD</p>
+                              <p class="text-lg font-bold mt-1">**** **** **** <%= card.last4 %></p>
+                            </div>
+                            <div class="flex justify-between items-center">
+                              <div>
+                                <p class="text-xs opacity-80">CARD HOLDER</p>
+                                <p class="text-sm font-medium"><%= card.cardHolder %></p>
+                              </div>
+                              <div>
+                                <p class="text-xs opacity-80">EXPIRES</p>
+                                <p class="text-sm font-medium"><%= card.expiry %></p>
+                              </div>
+                            </div>
+                          </div>
+                        <% }); %>
+                      </div>
+                    <% } else { %>
+                      <div class="p-4 bg-gray-100 border border-gray-300 rounded-lg text-center text-gray-700">
+                        No cards added.
+                      </div>
+                    <% } %>
+                  </div>
+                </div>
+              
+                <!-- Add New Card Modal -->
+                <div x-show="showModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50" style="display: none;">
+                  <div @click.outside="closeModal()" x-show="showModal" x-transition class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 relative">
+                    <button @click="closeModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+                      <i class="fas fa-times"></i>
+                    </button>
+                    <h3 class="text-xl font-semibold mb-4">Add New Debit Card</h3>
+                    <form @submit.prevent="saveCard">
+                      <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700">Card Number*</label>
+                        <input type="text" x-model="cardNumber" class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="Enter card number" required>
+                        <span x-show="errors.cardNumber" class="text-red-500 text-xs" x-text="errors.cardNumber"></span>
+                      </div>
+                      <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700">Card Holder*</label>
+                        <input type="text" x-model="cardHolder" class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="Enter card holder name" required>
+                        <span x-show="errors.cardHolder" class="text-red-500 text-xs" x-text="errors.cardHolder"></span>
+                      </div>
+                      <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700">Expiry Date*</label>
+                        <input type="text" x-model="expiry" class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="MM/YY" required>
+                        <span x-show="errors.expiry" class="text-red-500 text-xs" x-text="errors.expiry"></span>
+                      </div>
+                      <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700">Card Type*</label>
+                        <select x-model="cardType" class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2" required>
+                          <option value="">Select Card Type</option>
+                          <option value="VISA">VISA</option>
+                          <option value="MASTERCARD">MASTERCARD</option>
+                        </select>
+                        <span x-show="errors.cardType" class="text-red-500 text-xs" x-text="errors.cardType"></span>
+                      </div>
+                      <div class="flex justify-end space-x-4">
+                        <button type="button" @click="closeModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save Card</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              
+              <script>
+                document.addEventListener('alpine:init', () => {
+                  Alpine.data('cardStore', () => ({
+                    showModal: false,
+                    cardNumber: '',
+                    cardHolder: '',
+                    expiry: '',
+                    cardType: '',
+                    cards: [],
+                    errors: {},
+              
+                    openModal() {
+                      this.resetForm();
+                      this.showModal = true;
+                    },
+                    closeModal() {
+                      this.showModal = false;
+                    },
+                    resetForm() {
+                      this.cardNumber = '';
+                      this.cardHolder = '';
+                      this.expiry = '';
+                      this.cardType = '';
+                      this.errors = {};
+                    },
+                    validateForm() {
+                      this.errors = {};
+                      let valid = true;
+                      // Validate card number: must be 16 digits (ignoring spaces)
+                      const cleanedNumber = this.cardNumber.replace(/\s+/g, '');
+                      if (!this.cardNumber.trim()) {
+                        this.errors.cardNumber = "Card Number is required";
+                        valid = false;
+                      } else if (!/^\d{16}$/.test(cleanedNumber)) {
+                        this.errors.cardNumber = "Card Number must be 16 digits";
+                        valid = false;
+                      }
+                      // Validate card holder name
+                      if (!this.cardHolder.trim()) {
+                        this.errors.cardHolder = "Card Holder name is required";
+                        valid = false;
+                      }
+                      // Validate expiry date in MM/YY format
+                      if (!this.expiry.trim()) {
+                        this.errors.expiry = "Expiry Date is required";
+                        valid = false;
+                      } else if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(this.expiry)) {
+                        this.errors.expiry = "Expiry Date must be in MM/YY format";
+                        valid = false;
+                      }
+                      // Validate card type
+                      if (!this.cardType.trim()) {
+                        this.errors.cardType = "Card Type is required";
+                        valid = false;
+                      }
+                      return valid;
+                    },
+                    saveCard() {
+                      if (!this.validateForm()) {
+                        Swal.fire({
+                          title: 'Error',
+                          text: 'Please correct the errors in the form.',
+                          icon: 'error',
+                          confirmButtonText: 'OK'
+                        });
+                        return;
+                      }
+                      
+                      const newCard = {
+                        cardNumber: this.cardNumber,
+                        cardHolder: this.cardHolder,
+                        expiry: this.expiry,
+                        cardType: this.cardType,
+                        last4: this.cardNumber.replace(/\s+/g, '').slice(-4)
+                      };
+              
+                      Swal.fire({
+                        title: 'Processing...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                          Swal.showLoading();
+                        }
+                      });
+                      
+                      fetch('/profile/card-add', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                        },
+                        body: JSON.stringify(newCard)
+                      })
+                      .then(response => {
+                        if (!response.ok) {
+                          throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                      })
+                      .then(data => {
+                        Swal.close();
+                        if (data.success) {
+                          Swal.fire({
+                            title: 'Card Added!',
+                            text: data.message || 'Your card has been added successfully.',
+                            icon: 'success',
+                            confirmButtonText: 'Great!'
+                          });
+                          newCard.id = data.cardId || Date.now();
+                          this.cards.push(newCard);
+                          this.closeModal();
+                          window.location.reload
+                        } else {
+                          Swal.fire({
+                            title: 'Error',
+                            text: data.message || 'Failed to add card. Please try again.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                          });
+                        }
+                      })
+                      .catch(error => {
+                        Swal.close();
+                        Swal.fire({
+                          title: 'Error',
+                          text: 'An unexpected error occurred. Please try again later.',
+                          icon: 'error',
+                          confirmButtonText: 'OK'
+                        });
+                        console.error('Error:', error);
+                      });
+                    }
+                  }));
+                });
+              </script>
             </div>
-            <h2 class="text-xl font-semibold mb-4">Transaction History</h2>
-            <ul class="divide-y divide-gray-100">
-              <li class="p-4 flex justify-between">
-                <span>Added funds</span>
-                <span class="text-green-600">+$200.00</span>
-              </li>
-              <li class="p-4 flex justify-between">
-                <span>Purchase</span>
-                <span class="text-red-600">-$50.00</span>
-              </li>
-              <!-- More transactions -->
-            </ul>
+
+            <!-- Transaction History -->
+            <div class="lg:col-span-2">
+              <div class="bg-white overflow-hidden shadow-sm rounded-xl">
+                <div class="p-6">
+                  <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-medium text-gray-900">Transaction History</h2>
+                    <div class="flex space-x-2">
+                      <div class="relative">
+                        <select class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md">
+                          <option>All Transactions</option>
+                          <option>Deposits</option>
+                          <option>Withdrawals</option>
+                          <option>Purchases</option>
+                          <option>Refunds</option>
+                        </select>
+                      </div>
+                      <div class="relative">
+                        <select class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md">
+                          <option>Last 30 Days</option>
+                          <option>Last 7 Days</option>
+                          <option>This Month</option>
+                          <option>Last Month</option>
+                          <option>Custom Range</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Search Bar -->
+                  <div class="mb-6">
+                    <div class="relative rounded-md shadow-sm">
+                      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                      </div>
+                      <input type="text" class="focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md" placeholder="Search transactions...">
+                    </div>
+                  </div>
+
+                  <!-- Transactions List -->
+                  <div class="space-y-4">
+                    <!-- Today -->
+                    <div>
+                      <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Today</h3>
+                      
+                      <div class="space-y-3">
+                        <div class="bg-white border border-gray-100 rounded-lg p-4 transition-all duration-200 ease-in-out transaction-item">
+                          <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                              <div class="flex-shrink-0 bg-green-100 rounded-full p-2">
+                                <i class="fas fa-arrow-down text-green-600 text-sm"></i>
+                              </div>
+                              <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-900">Deposit from Bank Account</p>
+                                <p class="text-xs text-gray-500">Today, 10:45 AM</p>
+                              </div>
+                            </div>
+                            <div class="text-right">
+                              <p class="text-sm font-semibold text-green-600">+$500.00</p>
+                              <p class="text-xs text-gray-500">Completed</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-100 rounded-lg p-4 transition-all duration-200 ease-in-out transaction-item">
+                          <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                              <div class="flex-shrink-0 bg-red-100 rounded-full p-2">
+                                <i class="fas fa-shopping-bag text-red-600 text-sm"></i>
+                              </div>
+                              <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-900">Purchase - Wireless Headphones</p>
+                                <p class="text-xs text-gray-500">Today, 09:15 AM</p>
+                              </div>
+                            </div>
+                            <div class="text-right">
+                              <p class="text-sm font-semibold text-red-600">-$129.99</p>
+                              <p class="text-xs text-gray-500">Completed</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Yesterday -->
+                    <div>
+                      <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Yesterday</h3>
+                      
+                      <div class="space-y-3">
+                        <div class="bg-white border border-gray-100 rounded-lg p-4 transition-all duration-200 ease-in-out transaction-item">
+                          <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                              <div class="flex-shrink-0 bg-green-100 rounded-full p-2">
+                                <i class="fas fa-undo text-green-600 text-sm"></i>
+                              </div>
+                              <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-900">Refund - Smart Watch</p>
+                                <p class="text-xs text-gray-500">Yesterday, 4:30 PM</p>
+                              </div>
+                            </div>
+                            <div class="text-right">
+                              <p class="text-sm font-semibold text-green-600">+$199.99</p>
+                              <p class="text-xs text-gray-500">Completed</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-100 rounded-lg p-4 transition-all duration-200 ease-in-out transaction-item">
+                          <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                              <div class="flex-shrink-0 bg-red-100 rounded-full p-2">
+                                <i class="fas fa-shopping-bag text-red-600 text-sm"></i>
+                              </div>
+                              <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-900">Purchase - Bluetooth Speaker</p>
+                                <p class="text-xs text-gray-500">Yesterday, 2:15 PM</p>
+                              </div>
+                            </div>
+                            <div class="text-right">
+                              <p class="text-sm font-semibold text-red-600">-$79.99</p>
+                              <p class="text-xs text-gray-500">Completed</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-100 rounded-lg p-4 transition-all duration-200 ease-in-out transaction-item">
+                          <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                              <div class="flex-shrink-0 bg-red-100 rounded-full p-2">
+                                <i class="fas fa-arrow-up text-red-600 text-sm"></i>
+                              </div>
+                              <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-900">Withdrawal to Bank Account</p>
+                                <p class="text-xs text-gray-500">Yesterday, 11:30 AM</p>
+                              </div>
+                            </div>
+                            <div class="text-right">
+                              <p class="text-sm font-semibold text-red-600">-$300.00</p>
+                              <p class="text-xs text-gray-500">Completed</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Last Week -->
+                    <div>
+                      <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Last Week</h3>
+                      
+                      <div class="space-y-3">
+                        <div class="bg-white border border-gray-100 rounded-lg p-4 transition-all duration-200 ease-in-out transaction-item">
+                          <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                              <div class="flex-shrink-0 bg-green-100 rounded-full p-2">
+                                <i class="fas fa-gift text-green-600 text-sm"></i>
+                              </div>
+                              <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-900">Reward Points Redeemed</p>
+                                <p class="text-xs text-gray-500">Jun 15, 2023, 3:45 PM</p>
+                              </div>
+                            </div>
+                            <div class="text-right">
+                              <p class="text-sm font-semibold text-green-600">+$25.00</p>
+                              <p class="text-xs text-gray-500">Completed</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-100 rounded-lg p-4 transition-all duration-200 ease-in-out transaction-item">
+                          <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                              <div class="flex-shrink-0 bg-red-100 rounded-full p-2">
+                                <i class="fas fa-shopping-bag text-red-600 text-sm"></i>
+                              </div>
+                              <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-900">Purchase - Smartphone Case</p>
+                                <p class="text-xs text-gray-500">Jun 14, 2023, 1:20 PM</p>
+                              </div>
+                            </div>
+                            <div class="text-right">
+                              <p class="text-sm font-semibold text-red-600">-$19.99</p>
+                              <p class="text-xs text-gray-500">Completed</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-100 rounded-lg p-4 transition-all duration-200 ease-in-out transaction-item">
+                          <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                              <div class="flex-shrink-0 bg-green-100 rounded-full p-2">
+                                <i class="fas fa-arrow-down text-green-600 text-sm"></i>
+                              </div>
+                              <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-900">Deposit from Credit Card</p>
+                                <p class="text-xs text-gray-500">Jun 12, 2023, 10:10 AM</p>
+                              </div>
+                            </div>
+                            <div class="text-right">
+                              <p class="text-sm font-semibold text-green-600">+$750.00</p>
+                              <p class="text-xs text-gray-500">Completed</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Pagination -->
+                  <div class="mt-6 flex items-center justify-between border-t border-gray-200 pt-4">
+                    <div class="flex flex-1 justify-between sm:hidden">
+                      <a href="#" class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Previous</a>
+                      <a href="#" class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Next</a>
+                    </div>
+                    <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                      <div>
+                        <p class="text-sm text-gray-700">
+                          Showing <span class="font-medium">1</span> to <span class="font-medium">10</span> of <span class="font-medium">23</span> results
+                        </p>
+                      </div>
+                      <div>
+                        <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                          <a href="#" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                            <span class="sr-only">Previous</span>
+                            <i class="fas fa-chevron-left h-5 w-5"></i>
+                          </a>
+                          <a href="#" aria-current="page" class="relative z-10 inline-flex items-center bg-primary-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">1</a>
+                          <a href="#" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">2</a>
+                          <a href="#" class="relative hidden items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 md:inline-flex">3</a>
+                          <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">...</span>
+                          <a href="#" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                            <span class="sr-only">Next</span>
+                            <i class="fas fa-chevron-right h-5 w-5"></i>
+                          </a>
+                        </nav>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
+    
     <%- include('./partials/footer') %>
   </body>
 </html>
