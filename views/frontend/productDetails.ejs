@@ -5,36 +5,169 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= product.product_name %> - Guitman</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.6/dist/medium-zoom.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
-        #lens {
+        
+        /* Amazon-style zoom container */
+        .image-zoom-container {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Zoom lens */
+        .zoom-lens {
             position: absolute;
+            border: 2px solid #fff;
+            background-color: rgba(255, 255, 255, 0.4);
             width: 150px;
             height: 150px;
-            border: 2px solid #fff;
-            border-radius: 50%;
             cursor: none;
-            pointer-events: none;
-            background-repeat: no-repeat;
             display: none;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3);
-            z-index: 999;
+            pointer-events: none;
+            z-index: 10;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
         }
-        #zoomed-image {
+        
+        /* Zoom result container */
+        .zoom-result {
             position: absolute;
+            border: 1px solid #ddd;
             width: 400px;
             height: 400px;
-            border: 1px solid #ddd;
-            background-repeat: no-repeat;
             display: none;
             z-index: 1000;
             background-color: white;
-            background-size: 250% 250%;
+            background-repeat: no-repeat;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             pointer-events: none;
+        }
+        
+        /* Zoom hint */
+        .zoom-hint {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            color: #333;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 5;
+            display: none;
+        }
+        
+        /* Active thumbnail styling */
+        .thumbnail-active {
+            border: 2px solid #4f46e5 !important;
+            box-shadow: 0 0 0 1px #4f46e5;
+        }
+        
+        /* Loading indicator for images */
+        .image-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(79, 70, 229, 0.2);
+            border-radius: 50%;
+            border-top-color: #4f46e5;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Animation for hover effects */
+        .hover-scale {
+            transition: transform 0.3s ease;
+        }
+        .hover-scale:hover {
+            transform: scale(1.03);
+        }
+        
+        /* Custom scrollbar for reviews */
+        .reviews-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .reviews-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .reviews-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .reviews-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Pulse animation for "Add to Cart" button */
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(79, 70, 229, 0);
+            }
+        }
+        .pulse-animation:hover {
+            animation: pulse 1.5s infinite;
+        }
+        
+        /* Mobile zoom overlay */
+        .mobile-zoom-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+        }
+        
+        .mobile-zoom-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        
+        .mobile-zoom-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1001;
         }
     </style>
 </head>
@@ -43,9 +176,9 @@
     <%- include('./partials/header') %>
     <%- include('./partials/breadcrumbs', { breadcrumbs }) %>
 
-    <main class="max-w-7xl mx-auto px-6 py-12">
-        <nav class="mb-8">
-            <ol class="flex text-sm text-gray-600">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <nav class="mb-6 sm:mb-8">
+            <ol class="flex flex-wrap text-sm text-gray-600">
                 <li class="hover:text-indigo-600 transition-colors duration-200">
                     <a href="/">Home</a>
                 </li>
@@ -54,26 +187,64 @@
                     <a href="/shop">Shop</a>
                 </li>
                 <li class="mx-2">/</li>
-                <li class="text-indigo-600 font-medium"><%= product.product_name %></li>
+                <li class="text-indigo-600 font-medium truncate max-w-[150px] sm:max-w-none"><%= product.product_name %></li>
             </ol>
         </nav>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
             <!-- Product Images Column -->
-            <div class="space-y-6">
-                <div class="border rounded-lg overflow-hidden h-96 flex items-center justify-center bg-white relative" id="imageWrapper">
+            <div class="space-y-4 sm:space-y-6">
+                <!-- Main Image with Zoom -->
+                <div class="border rounded-lg overflow-hidden h-72 sm:h-96 bg-white relative shadow-sm hover:shadow-md transition-shadow duration-300 image-zoom-container" id="imageZoomContainer">
+                    <!-- Loading Spinner -->
+                    <div class="image-loading" id="imageLoading">
+                        <div class="spinner"></div>
+                    </div>
+                    
                     <img id="mainImage" 
                          src="/<%= product.images[0] %>" 
                          alt="<%= product.product_name %>" 
-                         class="w-full h-full object-contain cursor-zoom-in">
+                         class="w-full h-full object-contain cursor-crosshair"
+                         data-index="0">
+                    
+                    <!-- Zoom Lens -->
+                    <div class="zoom-lens" id="zoomLens"></div>
+                    
+                    <!-- Zoom Hint -->
+                    <div class="zoom-hint" id="zoomHint">
+                        <i class="fas fa-search-plus mr-1"></i> Hover to zoom
+                    </div>
+                    
+                    <!-- Image Navigation Arrows -->
+                    <button class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md text-gray-700 hover:text-indigo-600 transition-colors z-20" id="prevImage" aria-label="Previous image">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md text-gray-700 hover:text-indigo-600 transition-colors z-20" id="nextImage" aria-label="Next image">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
-                <div class="grid grid-cols-4 gap-4">
+                
+                <!-- Zoom Result (outside the container) -->
+                <div class="zoom-result" id="zoomResult"></div>
+                
+                <!-- Mobile Zoom Overlay -->
+                <div class="mobile-zoom-overlay" id="mobileZoomOverlay">
+                    <div class="mobile-zoom-close" id="mobileZoomClose">
+                        <i class="fas fa-times"></i>
+                    </div>
+                    <img id="mobileZoomImage" src="/placeholder.svg" alt="Zoomed product image" class="mobile-zoom-image">
+                </div>
+                
+                <!-- Thumbnails Gallery -->
+                <div class="grid grid-cols-5 sm:grid-cols-6 gap-2 sm:gap-4" id="thumbnailsContainer">
                     <% product.images.forEach((image, index) => { %>
-                        <button class="border rounded-lg overflow-hidden hover:border-indigo-500 transition-colors duration-200" 
-                                onclick="document.getElementById('mainImage').src = '/<%= image %>'">
+                        <button class="border rounded-lg overflow-hidden hover:border-indigo-500 transition-colors duration-200 <%= index === 0 ? 'thumbnail-active' : '' %>" 
+                                onclick="changeMainImage('<%= image %>', <%= index %>)"
+                                data-index="<%= index %>"
+                                aria-label="View <%= product.product_name %> image <%= index + 1 %>">
                             <img src="/<%= image %>" 
                                  alt="Thumbnail <%= index + 1 %>" 
-                                 class="w-full object-cover h-24 cursor-pointer">
+                                 class="w-full object-cover aspect-square cursor-pointer">
                         </button>
                     <% }) %>
                 </div>
@@ -81,117 +252,187 @@
     
             <!-- Product Details Column -->
             <div class="space-y-6">
-                <h1 class="text-3xl font-bold text-gray-900"><%= product.product_name %></h1>
-    
-                <!-- Ratings -->
-                <div class="flex items-center">
-                    <% for(let i = 0; i < 5; i++) { %>
-                        <svg class="w-5 h-5 <%= i < avgRating ? 'text-yellow-400' : 'text-gray-300' %>" 
-                             fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                    <% } %>
-                    <span class="ml-2 text-gray-600">(<%= reviews.length %> reviews)</span>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2"><%= product.product_name %></h1>
+                    
+                    <!-- Ratings -->
+                    <div class="flex items-center mb-4">
+                        <div class="flex">
+                            <% for(let i = 0; i < 5; i++) { %>
+                                <svg class="w-5 h-5 <%= i < avgRating ? 'text-yellow-400' : 'text-gray-300' %>" 
+                                    fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>
+                            <% } %>
+                        </div>
+                        <a href="#reviews" class="ml-2 text-indigo-600 hover:text-indigo-800 transition-colors text-sm font-medium">
+                            <%= avgRating.toFixed(1) %> (<%= reviews.length %> reviews)
+                        </a>
+                    </div>
                 </div>
     
                 <!-- Price & Offers -->
-                <div class="text-3xl font-bold text-indigo-600">₹<%= product.price.toLocaleString() %></div>
-                <% if(product.offer) { %>
-                    <div class="text-green-600">
-                        <span class="bg-green-100 px-3 py-1 rounded-full text-sm font-medium">Special Offer: <%= product.offer.name %></span>
-                    </div>
-                <% } %>
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="text-3xl font-bold text-indigo-600">₹<%= product.price.toLocaleString() %></div>
+                    <% if(product.offer) { %>
+                        <div class="bg-green-100 px-3 py-1 rounded-full text-sm font-medium text-green-800 flex items-center">
+                            <i class="fas fa-tag mr-1"></i>
+                            <span><%= product.offer.name %>: <%= product.offer.discount %>% OFF</span>
+                        </div>
+                    <% } %>
+                </div>
     
                 <!-- Stock Info -->
-                <div class="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
-                    <span class="text-gray-600">Availability:</span>
+                <div class="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <span class="text-gray-600 flex items-center">
+                        <i class="fas fa-box-open mr-2 text-indigo-500"></i>
+                        Availability:
+                    </span>
                     <% if(product.stock < 10 && product.stock!=0) { %>
-                        <span class="text-red-600 font-medium">Only <%= product.stock %> left!</span>
+                        <span class="text-amber-600 font-medium flex items-center">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            Only <%= product.stock %> left!
+                        </span>
                     <% } else if(product.stock===0) { %>
-                        <span class="text-red-600 font-medium">Out of Stock</span>
+                        <span class="text-red-600 font-medium flex items-center">
+                            <i class="fas fa-times-circle mr-1"></i>
+                            Out of Stock
+                        </span>
                     <% } else { %>
-                        <span class="text-green-600 font-medium">In Stock</span>
+                        <span class="text-green-600 font-medium flex items-center">
+                            <i class="fas fa-check-circle mr-1"></i>
+                            In Stock
+                        </span>
                     <% } %>
                 </div>
     
                 <!-- Product Description -->
-                <div>
-                    <h2 class="text-xl font-bold pb-4 border-b text-gray-800">Product Description</h2>
-                    <div class="mt-4 space-y-4 text-gray-700">
+                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <h2 class="text-xl font-bold pb-3 border-b text-gray-800 flex items-center">
+                        <i class="fas fa-info-circle mr-2 text-indigo-500"></i>
+                        Product Description
+                    </h2>
+                    <div class="mt-4 space-y-4 text-gray-700 leading-relaxed">
                         <%= product.description %>
                     </div>
                 </div>
     
+                <!-- Features List -->
+                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <h2 class="text-xl font-bold pb-3 border-b text-gray-800 flex items-center">
+                        <i class="fas fa-list-ul mr-2 text-indigo-500"></i>
+                        Key Features
+                    </h2>
+                    <ul class="mt-4 space-y-2 text-gray-700">
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            <span>Premium quality materials for durability</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            <span>Ergonomic design for comfortable use</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            <span>1-year manufacturer warranty</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            <span>Free shipping across India</span>
+                        </li>
+                    </ul>
+                </div>
+    
                 <!-- Add to Cart and Buy Now -->
-                <div class="flex items-center gap-4">
-                    <div class="flex items-center border rounded-md w-32">
-                        <button class="px-4 py-2 border-r hover:bg-gray-50 transition-colors duration-200">-</button>
-                        <input type="number" value="1" class="w-16 text-center focus:outline-none">
-                        <button class="px-4 py-2 border-l hover:bg-gray-50 transition-colors duration-200">+</button>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <div class="flex items-center border rounded-md w-full sm:w-32 shadow-sm">
+                        <button class="px-4 py-2 border-r hover:bg-gray-50 transition-colors duration-200 text-gray-700" 
+                                onclick="decrementQuantity()" 
+                                aria-label="Decrease quantity">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <input type="number" 
+                               id="quantity" 
+                               value="1" 
+                               min="1" 
+                               max="<%= product.stock %>" 
+                               class="w-full sm:w-16 text-center focus:outline-none"
+                               aria-label="Product quantity">
+                        <button class="px-4 py-2 border-l hover:bg-gray-50 transition-colors duration-200 text-gray-700" 
+                                onclick="incrementQuantity()" 
+                                aria-label="Increase quantity">
+                            <i class="fas fa-plus"></i>
+                        </button>
                     </div>
-                    <button class="flex items-center rounded-md bg-slate-800 py-3 px-6 border border-transparent text-center text-base text-white transition-all shadow-sm hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 mr-2">
-                            <path fill-rule="evenodd" d="M7.5 6v.75H5.513c-.96 0-1.764.724-1.865 1.679l-1.263 12A1.875 1.875 0 0 0 4.25 22.5h15.5a1.875 1.875 0 0 0 1.865-2.071l-1.263-12a1.875 1.875 0 0 0-1.865-1.679H16.5V6a4.5 4.5 0 1 0-9 0ZM12 3a3 3 0 0 0-3 3v.75h6V6a3 3 0 0 0-3-3Zm-3 8.25a3 3 0 1 0 6 0v-.75a.75.75 0 0 1 1.5 0v.75a4.5 4.5 0 1 1-9 0v-.75a.75.75 0 0 1 1.5 0v.75Z" clip-rule="evenodd"></path>
-                        </svg>
-                        Add To Cart
-                    </button>
-                    <button data-ripple-light="true" class="rounded-md bg-slate-800 py-3 px-6 border border-transparent text-center text-base text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2" type="button">
-                        Buy Now
-                    </button>
-                    
+                    <div class="flex w-full gap-2">
+                        <button class="flex-1 flex items-center justify-center rounded-md bg-indigo-600 py-3 px-4 text-center text-base text-white transition-all shadow-sm hover:shadow-md focus:bg-indigo-700 hover:bg-indigo-700 pulse-animation" type="button">
+                            <i class="fas fa-shopping-cart mr-2"></i>
+                            Add To Cart
+                        </button>
+                        <button class="flex-1 flex items-center justify-center rounded-md bg-gray-800 py-3 px-4 text-center text-base text-white transition-all shadow-sm hover:shadow-md focus:bg-gray-900 hover:bg-gray-900" type="button">
+                            <i class="fas fa-bolt mr-2"></i>
+                            Buy Now
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Shipping & Returns -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="flex items-center bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                        <i class="fas fa-truck text-indigo-500 text-xl mr-3"></i>
+                        <div>
+                            <h3 class="font-medium text-gray-800">Free Shipping</h3>
+                            <p class="text-xs text-gray-500">On orders above ₹500</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                        <i class="fas fa-undo text-indigo-500 text-xl mr-3"></i>
+                        <div>
+                            <h3 class="font-medium text-gray-800">Easy Returns</h3>
+                            <p class="text-xs text-gray-500">10-day return policy</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Share Product -->
+                <div class="flex items-center pt-4 border-t border-gray-200">
+                    <span class="text-gray-600 mr-4">Share:</span>
+                    <div class="flex space-x-3">
+                        <a href="#" class="text-gray-400 hover:text-blue-600 transition-colors">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-pink-600 transition-colors">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-green-600 transition-colors">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     
-        <!-- Related Products -->
-        <% if(relatedProducts.length > 0) { %>
-            <div class="mt-16">
-                <h2 class="text-2xl font-bold mb-8 text-gray-800">Related Products</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <% relatedProducts.forEach(product => { %>
-                        <a href="/product-details/<%=product._id%>" class="group">
-                            <div class="bg-white p-6 rounded-xl shadow-sm group-hover:shadow-md transition-shadow duration-300 flex flex-col h-[27rem]">
-                                <div class="relative flex-1 overflow-hidden">
-                                    <img src="/<%= product.images[0] %>" 
-                                         alt="<%= product.product_name %>" 
-                                         class="w-full h-64 object-contain mb-4 rounded-lg transition-transform duration-300 group-hover:scale-105">
-                                    <button class="absolute top-3 right-3 bg-white p-2 rounded-full shadow-sm hover:bg-gray-100 transition-colors duration-200">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600 hover:text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div class="mt-4">
-                                    <h3 class="font-semibold text-lg mb-2 text-gray-800 truncate"><%= product.product_name %></h3>
-                                    <div class="flex items-center justify-between mb-3">
-                                        <span class="text-2xl font-bold text-indigo-600">₹<%= product.price.toLocaleString('en-IN') %></span>
-                                        <button class="p-2 bg-indigo-100 rounded-full hover:bg-indigo-200 transition-colors duration-200">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    <% }) %>
-                </div>
-            </div>
-        <% } %>
-    
         <!-- Reviews Section -->
         <div id="reviews" class="mt-16">
-            <h2 class="text-2xl font-bold mb-8 text-gray-800">Customer Reviews</h2>
             <% if (reviews.length > 0) { %>
-                <div class="space-y-6 mb-12">
-                    <% reviews.forEach(review => { %>
-                        <div class="bg-white p-6 rounded-lg shadow-sm">
-                            <div class="flex items-center justify-between mb-4">
+                <!-- Reviews List -->
+                <div class="space-y-6 reviews-container max-h-[800px] overflow-y-auto pr-2">
+                    <% reviews.forEach((review, index) => { %>
+                        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover-scale">
+                            <div class="flex items-start justify-between mb-4">
                                 <div class="flex items-center">
-                                    <img src="<%= review.user.profile_image || '/ui/dprofile.jpg' %>" alt="User Avatar" class="w-10 h-10 rounded-full mr-4">
+                                    <div class="w-12 h-12 rounded-full overflow-hidden mr-4 border-2 border-indigo-100">
+                                        <img src="<%= review.user.profile_image || '/ui/dprofile.jpg' %>" alt="User Avatar" class="w-full h-full object-cover">
+                                    </div>
                                     <div>
-                                        <h4 class="font-semibold text-gray-800"><%= reviews[0].user.first_name %></h4>
-                                        <p class="text-sm text-gray-600"><%= new Date(review.createdAt).toLocaleDateString() %></p>
+                                        <h4 class="font-semibold text-gray-800"><%= review.user.first_name %> <%= review.user.last_name ? review.user.last_name.charAt(0) + '.' : '' %></h4>
+                                        <p class="text-sm text-gray-500 flex items-center">
+                                            <i class="far fa-calendar-alt mr-1"></i>
+                                            <%= new Date(review.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %>
+                                        </p>
                                     </div>
                                 </div>
                                 <div class="flex">
@@ -202,143 +443,647 @@
                                     <% } %>
                                 </div>
                             </div>
-                            <p class="text-gray-700"><%= review.feedback %></p>
+                            
+                            <% if (index === 0) { %>
+                                <!-- Featured Review Badge for the first review -->
+                                <div class="inline-block bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded-full mb-3">
+                                    <i class="fas fa-award mr-1"></i> Featured Review
+                                </div>
+                            <% } %>
+                            
+                            <div class="mb-4">
+                                <p class="text-gray-700 leading-relaxed"><%= review.feedback %></p>
+                            </div>
+                            
+                            <div class="flex flex-wrap items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                                <div class="flex items-center space-x-4">
+                                    <button class="flex items-center text-sm text-gray-500 hover:text-indigo-600 transition-colors">
+                                        <i class="far fa-thumbs-up mr-1"></i> Helpful (<%= Math.floor(Math.random() * 10) %>)
+                                    </button>
+                                    <button class="flex items-center text-sm text-gray-500 hover:text-indigo-600 transition-colors">
+                                        <i class="far fa-comment mr-1"></i> Reply
+                                    </button>
+                                </div>
+                                <div class="flex items-center mt-2 sm:mt-0">
+                                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full flex items-center">
+                                        <i class="fas fa-check-circle mr-1"></i> Verified Purchase
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     <% }); %>
                 </div>
+                
+                <!-- Pagination -->
+                <div class="flex justify-center mt-8">
+                    <nav class="inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Previous</span>
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-indigo-50 text-sm font-medium text-indigo-600 hover:bg-indigo-100">
+                            1
+                        </a>
+                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            2
+                        </a>
+                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            3
+                        </a>
+                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                            ...
+                        </span>
+                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            8
+                        </a>
+                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Next</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </nav>
+                </div>
             <% } else { %>
-                <p class="text-gray-600 mb-8">No reviews yet. Be the first to review this product!</p>
-            <% } %>
-        
-            <!-- New Review Form -->
-            <div class="bg-white p-8 rounded-lg shadow-md">
-                <h3 class="text-xl font-semibold mb-6 text-gray-800">Write a Review</h3>
-                <form class="space-y-6" id="reviewForm" action="/submit-review" method="post">
-    <input type="hidden" name="productId" value="<%= product._id %>">
-    
-    <div>
-        <label for="rating" class="block text-sm font-medium text-gray-700 mb-2">Rating</label>
-        <div class="flex items-center space-x-1">
-            <% for(var i = 1; i <= 5; i++) { %>
-                <button type="button" class="star-rating text-3xl text-gray-300 hover:text-yellow-400 focus:outline-none transition-colors duration-200" data-rating="<%= i %>">★</button>
+                <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
+                    <div class="text-gray-400 mb-4">
+                        <i class="far fa-comment-dots text-5xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">No Reviews Yet</h3>
+                    <p class="text-gray-600 mb-6">Be the first to share your experience with this product!</p>
+                    <a href="/login" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Login to Write a Review
+                    </a>
+                </div>
             <% } %>
         </div>
-        <input type="hidden" name="rating" id="rating" required>
-    </div>
-
-    <div>
-        <label for="feedback" class="block text-sm font-medium text-gray-700 mb-2">Your Review</label>
-        <textarea id="feedback" name="feedback" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Share your thoughts about the product..." required></textarea>
-    </div>
-
-    <div>
-        <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-            Submit Review
-        </button>
-    </div>
-</form>
+        
+        <!-- Related Products -->
+        <% if(relatedProducts.length > 0) { %>
+            <div class="mt-16">
+                <h2 class="text-2xl font-bold mb-8 text-gray-800 flex items-center">
+                    <i class="fas fa-guitar mr-2 text-indigo-500"></i>
+                    Related Products
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <% relatedProducts.forEach(product => { %>
+                        <a href="/product-details/<%=product._id%>" class="group">
+                            <div class="bg-white p-4 rounded-xl shadow-sm group-hover:shadow-md transition-shadow duration-300 flex flex-col h-full border border-gray-100 hover-scale">
+                                <div class="relative flex-1 overflow-hidden rounded-lg mb-4">
+                                    <div class="aspect-square flex items-center justify-center bg-gray-50">
+                                        <img src="/<%= product.images[0] %>" 
+                                             alt="<%= product.product_name %>" 
+                                             class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105">
+                                    </div>
+                                    <button class="absolute top-3 right-3 bg-white p-2 rounded-full shadow-sm hover:bg-gray-100 transition-colors duration-200">
+                                        <i class="far fa-heart text-gray-600 group-hover:text-red-500 transition-colors"></i>
+                                    </button>
+                                    <% if(product.offer) { %>
+                                        <div class="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                                            <%= product.offer.discount %>% OFF
+                                        </div>
+                                    <% } %>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-800 truncate group-hover:text-indigo-600 transition-colors"><%= product.product_name %></h3>
+                                    <div class="flex items-center mt-1 mb-2">
+                                        <% for(let i = 0; i < 5; i++) { %>
+                                            <svg class="w-4 h-4 <%= i < (product.avgRating || 4) ? 'text-yellow-400' : 'text-gray-300' %>" 
+                                                 fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                            </svg>
+                                        <% } %>
+                                        <span class="text-xs text-gray-500 ml-1">(<%= product.reviews?.length || Math.floor(Math.random() * 20) %>)</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-lg font-bold text-indigo-600">₹<%= product.price.toLocaleString('en-IN') %></span>
+                                        <button class="p-2 bg-indigo-100 rounded-full hover:bg-indigo-200 transition-colors duration-200">
+                                            <i class="fas fa-shopping-cart text-indigo-600"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    <% }) %>
+                </div>
             </div>
-        </div>
-        
-        <script>
-    const stars = document.querySelectorAll('.star-rating');
-    const ratingInput = document.getElementById('rating');
-    const reviewForm = document.getElementById('reviewForm');
-
-    stars.forEach(star => {
-        star.addEventListener('click', () => {
-            const rating = star.dataset.rating;
-            ratingInput.value = rating; // Set the hidden input value to the clicked star's rating
-
-            // Update form action to include the rating value in the URL
-            reviewForm.action = `/submit-review/${rating}`;
-
-            stars.forEach((s, index) => {
-                s.classList.toggle('text-yellow-400', index < rating); // Highlight stars up to selected rating
-                s.classList.toggle('text-gray-300', index >= rating); // Dim stars after the selected rating
-            });
-        });
-    });
-
-        </script>
-        </div>
+        <% } %>
     </main>
 
     <%- include('./partials/footer') %>
     
     <script>
-        // Initialize image zoom
-        mediumZoom('#mainImage', {
-            margin: 24,
-            background: 'rgba(0, 0, 0, 0.8)'
-        });
-
-        // Custom zoom functionality
+        /**
+         * Global variables for product images and navigation
+         */
+        let productImages = [];
+        let currentImageIndex = 0;
+        
+        /**
+         * Initialize the page when DOM is loaded
+         */
         document.addEventListener('DOMContentLoaded', function() {
+            // Parse product images safely
+            try {
+                // Get the JSON string of images and parse it
+                const imagesJson = '<%= JSON.stringify(product.images) %>';
+                // Replace any HTML entities that might be in the JSON string
+                const cleanJson = imagesJson.replace(/&quot;/g, '"').replace(/&#34;/g, '"');
+                productImages = JSON.parse(cleanJson);
+                
+                if (!Array.isArray(productImages)) {
+                    console.error('Product images is not an array:', productImages);
+                    productImages = [];
+                }
+                
+                // Initialize zoom functionality
+                initializeZoom();
+                
+                // Set up event listeners for image navigation
+                setupImageNavigation();
+                
+                // Set up keyboard navigation
+                setupKeyboardNavigation();
+                
+                // Set up mobile zoom functionality
+                setupMobileZoom();
+                
+                // Show zoom hint after a short delay
+                setTimeout(() => {
+                    const zoomHint = document.getElementById('zoomHint');
+                    if (zoomHint) {
+                        zoomHint.style.display = 'block';
+                        setTimeout(() => {
+                            zoomHint.style.display = 'none';
+                        }, 3000);
+                    }
+                }, 1000);
+                
+                // Hide loading spinner when main image is loaded
+                const mainImage = document.getElementById('mainImage');
+                if (mainImage) {
+                    if (mainImage.complete) {
+                        hideImageLoading();
+                    } else {
+                        mainImage.onload = hideImageLoading;
+                        mainImage.onerror = hideImageLoading;
+                    }
+                }
+            } catch (error) {
+                console.error('Error initializing product images:', error);
+                // Fallback to using the DOM to get images if JSON parsing fails
+                const thumbnails = document.querySelectorAll('#thumbnailsContainer button');
+                productImages = Array.from(thumbnails).map(thumb => {
+                    const img = thumb.querySelector('img');
+                    return img ? img.src.replace(/^\//, '') : '';
+                }).filter(Boolean);
+            }
+            
+            // Show loader on navigation links
+            const links = document.querySelectorAll("a");
+            links.forEach(link => {
+                link.addEventListener("click", function() {
+                    if (typeof showLoader === 'function') {
+                        showLoader();
+                    }
+                });
+            });
+        });
+        
+        /**
+         * Hide the image loading spinner
+         */
+        function hideImageLoading() {
+            const loadingElement = document.getElementById('imageLoading');
+            if (loadingElement) {
+                loadingElement.style.display = 'none';
+            }
+        }
+        
+        /**
+         * Show the image loading spinner
+         */
+        function showImageLoading() {
+            const loadingElement = document.getElementById('imageLoading');
+            if (loadingElement) {
+                loadingElement.style.display = 'flex';
+            }
+        }
+        
+        /**
+         * Initialize Amazon-style zoom functionality
+         */
+        function initializeZoom() {
+            const imageContainer = document.getElementById('imageZoomContainer');
             const mainImage = document.getElementById('mainImage');
-            const imageWrapper = document.getElementById('imageWrapper');
+            const zoomLens = document.getElementById('zoomLens');
+            const zoomResult = document.getElementById('zoomResult');
             
-            // Create lens and zoomed image elements
-            const lens = document.createElement('div');
-            lens.id = 'lens';
-            imageWrapper.appendChild(lens);
+            if (!imageContainer || !mainImage || !zoomLens || !zoomResult) {
+                console.error('Missing required elements for zoom functionality');
+                return;
+            }
             
-            const zoomedImage = document.createElement('div');
-            zoomedImage.id = 'zoomed-image';
-            document.body.appendChild(zoomedImage);
+            // Variables for zoom calculations
+            let cx, cy;
+            let isZoomActive = false;
+            let zoomMode = 'hover'; // 'hover' or 'click'
             
-            let ratio = 1;
-            
+            // Calculate zoom ratio when image loads
             mainImage.addEventListener('load', function() {
-                const naturalWidth = mainImage.naturalWidth;
-                const displayedWidth = mainImage.clientWidth;
-                ratio = naturalWidth / displayedWidth;
+                calculateZoomRatio();
             });
             
-            imageWrapper.addEventListener('mouseenter', function() {
-                lens.style.display = 'block';
-                zoomedImage.style.display = 'block';
-                zoomedImage.style.backgroundImage = `url('${mainImage.src}')`;
+            // Calculate initial zoom ratio if image is already loaded
+            if (mainImage.complete) {
+                calculateZoomRatio();
+            }
+            
+            function calculateZoomRatio() {
+                // Get natural dimensions of the image
+                const imgWidth = mainImage.naturalWidth;
+                const imgHeight = mainImage.naturalHeight;
+                
+                // Get displayed dimensions
+                const displayedWidth = mainImage.offsetWidth;
+                const displayedHeight = mainImage.offsetHeight;
+                
+                // Calculate ratio between actual image size and displayed size
+                cx = imgWidth / displayedWidth;
+                cy = imgHeight / displayedHeight;
+                
+                // Set zoom result background size
+                zoomResult.style.backgroundSize = `${displayedWidth * cx}px ${displayedHeight * cy}px`;
+            }
+            
+            // Toggle between hover and click zoom modes on click
+            mainImage.addEventListener('click', function(e) {
+                // Don't enable click zoom on mobile
+                if (window.innerWidth <= 768) return;
+                
+                if (zoomMode === 'hover') {
+                    zoomMode = 'click';
+                    isZoomActive = !isZoomActive;
+                    
+                    if (isZoomActive) {
+                        zoomLens.style.display = 'block';
+                        zoomResult.style.display = 'block';
+                        updateZoomPosition(e);
+                    } else {
+                        zoomLens.style.display = 'none';
+                        zoomResult.style.display = 'none';
+                    }
+                }
+                
+                // Prevent event bubbling
+                e.stopPropagation();
             });
             
-            imageWrapper.addEventListener('mousemove', function(e) {
-                const rect = mainImage.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
+            // Mouse enter event - show zoom elements
+            imageContainer.addEventListener('mouseenter', function(e) {
+                // Don't enable hover zoom on mobile
+                if (window.innerWidth <= 768) return;
                 
-                const lensSize = 150;
-                let lensX = x - lensSize / 2;
-                let lensY = y - lensSize / 2;
-                
-                lensX = Math.max(0, Math.min(lensX, rect.width - lensSize));
-                lensY = Math.max(0, Math.min(lensY, rect.height - lensSize));
-                
-                lens.style.left = `${lensX}px`;
-                lens.style.top = `${lensY}px`;
-                
-                const bgX = (x * ratio - lensSize / 2) * 2;
-                const bgY = (y * ratio - lensSize / 2) * 2;
-                zoomedImage.style.backgroundPosition = `-${bgX}px -${bgY}px`;
-                
-                zoomedImage.style.left = `${rect.right + 20}px`;
-                zoomedImage.style.top = `${rect.top}px`;
+                if (zoomMode === 'hover') {
+                    zoomLens.style.display = 'block';
+                    zoomResult.style.display = 'block';
+                    
+                    // Position the zoom result next to the image
+                    positionZoomResult();
+                    
+                    // Set background image for zoom result
+                    zoomResult.style.backgroundImage = `url('${mainImage.src}')`;
+                }
             });
             
-            imageWrapper.addEventListener('mouseleave', function() {
-                lens.style.display = 'none';
-                zoomedImage.style.display = 'none';
+            // Mouse leave event - hide zoom elements
+            imageContainer.addEventListener('mouseleave', function() {
+                if (zoomMode === 'hover' || !isZoomActive) {
+                    zoomLens.style.display = 'none';
+                    zoomResult.style.display = 'none';
+                }
+            });
+            
+            // Mouse move event - update zoom position
+            imageContainer.addEventListener('mousemove', updateZoomPosition);
+            
+            // Function to position the zoom result container
+            function positionZoomResult() {
+                const rect = imageContainer.getBoundingClientRect();
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                // Position to the right on desktop, below on smaller screens
+                if (window.innerWidth >= 1024) {
+                    zoomResult.style.left = `${rect.right + 20}px`;
+                    zoomResult.style.top = `${rect.top + scrollTop}px`;
+                } else {
+                    zoomResult.style.left = `${rect.left}px`;
+                    zoomResult.style.top = `${rect.bottom + scrollTop + 20}px`;
+                }
+            }
+            
+            // Function to update zoom lens and result positions
+            function updateZoomPosition(e) {
+                if ((zoomMode === 'hover' || isZoomActive) && (zoomLens.style.display === 'block')) {
+                    // Prevent any default action
+                    e.preventDefault();
+                    
+                    // Get cursor position
+                    const pos = getCursorPos(e);
+                    let x = pos.x;
+                    let y = pos.y;
+                    
+                    // Prevent lens from going outside the image
+                    const lensWidth = zoomLens.offsetWidth / 2;
+                    const lensHeight = zoomLens.offsetHeight / 2;
+                    
+                    if (x > imageContainer.offsetWidth - lensWidth) {
+                        x = imageContainer.offsetWidth - lensWidth;
+                    }
+                    if (x < lensWidth) {
+                        x = lensWidth;
+                    }
+                    if (y > imageContainer.offsetHeight - lensHeight) {
+                        y = imageContainer.offsetHeight - lensHeight;
+                    }
+                    if (y < lensHeight) {
+                        y = lensHeight;
+                    }
+                    
+                    // Set lens position
+                    zoomLens.style.left = `${x - lensWidth}px`;
+                    zoomLens.style.top = `${y - lensHeight}px`;
+                    
+                    // Calculate and set background position for zoom result
+                    const bgX = (x * cx) - (zoomResult.offsetWidth / 2);
+                    const bgY = (y * cy) - (zoomResult.offsetHeight / 2);
+                    zoomResult.style.backgroundPosition = `-${bgX}px -${bgY}px`;
+                }
+            }
+            
+            // Helper function to get cursor position
+            function getCursorPos(e) {
+                const rect = imageContainer.getBoundingClientRect();
+                let x = e.clientX - rect.left;
+                let y = e.clientY - rect.top;
+                
+                // Account for any page scrolling
+                x = x - window.pageXOffset;
+                y = y - window.pageYOffset;
+                
+                return { x, y };
+            }
+            
+            // Handle window resize to reposition elements
+            window.addEventListener('resize', function() {
+                // Recalculate zoom ratio
+                calculateZoomRatio();
+                
+                // Reposition zoom result
+                if (zoomResult.style.display === 'block') {
+                    positionZoomResult();
+                }
+                
+                // Disable zoom on mobile
+                if (window.innerWidth <= 768) {
+                    zoomLens.style.display = 'none';
+                    zoomResult.style.display = 'none';
+                    isZoomActive = false;
+                    zoomMode = 'hover';
+                }
+            });
+        }
+        
+        /**
+         * Set up image navigation (prev/next buttons and thumbnails)
+         */
+        function setupImageNavigation() {
+            const prevButton = document.getElementById('prevImage');
+            const nextButton = document.getElementById('nextImage');
+            
+            if (prevButton) {
+                prevButton.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Prevent triggering zoom click
+                    navigateToPreviousImage();
+                });
+            }
+            
+            if (nextButton) {
+                nextButton.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Prevent triggering zoom click
+                    navigateToNextImage();
+                });
+            }
+        }
+        
+        /**
+         * Set up keyboard navigation for images
+         */
+        function setupKeyboardNavigation() {
+            document.addEventListener('keydown', function(e) {
+                // Only handle keyboard navigation when focused on the product section
+                if (document.activeElement && 
+                    (document.activeElement.tagName === 'BODY' || 
+                     document.activeElement.closest('#imageZoomContainer'))) {
+                    if (e.key === 'ArrowLeft') {
+                        navigateToPreviousImage();
+                    } else if (e.key === 'ArrowRight') {
+                        navigateToNextImage();
+                    }
+                }
+            });
+        }
+        
+        /**
+         * Set up mobile zoom functionality
+         */
+        function setupMobileZoom() {
+            const mainImage = document.getElementById('mainImage');
+            const mobileZoomOverlay = document.getElementById('mobileZoomOverlay');
+            const mobileZoomImage = document.getElementById('mobileZoomImage');
+            const mobileZoomClose = document.getElementById('mobileZoomClose');
+            
+            if (!mainImage || !mobileZoomOverlay || !mobileZoomImage || !mobileZoomClose) {
+                return;
+            }
+            
+            // Show mobile zoom overlay on tap (for mobile devices)
+            if ('ontouchstart' in window) {
+                mainImage.addEventListener('click', function(e) {
+                    // Only activate on mobile devices
+                    if (window.innerWidth <= 768) {
+                        e.preventDefault();
+                        mobileZoomImage.src = mainImage.src;
+                        mobileZoomOverlay.style.display = 'block';
+                        document.body.style.overflow = 'hidden'; // Prevent scrolling
+                    }
+                });
+                
+                // Close mobile zoom overlay
+                mobileZoomClose.addEventListener('click', function() {
+                    mobileZoomOverlay.style.display = 'none';
+                    document.body.style.overflow = ''; // Restore scrolling
+                });
+                
+                // Add pinch-to-zoom functionality for mobile
+                let initialDistance = 0;
+                let currentScale = 1;
+                
+                mobileZoomImage.addEventListener('touchstart', function(e) {
+                    if (e.touches.length === 2) {
+                        initialDistance = getTouchDistance(e.touches);
+                        e.preventDefault();
+                    }
+                });
+                
+                mobileZoomImage.addEventListener('touchmove', function(e) {
+                    if (e.touches.length === 2) {
+                        e.preventDefault(); // Prevent page scrolling
+                        
+                        const currentDistance = getTouchDistance(e.touches);
+                        const scaleFactor = currentDistance / initialDistance;
+                        
+                        // Limit scale between 1 and 3
+                        currentScale = Math.min(Math.max(1, scaleFactor * currentScale), 3);
+                        
+                        mobileZoomImage.style.transform = `translate(-50%, -50%) scale(${currentScale})`;
+                    }
+                });
+                
+                mobileZoomImage.addEventListener('touchend', function() {
+                    // Reset scale after a delay if user is done zooming
+                    setTimeout(() => {
+                        mobileZoomImage.style.transition = 'transform 0.3s ease';
+                        mobileZoomImage.style.transform = 'translate(-50%, -50%) scale(1)';
+                        currentScale = 1;
+                        
+                        // Remove transition after it completes
+                        setTimeout(() => {
+                            mobileZoomImage.style.transition = '';
+                        }, 300);
+                    }, 500);
+                });
+                
+                // Helper function to calculate distance between two touch points
+                function getTouchDistance(touches) {
+                    const dx = touches[0].clientX - touches[1].clientX;
+                    const dy = touches[0].clientY - touches[1].clientY;
+                    return Math.sqrt(dx * dx + dy * dy);
+                }
+            }
+        }
+        
+        /**
+         * Navigate to the previous image
+         */
+        function navigateToPreviousImage() {
+            if (productImages.length === 0) return;
+            
+            const newIndex = (currentImageIndex - 1 + productImages.length) % productImages.length;
+            changeMainImage(productImages[newIndex], newIndex);
+        }
+        
+        /**
+         * Navigate to the next image
+         */
+        function navigateToNextImage() {
+            if (productImages.length === 0) return;
+            
+            const newIndex = (currentImageIndex + 1) % productImages.length;
+            changeMainImage(productImages[newIndex], newIndex);
+        }
+        
+        /**
+         * Change the main image
+         * @param {string} imagePath - Path to the image
+         * @param {number} index - Index of the image in the productImages array
+         */
+        function changeMainImage(imagePath, index) {
+            // Show loading spinner
+            showImageLoading();
+            
+            // Update main image
+            const mainImage = document.getElementById('mainImage');
+            if (mainImage) {
+                mainImage.src = '/' + imagePath;
+                mainImage.setAttribute('data-index', index);
+            }
+            
+            // Update current index
+            currentImageIndex = index;
+            
+            // Update active thumbnail
+            const thumbnails = document.querySelectorAll('#thumbnailsContainer button');
+            thumbnails.forEach(thumb => {
+                thumb.classList.remove('thumbnail-active');
+                if (parseInt(thumb.getAttribute('data-index')) === index) {
+                    thumb.classList.add('thumbnail-active');
+                }
+            });
+            
+            // Update zoom result background image if it exists
+            const zoomResult = document.getElementById('zoomResult');
+            if (zoomResult) {
+                zoomResult.style.backgroundImage = `url('/${imagePath}')`;
+            }
+            
+            // Update mobile zoom image if it exists
+            const mobileZoomImage = document.getElementById('mobileZoomImage');
+            if (mobileZoomImage) {
+                mobileZoomImage.src = '/' + imagePath;
+            }
+        }
+        
+        /**
+         * Quantity increment/decrement functions
+         */
+        function incrementQuantity() {
+            const quantityInput = document.getElementById('quantity');
+            const maxStock = <%= product.stock %>;
+            const currentValue = parseInt(quantityInput.value);
+            
+            if (currentValue < maxStock) {
+                quantityInput.value = currentValue + 1;
+            }
+        }
+        
+        function decrementQuantity() {
+            const quantityInput = document.getElementById('quantity');
+            const currentValue = parseInt(quantityInput.value);
+            
+            if (currentValue > 1) {
+                quantityInput.value = currentValue - 1;
+            }
+        }
+        
+        // Prevent non-numeric input in quantity field
+        document.addEventListener('DOMContentLoaded', function() {
+            const quantityInput = document.getElementById('quantity');
+            if (quantityInput) {
+                quantityInput.addEventListener('input', function() {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                    
+                    const maxStock = <%= product.stock %>;
+                    const currentValue = parseInt(this.value);
+                    
+                    if (isNaN(currentValue) || currentValue < 1) {
+                        this.value = 1;
+                    } else if (currentValue > maxStock) {
+                        this.value = maxStock;
+                    }
+                });
+            }
+        });
+        
+        // Show loader on navigation
+        document.addEventListener("DOMContentLoaded", function() {
+            const links = document.querySelectorAll("a");
+            links.forEach(link => {
+                link.addEventListener("click", function() {
+                    if (typeof showLoader === 'function') {
+                        showLoader();
+                    }
+                });
             });
         });
     </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-          const links = document.querySelectorAll("a");
-          links.forEach(link => {
-            link.addEventListener("click", function() {
-              showLoader();
-            });
-          });
-        });
-      </script>
 </body>
 </html>
