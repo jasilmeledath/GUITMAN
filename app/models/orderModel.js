@@ -20,10 +20,10 @@ const orderSchema = new mongoose.Schema({
   },
   order_status: {
     type: String,
-    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
+    enum: ['pending', 'placed', 'processing', 'shipped', 'delivered', 'cancelled'],
     default: 'pending'
   },
-  // New fields for cost breakdown:
+  razorpay_order_id: { type: String }, // Field added to store Razorpay order ID for UPI payments
   subtotal: { type: Number, required: true },
   shipping: { type: Number, required: true },
   tax: { type: Number, required: true },

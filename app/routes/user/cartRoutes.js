@@ -13,5 +13,6 @@ router.get('/checkout', loadPages.loadCheckout);
 router.post('/create-order', orderControls.createOrder);
 router.get('/order-confirmation/:orderId',loadPages.orderConfirmation);
 router.put('/return/:orderId', orderControls.returnOrder);
+router.put('/cancel/:orderId', orderControls.cancelOrder);
 
 module.exports = router;

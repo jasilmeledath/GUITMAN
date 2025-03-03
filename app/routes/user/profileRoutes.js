@@ -3,6 +3,7 @@ const router =  express.Router();
 const loadProfilePages = require('../../controllers/user/loadProfilePages');
 const profileControls = require('../../controllers/user/userProfileControls');
 const { upload, resizeImages, } = require('../../config/multer');
+const orderControls = require('../../controllers/user/orderController');
 
 router.get('/addresses', loadProfilePages.profileAddresses);
 router.get('/wallet')
@@ -21,8 +22,9 @@ router.patch('/verify-and-update-email', profileControls.verifyAndUpdateEmail);
 router.post('/address-add', profileControls.addAddress);
 router.post('/address-update', profileControls.updateAddress);
 router.delete('/address-delete', profileControls.deleteAddress);
-router.post('/card-add', profileControls.addCard)
-router.get('/order-details/:orderId', loadProfilePages.orderDetails)
+router.post('/card-add', profileControls.addCard);
+router.get('/order-details/:orderId', loadProfilePages.orderDetails);
+router.post('/submit-review/:id', orderControls.submitReview);
 
 
 module.exports = router;

@@ -218,39 +218,6 @@ const userAuth = {
       next(err);
     }
   },
-  submitReview: async (req, res) => {
-    try {
-      const rating = req.params.id;
-      const { productId, feedback } = req.body;
-
-      const user = req.user;
-      const userId = user.id; // Ensure this is a string (ObjectId)
-
-      // Fetch user details correctly
-      const userDetails = await User.findById(userId);
-
-      if (!userDetails) {
-        return res.status(404).send("User not found");
-      }
-
-      // Create a new review
-      const review = new Review({
-        rating,
-        feedback,
-        product: productId,
-        user: userId, // Ensure this is an ObjectId
-        user_name: userDetails.first_name, // Send user name
-      });
-
-      // Save the review to the database
-      await review.save();
-
-      // Redirect or send a response
-      res.redirect("/product-details/" + productId);
-    } catch (err) {
-      next(err);
-    }
-  },
   logout: (req, res) => {
     try{
       const token = req.cookies.authToken;

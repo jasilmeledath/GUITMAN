@@ -244,7 +244,8 @@ const loadProfilePages = {
         path: 'items.product',
         model: 'Product'
       });
-
+      console.log(order);
+      
     if (!order) {
       // If order is not found, send a 404 response.
       return res.status(httpStatus.NOT_FOUND).send('Order not found');

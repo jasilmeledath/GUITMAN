@@ -45,7 +45,6 @@ router.get('/product-details/:id', loadPages.loadProductDetails);
 router.get('/home', verifyUser, loadPages.home);
 router.use('/profile', verifyUser, profileRoutes);
 router.get('/profile/:id', verifyUser, loadProfilePages.userProfile);
-router.post('/submit-review/:id', verifyUser, userAuth.submitReview);
 router.use('/cart', verifyUser, cartRoutes);
 
 // Logout route

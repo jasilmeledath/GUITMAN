@@ -30,11 +30,11 @@
                 <i class="fas fa-undo-alt mr-2"></i>
                 <span class="font-medium">Return <%= order.return_details.status.charAt(0).toUpperCase() + order.return_details.status.slice(1) %></span>
               </div>
-            <% } else if(order.payment_status.toLowerCase() === 'pending' || order.payment_status.toLowerCase() === 'confirmed') { %>
+            <% } else if(order.order_status==='pending') { %>
               <button id="cancelOrderBtn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition duration-300 ease-in-out shadow-sm flex items-center">
                 <i class="fas fa-times mr-2"></i> Cancel Order
               </button>
-            <% } else { %>
+            <% } else if(order.order_status==='delivered'){ %>
               <button id="returnOrderBtn" class="px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white text-sm font-medium rounded-md transition duration-300 ease-in-out shadow-sm flex items-center">
                 <i class="fas fa-undo mr-2"></i> Return Order
               </button>
@@ -127,48 +127,63 @@
           <div class="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-100">
             <div class="mb-24">
               <h2 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                <i class="fas fa-shipping-fast mr-2 text-green-600"></i> Order Status
+                <% if(order.order_status !== 'cancelled') { %>
+                  <i class="fas fa-shipping-fast mr-2 text-green-600"></i> Order Status
+                <% } else { %>
+                  <i class="fas fa-times-circle mr-2 text-red-600"></i> Order Cancelled
+                <% } %>
               </h2>
-              <!-- Progress Bar -->
-              <div class="relative">
-                <!-- Background Bar -->
-                <div class="w-full bg-gray-200 rounded-full h-2 mb-10">
-                  <div class="bg-green-600 h-2 rounded-full relative" style="width: <%= progressWidth %>%;">
-                    <!-- Current Step Indicator -->
-                    <div class="absolute -right-3 -top-3 flex items-center justify-center w-8 h-8 bg-green-600 rounded-full border-4 border-white shadow-md">
-                      <span class="text-white text-xs font-bold"><%= currentStep %>/<%= steps.length %></span>
+              <% if(order.order_status !== 'cancelled') { %>
+                <!-- Progress Bar -->
+                <div class="relative">
+                  <!-- Background Bar -->
+                  <div class="w-full bg-gray-200 rounded-full h-2 mb-10">
+                    <div class="bg-green-600 h-2 rounded-full relative" style="width: <%= progressWidth %>%;">
+                      <!-- Current Step Indicator -->
+                      <div class="absolute -right-3 -top-3 flex items-center justify-center w-8 h-8 bg-green-600 rounded-full border-4 border-white shadow-md">
+                        <span class="text-white text-xs font-bold"><%= currentStep %>/<%= steps.length %></span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <!-- Status Points -->
-                <div class="flex justify-between absolute w-full top-[-14px]">
-                  <% steps.forEach((step, index) => { %>
-                    <div class="flex flex-col items-center">
-                      <div class="w-7 h-7 rounded-full flex items-center justify-center border-4 border-white shadow-md <%= (index + 1) <= currentStep ? 'bg-green-600' : 'bg-gray-300' %>">
-                        <% if((index + 1) <= currentStep) { %>
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                          </svg>
-                        <% } else { %>
-                          <span class="text-xs text-white font-bold"><%= index + 1 %></span>
+                  <!-- Status Points -->
+                  <div class="flex justify-between absolute w-full top-[-14px]">
+                    <% steps.forEach((step, index) => { %>
+                      <div class="flex flex-col items-center">
+                        <div class="w-7 h-7 rounded-full flex items-center justify-center border-4 border-white shadow-md <%= (index + 1) <= currentStep ? 'bg-green-600' : 'bg-gray-300' %>">
+                          <% if((index + 1) <= currentStep) { %>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                          <% } else { %>
+                            <span class="text-xs text-white font-bold"><%= index + 1 %></span>
+                          <% } %>
+                        </div>
+                        <span class="text-xs mt-16 font-medium text-gray-700 whitespace-nowrap"><%= step %></span>
+                        <% if(index === 0) { %>
+                          <span class="text-xs text-gray-500 whitespace-nowrap"><%= new Date(order.timestamp).toLocaleDateString() %></span>
+                        <% } else if(index === 1) { %>
+                          <span class="text-xs text-gray-500 whitespace-nowrap">Mar 2, 2025</span>
+                        <% } else if(index === 2) { %>
+                          <span class="text-xs text-gray-500 whitespace-nowrap">Mar 3, 2025</span>
+                        <% } else if(index === 3) { %>
+                          <span class="text-xs text-gray-500 whitespace-nowrap">Est. Mar 5, 2025</span>
                         <% } %>
                       </div>
-                      <span class="text-xs mt-16 font-medium text-gray-700 whitespace-nowrap"><%= step %></span>
-                      <% if(index === 0) { %>
-                        <span class="text-xs text-gray-500 whitespace-nowrap"><%= new Date(order.timestamp).toLocaleDateString() %></span>
-                      <% } else if(index === 1) { %>
-                        <span class="text-xs text-gray-500 whitespace-nowrap">Mar 2, 2025</span>
-                      <% } else if(index === 2) { %>
-                        <span class="text-xs text-gray-500 whitespace-nowrap">Mar 3, 2025</span>
-                      <% } else if(index === 3) { %>
-                        <span class="text-xs text-gray-500 whitespace-nowrap">Est. Mar 5, 2025</span>
-                      <% } %>
-                    </div>
-                  <% }); %>
+                    <% }); %>
+                  </div>
                 </div>
-              </div>
+              <% } else { %>
+                <!-- Order Cancelled Message -->
+                <div class="flex flex-col items-center justify-center py-10">
+                  <i class="fas fa-times-circle text-red-600 text-5xl mb-4"></i>
+                  <h3 class="text-2xl font-bold text-red-600">Order Cancelled</h3>
+                  <p class="text-gray-500 mt-2 text-center">
+                    Your order has been cancelled. If you have any questions or need further assistance, please contact our support team.
+                  </p>
+                </div>
+              <% } %>
             </div>
-          </div>
+          </div>          
 
           <% if(order.order_status.toLowerCase() !== 'delivered' && order.order_status.toLowerCase() !== 'ordered') { %>
           <!-- Shipment Tracking Information -->
@@ -193,6 +208,87 @@
                 </svg>
               </a>
             </div>
+          </div>
+          <% } %>
+          
+          <!-- Product Review Form (Only shown if order status is delivered) -->
+          <% if(order.order_status.toLowerCase() === 'delivered') { %>
+          <div class="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-100">
+            <h2 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+              <i class="fas fa-star mr-2 text-yellow-500"></i> Rate Your Purchase
+            </h2>
+            <p class="text-sm text-gray-600 mb-4">We'd love to hear your thoughts on the products you received. Your feedback helps us improve!</p>
+            
+            <form id="reviewForm" class="space-y-6">
+              <input type="hidden" name="orderId" value="<%= order.order_id %>">
+              
+              <% order.items.forEach(function(item, index) { %>
+              <div class="border-b border-gray-200 pb-6 <%= index !== 0 ? 'pt-6' : '' %>">
+                <div class="flex flex-col md:flex-row gap-4 mb-4">
+                  <div class="w-full md:w-24 h-24 bg-gray-50 rounded-md overflow-hidden border border-gray-200">
+                    <img class="w-full h-full object-cover" src="/<%= item.product.images[0] %>" alt="<%= item.product.product_name %>" />
+                  </div>
+                  <div class="flex-1">
+                    <h3 class="text-base font-semibold text-gray-800">
+                      <%= item.product.product_name %>
+                    </h3>
+                    <input type="hidden" name="productId_<%= index %>" value="<%= item.product.id %>">
+                  </div>
+                </div>
+                
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+                    <div class="flex items-center gap-1">
+                      <div class="rating-stars flex" data-product-index="<%= index %>">
+                        <button type="button" class="star-btn text-gray-300 hover:text-yellow-400 text-2xl" data-rating="1">★</button>
+                        <button type="button" class="star-btn text-gray-300 hover:text-yellow-400 text-2xl" data-rating="2">★</button>
+                        <button type="button" class="star-btn text-gray-300 hover:text-yellow-400 text-2xl" data-rating="3">★</button>
+                        <button type="button" class="star-btn text-gray-300 hover:text-yellow-400 text-2xl" data-rating="4">★</button>
+                        <button type="button" class="star-btn text-gray-300 hover:text-yellow-400 text-2xl" data-rating="5">★</button>
+                      </div>
+                      <span class="text-sm text-gray-500 ml-2 rating-text">Select a rating</span>
+                      <input type="hidden" name="rating_<%= index %>" class="rating-input" value="">
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label for="review_<%= index %>" class="block text-sm font-medium text-gray-700 mb-1">Your Review</label>
+                    <textarea 
+                      id="review_<%= index %>" 
+                      name="review_<%= index %>" 
+                      rows="3" 
+                      class="w-full p-3 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      placeholder="Share your experience with this product..."
+                    ></textarea>
+                  </div>
+                  
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Would you recommend this product?</label>
+                    <div class="flex items-center gap-4">
+                      <label class="inline-flex items-center">
+                        <input type="radio" name="recommend_<%= index %>" value="yes" class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500">
+                        <span class="ml-2 text-sm text-gray-700">Yes</span>
+                      </label>
+                      <label class="inline-flex items-center">
+                        <input type="radio" name="recommend_<%= index %>" value="no" class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500">
+                        <span class="ml-2 text-sm text-gray-700">No</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <% }); %>
+              
+              <div class="flex justify-end">
+                <button 
+                  type="submit" 
+                  class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md transition duration-300 ease-in-out shadow-sm"
+                >
+                  Submit Reviews
+                </button>
+              </div>
+            </form>
           </div>
           <% } %>
           
@@ -463,6 +559,86 @@
   const cancelReason = document.getElementById('cancelReason');
   const cancelComments = document.getElementById('cancelComments');
 
+  // Star rating functionality
+  const starButtons = document.querySelectorAll('.star-btn');
+  if (starButtons.length > 0) {
+    starButtons.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const rating = this.getAttribute('data-rating');
+        const productIndex = this.closest('.rating-stars').getAttribute('data-product-index');
+        const ratingInput = document.querySelector(`input[name="rating_${productIndex}"]`);
+        const ratingText = this.closest('.rating-stars').nextElementSibling;
+        const stars = this.closest('.rating-stars').querySelectorAll('.star-btn');
+        
+        // Update hidden input value
+        ratingInput.value = rating;
+        
+        // Update rating text
+        ratingText.textContent = `${rating} star${rating > 1 ? 's' : ''}`;
+        
+        // Update star colors
+        stars.forEach(star => {
+          const starRating = parseInt(star.getAttribute('data-rating'));
+          if (starRating <= rating) {
+            star.classList.remove('text-gray-300');
+            star.classList.add('text-yellow-400');
+          } else {
+            star.classList.remove('text-yellow-400');
+            star.classList.add('text-gray-300');
+          }
+        });
+      });
+    });
+  }
+
+  // Review form submission
+  const reviewForm = document.getElementById('reviewForm');
+  if (reviewForm) {
+    reviewForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      // Collect form data
+      const formData = new FormData(reviewForm);
+      const reviewData = {};
+      
+      // Convert FormData to JSON
+      for (let [key, value] of formData.entries()) {
+        reviewData[key] = value;
+      }
+      
+      try {
+        const response = await fetch('/reviews/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(reviewData)
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to submit reviews');
+        }
+        
+        showCustomAlert('Thank you for your reviews! Your feedback helps us improve.', 'success');
+        
+        // Disable form after submission
+        const inputs = reviewForm.querySelectorAll('input, textarea, button');
+        inputs.forEach(input => {
+          input.disabled = true;
+        });
+        
+        // Change submit button text
+        const submitBtn = reviewForm.querySelector('button[type="submit"]');
+        submitBtn.textContent = 'Reviews Submitted';
+        submitBtn.classList.add('bg-gray-500');
+        submitBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+        
+      } catch (error) {
+        showCustomAlert(error.message, 'error');
+      }
+    });
+  }
+
   // Create custom alert function
   function showCustomAlert(message, type = 'success') {
     // Remove any existing alerts
@@ -609,7 +785,7 @@
           comments: cancelComments ? cancelComments.value.trim() : ''
         };
         try {
-          const response = await fetch(`/api/orders/cancel/<%= order.order_id %>`, {
+          const response = await fetch(`/cart/cancel/<%= order.order_id %>`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json'
@@ -622,7 +798,7 @@
           const data = await response.json();
           showCustomAlert('Order cancelled successfully! Your refund has been initiated.', 'success');
           setTimeout(() => {
-            window.location.href = '/orders';
+            window.location.href = '/profile/orders';
           }, 1500); // Short delay before redirect to show the alert
         } catch (error) {
           showCustomAlert(error.message, 'error');
@@ -644,6 +820,5 @@
   });
 });
       </script>
-      
   </body>
 </html>

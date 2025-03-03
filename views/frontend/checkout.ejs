@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Checkout - Guitman</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -852,7 +853,7 @@
             const response = await fetch('/cart/create-order', {
               method: 'POST',
               headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
                 // Add any authentication headers if needed
                 // 'Authorization': `Bearer ${token}`
               },
@@ -865,11 +866,49 @@
   
             const result = await response.json();
   
-            // Show success message or redirect to confirmation page
-            if (result.success) {
-              window.location.href = `/cart/order-confirmation/${result.orderId}`;
+            // Check if the payment method is UPI
+            if (selectedPayment.value === 'upi') {
+              // For UPI, result contains Razorpay order details and local order ID.
+              // Use Razorpay checkout to open the payment modal.
+              const razorpayOrder = result.order;
+              const localOrderId = result.localOrderId;
+  
+              const options = {
+                key: 'YOUR_RAZORPAY_KEY_ID', // Replace with your Razorpay Key ID
+                amount: razorpayOrder.amount, // amount in paise
+                currency: razorpayOrder.currency,
+                name: 'Your Store Name',
+                description: 'Payment for Order',
+                order_id: razorpayOrder.id, // Razorpay order ID
+                handler: async function(paymentResponse) {
+                  // After successful payment, verify the payment by calling your backend verification endpoint.
+                  const verifyResponse = await fetch('/cart/verify-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(paymentResponse)
+                  });
+                  const verifyResult = await verifyResponse.json();
+                  if (verifyResult.success) {
+                    window.location.href = `/cart/order-confirmation/${localOrderId}`;
+                  } else {
+                    throw new Error('Payment verification failed');
+                  }
+                },
+                prefill: {
+                  name: 'Customer Name', // Replace with actual customer data
+                  email: 'customer@example.com',
+                  contact: '9876543210'
+                },
+                theme: {
+                  color: '#3399cc'
+                }
+              };
+  
+              const rzp = new Razorpay(options);
+              rzp.open();
             } else {
-              throw new Error(result.message || 'Failed to place order');
+              // For other payment methods (e.g., COD), redirect to order confirmation page
+              window.location.href = `/cart/order-confirmation/${result.orderId}`;
             }
   
           } catch (error) {
@@ -883,8 +922,6 @@
         });
       }
     });
-  </script>
-  
-  
+  </script>  
 </body>
 </html>
