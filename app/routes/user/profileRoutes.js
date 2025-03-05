@@ -24,7 +24,7 @@ router.post('/address-update', profileControls.updateAddress);
 router.delete('/address-delete', profileControls.deleteAddress);
 router.post('/card-add', profileControls.addCard);
 router.get('/order-details/:orderId', loadProfilePages.orderDetails);
-router.post('/submit-review/:id', orderControls.submitReview);
+router.post('/submit-review', orderControls.submitReview);
 
 
 module.exports = router;

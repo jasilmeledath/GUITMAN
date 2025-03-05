@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - GUITMAN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                            950: '#082f49',
+                        },
+                        secondary: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                            950: '#2e1065',
+                        },
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 3s infinite',
+                    },
+                    boxShadow: {
+                        'inner-lg': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .contact-input {
+            @apply w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition duration-200 shadow-inner-lg;
+        }
+        
+        .contact-label {
+            @apply block text-sm font-medium text-gray-700 mb-1;
+        }
+        
+        .contact-card {
+            @apply flex flex-col items-center p-8 bg-white rounded-xl shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-xl hover:border-primary-200 hover:translate-y-[-5px];
+        }
+        
+        .contact-icon-wrapper {
+            @apply w-16 h-16 flex items-center justify-center rounded-full mb-5 bg-gradient-to-br from-primary-400 to-primary-600 text-white shadow-lg transform transition-transform duration-300 hover:scale-110;
+        }
+        
+        .social-icon {
+            @apply w-12 h-12 flex items-center justify-center rounded-full text-white transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-110;
+        }
+        
+        .faq-item {
+            @apply bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-all duration-300 border-l-4 border-primary-500 hover:border-secondary-500;
+        }
+        
+        /* Custom animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        /* Gradient text */
+        .text-gradient {
+            @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-secondary-600;
+        }
+        
+        /* Glassmorphism */
+        .glass {
+            @apply bg-white/70 backdrop-blur-lg border border-white/20;
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            @apply bg-gray-100;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            @apply bg-primary-400 rounded-full;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            @apply bg-primary-500;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <%- include('./partials/loading') %>
+    <%- include('./partials/header') %>
+
+    <main class="flex-grow">
+        <!-- Hero Section with Parallax Effect -->
+        <section class="relative overflow-hidden bg-gradient-to-br from-primary-800 to-secondary-900 text-white">
+            <!-- Decorative Elements -->
+            <div class="absolute inset-0 opacity-10">
+                <div class="absolute top-20 left-10 w-40 h-40 rounded-full bg-white blur-3xl"></div>
+                <div class="absolute bottom-10 right-10 w-60 h-60 rounded-full bg-primary-300 blur-3xl"></div>
+                <div class="absolute top-40 right-1/4 w-20 h-20 rounded-full bg-secondary-400 blur-xl"></div>
+            </div>
+            
+            <!-- Guitar Icon Background -->
+            <div class="absolute right-0 bottom-0 opacity-10 transform translate-x-1/4">
+                <i class="fas fa-guitar text-[400px]"></i>
+            </div>
+            
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 relative z-10">
+                <div class="max-w-3xl">
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+                        Let's <span class="text-gradient">Connect</span> and Make Music Together
+                    </h1>
+                    <p class="text-xl text-gray-200 mb-8 leading-relaxed">
+                        Have questions about our instruments or need expert advice? Our team of passionate musicians is here to help you find the perfect sound.
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="#contact-form" class="px-8 py-4 bg-primary-500 hover:bg-primary-600 rounded-full font-semibold shadow-lg transition-all duration-300 hover:shadow-primary-500/30 hover:translate-y-[-2px] flex items-center">
+                            <i class="fas fa-paper-plane mr-2"></i> Send a Message
+                        </a>
+                        <a href="#contact-info" class="px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30 rounded-full font-semibold transition-all duration-300 flex items-center">
+                            <i class="fas fa-phone-alt mr-2"></i> Contact Info
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Wave Divider -->
+            <div class="absolute bottom-0 left-0 right-0">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120" fill="#f9fafb">
+                    <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z"></path>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Contact Information Section with Modern Cards -->
+        <section id="contact-info" class="py-16 md:py-24 relative">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
+                        <span class="text-gradient">How to Reach Us</span>
+                    </h2>
+                    <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                        Multiple ways to connect with our team of guitar experts
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+                    <!-- Visit Card -->
+                    <div class="contact-card group">
+                        <div class="contact-icon-wrapper group-hover:rotate-6">
+                            <i class="fas fa-map-marker-alt text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Visit Our Store</h3>
+                        <div class="text-gray-600 text-center mb-5">
+                            <p class="mb-1">123 Music Avenue</p>
+                            <p class="mb-1">Harmony District</p>
+                            <p>Mumbai, 400001</p>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500 mb-4">
+                            <i class="far fa-clock mr-2"></i>
+                            <span>Open 10:00 AM - 8:00 PM</span>
+                        </div>
+                        <a href="https://maps.google.com" target="_blank" class="mt-2 px-6 py-2 bg-primary-50 text-primary-700 rounded-full hover:bg-primary-100 transition-colors duration-200 flex items-center justify-center font-medium">
+                            <i class="fas fa-directions mr-2"></i>
+                            Get Directions
+                        </a>
+                    </div>
+
+                    <!-- Call Card -->
+                    <div class="contact-card group">
+                        <div class="contact-icon-wrapper group-hover:rotate-6">
+                            <i class="fas fa-phone-alt text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Call Us</h3>
+                        <div class="space-y-4 text-center mb-5">
+                            <div>
+                                <p class="text-gray-500 mb-1">Customer Support</p>
+                                <a href="tel:+919876543210" class="text-xl font-semibold text-primary-600 hover:text-primary-700 transition-colors flex items-center justify-center">
+                                    <i class="fas fa-headset mr-2"></i>
+                                    +91 98765 43210
+                                </a>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 mb-1">Sales Inquiries</p>
+                                <a href="tel:+919876512345" class="text-xl font-semibold text-primary-600 hover:text-primary-700 transition-colors flex items-center justify-center">
+                                    <i class="fas fa-tag mr-2"></i>
+                                    +91 98765 12345
+                                </a>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-500 text-center">
+                            Available Monday-Saturday, 9AM-8PM
+                        </p>
+                    </div>
+
+                    <!-- Email Card -->
+                    <div class="contact-card group">
+                        <div class="contact-icon-wrapper group-hover:rotate-6">
+                            <i class="fas fa-envelope text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Email Us</h3>
+                        <div class="space-y-4 text-center mb-5">
+                            <div>
+                                <p class="text-gray-500 mb-1">Customer Support</p>
+                                <a href="mailto:support@guitman.com" class="text-lg font-semibold text-primary-600 hover:text-primary-700 transition-colors flex items-center justify-center">
+                                    <i class="fas fa-envelope-open-text mr-2"></i>
+                                    support@guitman.com
+                                </a>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 mb-1">Sales Inquiries</p>
+                                <a href="mailto:sales@guitman.com" class="text-lg font-semibold text-primary-600 hover:text-primary-700 transition-colors flex items-center justify-center">
+                                    <i class="fas fa-shopping-cart mr-2"></i>
+                                    sales@guitman.com
+                                </a>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-500 text-center">
+                            We typically respond within 24 hours
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Business Hours Section with Modern Design -->
+        <section class="py-16 bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden">
+            <!-- Decorative Elements -->
+            <div class="absolute inset-0 overflow-hidden opacity-30">
+                <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full border-8 border-dashed border-primary-200 opacity-50"></div>
+                <div class="absolute -bottom-24 -left-24 w-96 h-96 rounded-full border-8 border-dashed border-secondary-200 opacity-50"></div>
+            </div>
+            
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="glass rounded-2xl shadow-xl overflow-hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-3">
+                        <!-- Hours Heading -->
+                        <div class="bg-gradient-to-br from-primary-600 to-primary-800 text-white p-8 md:p-10 flex flex-col justify-center">
+                            <div class="animate-float mb-6 text-center md:text-left">
+                                <i class="far fa-clock text-5xl opacity-90"></i>
+                            </div>
+                            <h2 class="text-3xl font-bold mb-4">Our Hours</h2>
+                            <p class="text-primary-100">
+                                Visit our store or reach out to our customer support team during these hours.
+                            </p>
+                        </div>
+                        
+                        <!-- Hours Content -->
+                        <div class="col-span-2 p-8 md:p-10 bg-white">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <!-- Store Hours -->
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                                        <i class="fas fa-store text-primary-500 mr-3"></i>
+                                        Store Hours
+                                    </h3>
+                                    <ul class="space-y-3">
+                                        <li class="flex justify-between items-center pb-2 border-b border-gray-100">
+                                            <span class="text-gray-600 flex items-center">
+                                                <i class="fas fa-calendar-day text-gray-400 mr-2 w-5"></i>
+                                                Monday - Friday
+                                            </span>
+                                            <span class="font-medium text-gray-900 bg-primary-50 px-3 py-1 rounded-full text-sm">
+                                                10:00 AM - 8:00 PM
+                                            </span>
+                                        </li>
+                                        <li class="flex justify-between items-center pb-2 border-b border-gray-100">
+                                            <span class="text-gray-600 flex items-center">
+                                                <i class="fas fa-calendar-day text-gray-400 mr-2 w-5"></i>
+                                                Saturday
+                                            </span>
+                                            <span class="font-medium text-gray-900 bg-primary-50 px-3 py-1 rounded-full text-sm">
+                                                10:00 AM - 6:00 PM
+                                            </span>
+                                        </li>
+                                        <li class="flex justify-between items-center pb-2 border-b border-gray-100">
+                                            <span class="text-gray-600 flex items-center">
+                                                <i class="fas fa-calendar-day text-gray-400 mr-2 w-5"></i>
+                                                Sunday
+                                            </span>
+                                            <span class="font-medium text-gray-900 bg-primary-50 px-3 py-1 rounded-full text-sm">
+                                                11:00 AM - 5:00 PM
+                                            </span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                
+                                <!-- Support Hours -->
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                                        <i class="fas fa-headset text-primary-500 mr-3"></i>
+                                        Customer Support
+                                    </h3>
+                                    <ul class="space-y-3">
+                                        <li class="flex justify-between items-center pb-2 border-b border-gray-100">
+                                            <span class="text-gray-600 flex items-center">
+                                                <i class="fas fa-calendar-day text-gray-400 mr-2 w-5"></i>
+                                                Monday - Friday
+                                            </span>
+                                            <span class="font-medium text-gray-900 bg-primary-50 px-3 py-1 rounded-full text-sm">
+                                                9:00 AM - 9:00 PM
+                                            </span>
+                                        </li>
+                                        <li class="flex justify-between items-center pb-2 border-b border-gray-100">
+                                            <span class="text-gray-600 flex items-center">
+                                                <i class="fas fa-calendar-day text-gray-400 mr-2 w-5"></i>
+                                                Saturday
+                                            </span>
+                                            <span class="font-medium text-gray-900 bg-primary-50 px-3 py-1 rounded-full text-sm">
+                                                10:00 AM - 7:00 PM
+                                            </span>
+                                        </li>
+                                        <li class="flex justify-between items-center pb-2 border-b border-gray-100">
+                                            <span class="text-gray-600 flex items-center">
+                                                <i class="fas fa-calendar-day text-gray-400 mr-2 w-5"></i>
+                                                Sunday
+                                            </span>
+                                            <span class="font-medium text-gray-900 bg-gray-100 px-3 py-1 rounded-full text-sm">
+                                                Closed
+                                            </span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <!-- Holiday Notice -->
+                            <div class="mt-8 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-exclamation-circle text-yellow-400"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-yellow-700">
+                                            <span class="font-medium">Note:</span> Hours may vary during holidays and special events. Please check our social media for updates.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Form Section with Modern Design -->
+        <section id="contact-form" class="py-16 md:py-24">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+                    <!-- Form Column -->
+                    <div>
+                        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                            <!-- Form Header -->
+                            <div class="bg-gradient-to-r from-primary-600 to-secondary-600 p-6 md:p-8">
+                                <h2 class="text-2xl md:text-3xl font-bold text-white mb-2">Send Us a Message</h2>
+                                <p class="text-primary-100">
+                                    We'd love to hear from you! Fill out the form below and we'll get back to you as soon as possible.
+                                </p>
+                            </div>
+                            
+                            <!-- Form Body -->
+                            <div class="p-6 md:p-8">
+                                <!-- Success Message (hidden by default) -->
+                                <div id="successMessage" class="hidden mb-6 p-4 bg-green-50 border border-green-100 text-green-700 rounded-xl">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-check-circle text-green-500 text-xl mr-3"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">Message sent successfully!</p>
+                                            <p class="text-sm text-green-600 mt-1">We'll get back to you soon. Thank you for reaching out.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Error Message (hidden by default) -->
+                                <div id="errorMessage" class="hidden mb-6 p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-exclamation-circle text-red-500 text-xl mr-3"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">There was a problem sending your message</p>
+                                            <p class="text-sm text-red-600 mt-1">Please try again or contact us directly via phone.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <form id="contactForm" class="space-y-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <!-- Name Field -->
+                                        <div>
+                                            <label for="name" class="contact-label">Full Name <span class="text-red-500">*</span></label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <i class="fas fa-user text-gray-400"></i>
+                                                </div>
+                                                <input 
+                                                    type="text" 
+                                                    id="name" 
+                                                    name="name" 
+                                                    class="contact-input pl-10" 
+                                                    placeholder="John Doe" 
+                                                    required
+                                                >
+                                            </div>
+                                            <p id="nameError" class="text-red-500 text-sm mt-1 hidden"></p>
+                                        </div>
+                                        
+                                        <!-- Email Field -->
+                                        <div>
+                                            <label for="email" class="contact-label">Email Address <span class="text-red-500">*</span></label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <i class="fas fa-envelope text-gray-400"></i>
+                                                </div>
+                                                <input 
+                                                    type="email" 
+                                                    id="email" 
+                                                    name="email" 
+                                                    class="contact-input pl-10" 
+                                                    placeholder="john@example.com" 
+                                                    required
+                                                >
+                                            </div>
+                                            <p id="emailError" class="text-red-500 text-sm mt-1 hidden"></p>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Phone Field (Optional) -->
+                                    <div>
+                                        <label for="phone" class="contact-label">Phone Number <span class="text-gray-400">(Optional)</span></label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fas fa-phone text-gray-400"></i>
+                                            </div>
+                                            <input 
+                                                type="tel" 
+                                                id="phone" 
+                                                name="phone" 
+                                                class="contact-input pl-10" 
+                                                placeholder="+91 98765 43210"
+                                            >
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Subject Field -->
+                                    <div>
+                                        <label for="subject" class="contact-label">Subject <span class="text-red-500">*</span></label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fas fa-tag text-gray-400"></i>
+                                            </div>
+                                            <input 
+                                                type="text" 
+                                                id="subject" 
+                                                name="subject" 
+                                                class="contact-input pl-10" 
+                                                placeholder="How can we help you?" 
+                                                required
+                                            >
+                                        </div>
+                                        <p id="subjectError" class="text-red-500 text-sm mt-1 hidden"></p>
+                                    </div>
+                                    
+                                    <!-- Message Field -->
+                                    <div>
+                                        <label for="message" class="contact-label">Message <span class="text-red-500">*</span></label>
+                                        <div class="relative">
+                                            <div class="absolute top-3 left-3 flex items-start pointer-events-none">
+                                                <i class="fas fa-comment-alt text-gray-400"></i>
+                                            </div>
+                                            <textarea 
+                                                id="message" 
+                                                name="message" 
+                                                rows="5" 
+                                                class="contact-input pl-10" 
+                                                placeholder="Please provide details about your inquiry..." 
+                                                required
+                                            ></textarea>
+                                        </div>
+                                        <p id="messageError" class="text-red-500 text-sm mt-1 hidden"></p>
+                                    </div>
+                                    
+                                    <!-- Consent Checkbox -->
+                                    <div class="flex items-start">
+                                        <div class="flex items-center h-5">
+                                            <input
+                                                id="consent"
+                                                name="consent"
+                                                type="checkbox"
+                                                required
+                                                class="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                            >
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="consent" class="text-gray-600">
+                                                I agree to the <a href="#" class="text-primary-600 hover:text-primary-800 font-medium">Privacy Policy</a> and consent to being contacted regarding my inquiry.
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Submit Button -->
+                                    <div>
+                                        <button 
+                                            type="submit" 
+                                            class="w-full py-4 px-6 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-medium rounded-xl shadow-lg hover:shadow-primary-500/30 transition duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 flex items-center justify-center"
+                                        >
+                                            <span id="submitText" class="flex items-center">
+                                                <i class="fas fa-paper-plane mr-2"></i> Send Message
+                                            </span>
+                                            <span id="loadingText" class="hidden flex items-center">
+                                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                Processing...
+                                            </span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Map & Social Column -->
+                    <div class="space-y-8">
+                        <!-- Map with Enhanced Design -->
+                        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                            <div class="p-6 md:p-8">
+                                <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+                                    <i class="fas fa-map-marked-alt text-primary-500 mr-3"></i>
+                                    Find Our Store
+                                </h2>
+                                <p class="text-gray-600 mb-6">
+                                    Located in the heart of Mumbai's music district, our store is easily accessible by public transport and has parking available.
+                                </p>
+                            </div>
+                            <div class="relative h-80 overflow-hidden rounded-b-2xl">
+                                <iframe 
+                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15659.668624449427!2d76.33432295657602!3d11.11954777481196!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba62ea1bd39f74d%3A0xaa1276b61c637ab9!2sKaruvarakundu%2C%20Kerala%20676523!5e0!3m2!1sen!2sin!4v1741177781691!5m2!1sen!2sin"
+                                    referrerpolicy="no-referrer-when-downgrade"
+                                    width="100%" 
+                                    height="100%" 
+                                    style="border:0;" 
+                                    allowfullscreen="" 
+                                    loading="lazy"
+                                    class="absolute inset-0"
+                                    title="GUITMAN Store Location"
+                                ></iframe>
+                                <!-- Map Overlay with Store Info -->
+                                <div class="absolute bottom-4 left-4 right-4 glass p-4 rounded-xl shadow-lg">
+                                    <div class="flex items-center">
+                                        <div class="bg-primary-500 rounded-full p-2 mr-3">
+                                            <i class="fas fa-guitar text-white"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-bold text-gray-900">GUITMAN Flagship Store</h3>
+                                            <p class="text-sm text-gray-700">123 Music Avenue, Harmony District</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Social Media with Enhanced Design -->
+                        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                            <div class="bg-gradient-to-r from-secondary-600 to-secondary-800 p-6 md:p-8 text-white">
+                                <h2 class="text-2xl font-bold mb-2">Connect With Us</h2>
+                                <p class="text-secondary-100">
+                                    Follow us on social media for the latest updates, events, and musical inspiration.
+                                </p>
+                            </div>
+                            <div class="p-6 md:p-8">
+                                <div class="grid grid-cols-2 md:grid-cols-5 gap-6 p-6 bg-white rounded-2xl shadow-xl">
+                                    <a href="#" class="social-icon-wrapper group" aria-label="Facebook">
+                                        <div class="social-icon bg-[#1877F2] group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300 ease-out">
+                                            <i class="fab fa-facebook-f text-2xl text-white"></i>
+                                        </div>
+                                        <span class="text-sm font-semibold text-gray-700 mt-3 group-hover:text-[#1877F2] transition-colors">Facebook</span>
+                                    </a>
+                                    <a href="#" class="social-icon-wrapper group" aria-label="Twitter">
+                                        <div class="social-icon bg-[#1DA1F2] group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300 ease-out">
+                                            <i class="fab fa-twitter text-2xl text-white"></i>
+                                        </div>
+                                        <span class="text-sm font-semibold text-gray-700 mt-3 group-hover:text-[#1DA1F2] transition-colors">Twitter</span>
+                                    </a>
+                                    <a href="#" class="social-icon-wrapper group" aria-label="Instagram">
+                                        <div class="social-icon bg-gradient-to-tr from-[#FD5949] to-[#D6249F] group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300 ease-out">
+                                            <i class="fab fa-instagram text-2xl text-white"></i>
+                                        </div>
+                                        <span class="text-sm font-semibold text-gray-700 mt-3 group-hover:text-transparent bg-clip-text bg-gradient-to-tr from-[#FD5949] to-[#D6249F] transition-colors">Instagram</span>
+                                    </a>
+                                    <a href="#" class="social-icon-wrapper group" aria-label="YouTube">
+                                        <div class="social-icon bg-[#FF0000] group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-300 ease-out">
+                                            <i class="fab fa-youtube text-2xl text-white"></i>
+                                        </div>
+                                        <span class="text-sm font-semibold text-gray-700 mt-3 group-hover:text-[#FF0000] transition-colors">YouTube</span>
+                                    </a>
+                                    <a href="#" class="social-icon-wrapper group" aria-label="LinkedIn">
+                                        <div class="social-icon bg-[#0A66C2] group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300 ease-out">
+                                            <i class="fab fa-linkedin-in text-2xl text-white"></i>
+                                        </div>
+                                        <span class="text-sm font-semibold text-gray-700 mt-3 group-hover:text-[#0A66C2] transition-colors">LinkedIn</span>
+                                    </a>
+                                </div>
+                            
+                                <style>
+                                    .social-icon-wrapper {
+                                        @apply flex flex-col items-center p-4 rounded-xl hover:bg-gray-50 transition-colors duration-300 cursor-pointer;
+                                    }
+                                    .social-icon {
+                                        @apply w-16 h-16 rounded-full flex items-center justify-center shadow-md mb-3 transform transition-transform duration-300;
+                                    }
+                                </style>
+                                
+                                <!-- Newsletter Signup -->
+                                <div class="mt-8 p-5 bg-gray-50 rounded-xl border border-gray-100">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-3">Subscribe to Our Newsletter</h3>
+                                    <p class="text-gray-600 text-sm mb-4">
+                                        Get the latest updates, special offers, and musical inspiration delivered to your inbox.
+                                    </p>
+                                    <form class="flex">
+                                        <div class="relative flex-grow">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fas fa-envelope text-gray-400"></i>
+                                            </div>
+                                            <input 
+                                                type="email" 
+                                                placeholder="Your email address" 
+                                                class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                                required
+                                            >
+                                        </div>
+                                        <button 
+                                            type="submit" 
+                                            class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-r-lg transition-colors duration-300"
+                                        >
+                                            Subscribe
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section with Enhanced Design -->
+        <section class="py-16 md:py-24 bg-gradient-to-b from-gray-50 to-gray-100 relative overflow-hidden">
+            <!-- Decorative Elements -->
+            <div class="absolute inset-0 overflow-hidden opacity-20">
+                <div class="absolute top-0 left-1/4 w-64 h-64 rounded-full bg-primary-300 blur-3xl"></div>
+                <div class="absolute bottom-0 right-1/4 w-64 h-64 rounded-full bg-secondary-300 blur-3xl"></div>
+            </div>
+            
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
+                        Frequently Asked <span class="text-gradient">Questions</span>
+                    </h2>
+                    <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                        Find quick answers to common questions about our services and policies
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- FAQ Item 1 -->
+                    <div class="faq-item group">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mt-1">
+                                <div class="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center group-hover:bg-primary-200 transition-colors duration-300">
+                                    <i class="fas fa-credit-card"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-xl font-bold text-gray-900 mb-3">What payment methods do you accept?</h3>
+                                <p class="text-gray-600 leading-relaxed">
+                                    We accept all major credit cards (Visa, Mastercard, American Express), debit cards, UPI, net banking, and EMI options through our secure payment gateway. We also offer financing options for high-value purchases.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- FAQ Item 2 -->
+                    <div class="faq-item group">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mt-1">
+                                <div class="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center group-hover:bg-primary-200 transition-colors duration-300">
+                                    <i class="fas fa-shipping-fast"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-xl font-bold text-gray-900 mb-3">Do you offer international shipping?</h3>
+                                <p class="text-gray-600 leading-relaxed">
+                                    Yes, we ship to most countries worldwide. International shipping rates and delivery times vary based on the destination. All international orders include tracking and insurance for your peace of mind.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- FAQ Item 3 -->
+                    <div class="faq-item group">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mt-1">
+                                <div class="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center group-hover:bg-primary-200 transition-colors duration-300">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-xl font-bold text-gray-900 mb-3">What is your return policy?</h3>
+                                <p class="text-gray-600 leading-relaxed">
+                                    We offer a 10-day return policy for most products. Items must be in their original condition with all packaging and accessories. Custom orders and certain categories have specific return policies detailed on their product pages.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- FAQ Item 4 -->
+                    <div class="faq-item group">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mt-1">
+                                <div class="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center group-hover:bg-primary-200 transition-colors duration-300">
+                                    <i class="fas fa-tools"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-xl font-bold text-gray-900 mb-3">Do you offer guitar repair services?</h3>
+                                <p class="text-gray-600 leading-relaxed">
+                                    Yes, our in-house repair shop is staffed by experienced luthiers who can handle everything from basic setups to major repairs and custom modifications. We also offer maintenance packages to keep your instruments in top condition.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-12">
+                    <a href="/faq" class="inline-flex items-center px-6 py-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 text-primary-600 font-medium">
+                        View all FAQs
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Call to Action Section -->
+        <section class="py-16 bg-gradient-to-r from-primary-700 to-secondary-700 text-white relative overflow-hidden">
+            <!-- Decorative Elements -->
+            <div class="absolute inset-0 overflow-hidden opacity-10">
+                <div class="absolute top-0 right-0 w-96 h-96">
+                    <i class="fas fa-music text-[400px] opacity-20"></i>
+                </div>
+            </div>
+            
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="text-center max-w-3xl mx-auto">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-6">Ready to Find Your Perfect Instrument?</h2>
+                    <p class="text-xl text-white/80 mb-8">
+                        Visit our store or contact us today to explore our collection of premium guitars and accessories.
+                    </p>
+                    <div class="flex flex-wrap justify-center gap-4">
+                        <a href="/shop" class="px-8 py-4 bg-white text-primary-700 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-gray-100">
+                            Browse Products
+                        </a>
+                        <a href="tel:+919876543210" class="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/30 rounded-full font-semibold hover:bg-white/20 transition-all duration-300">
+                            <i class="fas fa-phone-alt mr-2"></i> Call Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <%- include('./partials/footer') %>
+
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const contactForm = document.getElementById('contactForm');
+            const successMessage = document.getElementById('successMessage');
+            const errorMessage = document.getElementById('errorMessage');
+            const submitText = document.getElementById('submitText');
+            const loadingText = document.getElementById('loadingText');
+            
+            // Error message elements
+            const nameError = document.getElementById('nameError');
+            const emailError = document.getElementById('emailError');
+            const subjectError = document.getElementById('subjectError');
+            const messageError = document.getElementById('messageError');
+            
+            // Form fields
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+            const subjectInput = document.getElementById('subject');
+            const messageInput = document.getElementById('message');
+            
+            // Form submission handler
+            contactForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Reset error messages
+                hideAllErrors();
+                
+                // Hide success/error messages
+                successMessage.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+                
+                // Validate form
+                if (!validateForm()) {
+                    return;
+                }
+                
+                // Show loading state
+                submitText.classList.add('hidden');
+                loadingText.classList.remove('hidden');
+                
+                // Simulate form submission (replace with actual API call)
+                setTimeout(function() {
+                    // Hide loading state
+                    submitText.classList.remove('hidden');
+                    loadingText.classList.add('hidden');
+                    
+                    // Show success message
+                    successMessage.classList.remove('hidden');
+                    
+                    // Scroll to success message
+                    successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // Reset form
+                    contactForm.reset();
+                    
+                    // In a real implementation, you would send the form data to your server:
+                    /*
+                    fetch('/api/contact', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            name: nameInput.value,
+                            email: emailInput.value,
+                            subject: subjectInput.value,
+                            message: messageInput.value,
+                            phone: document.getElementById('phone').value
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        submitText.classList.remove('hidden');
+                        loadingText.classList.add('hidden');
+                        
+                        if (data.success) {
+                            successMessage.classList.remove('hidden');
+                            contactForm.reset();
+                        } else {
+                            errorMessage.classList.remove('hidden');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        submitText.classList.remove('hidden');
+                        loadingText.classList.add('hidden');
+                        errorMessage.classList.remove('hidden');
+                    });
+                    */
+                    
+                }, 1500);
+            });
+            
+            // Form validation
+            function validateForm() {
+                let isValid = true;
+                
+                // Validate name
+                if (!nameInput.value.trim()) {
+                    showError(nameError, 'Please enter your name');
+                    isValid = false;
+                } else if (nameInput.value.trim().length < 2) {
+                    showError(nameError, 'Name must be at least 2 characters');
+                    isValid = false;
+                }
+                
+                // Validate email
+                if (!emailInput.value.trim()) {
+                    showError(emailError, 'Please enter your email address');
+                    isValid = false;
+                } else if (!isValidEmail(emailInput.value)) {
+                    showError(emailError, 'Please enter a valid email address');
+                    isValid = false;
+                }
+                
+                // Validate subject
+                if (!subjectInput.value.trim()) {
+                    showError(subjectError, 'Please enter a subject');
+                    isValid = false;
+                } else if (subjectInput.value.trim().length < 5) {
+                    showError(subjectError, 'Subject must be at least 5 characters');
+                    isValid = false;
+                }
+                
+                // Validate message
+                if (!messageInput.value.trim()) {
+                    showError(messageError, 'Please enter your message');
+                    isValid = false;
+                } else if (messageInput.value.trim().length < 20) {
+                    showError(messageError, 'Message must be at least 20 characters');
+                    isValid = false;
+                }
+                
+                return isValid;
+            }
+            
+            // Helper functions
+            function showError(element, message) {
+                element.textContent = message;
+                element.classList.remove('hidden');
+            }
+            
+            function hideAllErrors() {
+                nameError.classList.add('hidden');
+                emailError.classList.add('hidden');
+                subjectError.classList.add('hidden');
+                messageError.classList.add('hidden');
+            }
+            
+            function isValidEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+            
+            // Smooth scroll for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    
+                    if (targetElement) {
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+            
+            // Show loader on navigation
+            const links = document.querySelectorAll("a:not([href^='#'])");
+            links.forEach(link => {
+                link.addEventListener("click", function() {
+                    if (typeof showLoader === 'function') {
+                        showLoader();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

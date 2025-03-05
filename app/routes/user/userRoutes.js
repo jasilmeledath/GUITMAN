@@ -29,6 +29,11 @@ router.get('/', loadPages.landing);
 // Public routes (no authentication required)
 router.get('/login', loadPages.login);
 router.get('/signup', loadPages.signup);
+router.get('/reset-password', loadPages.resetPassword);
+router.post('/reset-password-send-otp', userAuth.sendOtpToResetPassword);
+router.post('/reset-password-verify-otp', userAuth.verifOtpToResetPassword);
+router.put('/reset-password', userAuth.resetPassword);
+router.get('/contact', loadPages.contact)
 
 // Authentication routes
 router.post('/signup', userAuth.signup);

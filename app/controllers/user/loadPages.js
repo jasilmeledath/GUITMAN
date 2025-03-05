@@ -36,6 +36,22 @@ const loadPages = {
       next(err);
     }
   },
+   /**
+   * Renders the contact page.
+   *
+   * @param {Object} req - Express request object.
+   * @param {Object} res - Express response object used to render the login page.
+   * @param {Function} next - Express next middleware function (not used here).
+   */
+   contact: (req, res, next) => {
+    res.status(httpStatus.OK).render("frontend/contact", {
+      email: "",
+      errors: {},
+      user: null,
+      currentRoute: req.path,
+      numOfItemsInCart: null
+    });
+  },
 
   /**
    * Renders the login page.
@@ -45,7 +61,7 @@ const loadPages = {
    * @param {Function} next - Express next middleware function (not used here).
    */
   login: (req, res, next) => {
-    res.status(200).render("frontend/login", {
+    res.status(httpStatus.OK).render("frontend/login", {
       email: "",
       errors: {},
       user: null,
@@ -61,7 +77,7 @@ const loadPages = {
    * @param {Function} next - Express next middleware function (not used here).
    */
   signup: (req, res, next) => {
-    res.render("frontend/signup", {
+    res.status(httpStatus.OK).render("frontend/signup", {
       error: null,
       otpError: null,
       showOtpModal: false,
@@ -70,6 +86,25 @@ const loadPages = {
       currentRoute: req.path,
     });
   },
+  /**
+   * Renders the reset password page.
+   *
+   * @param {Object} req - Express request object.
+   * @param {Object} res - Express response object used to render the signup page.
+   * @param {Function} next - Express next middleware function (not used here).
+   */
+  resetPassword: (req, res, next) => {
+    res.status(httpStatus.OK).render("frontend/resetPassword", {
+      error: null,
+      otpError: null,
+      showOtpModal: false,
+      email: null,
+      user: req.user,
+      currentRoute: req.path,
+      numOfItemsInCart:null,
+    });
+  },
+
 
   /**
    * Renders the home page, similar to the landing page, with active categories and top model products.
@@ -107,8 +142,6 @@ const loadPages = {
   loadShop: async (req, res, next) => {
     try {
       const user = await getUser(req, res, next);
-      const cart = await getCart(req, res, next)
-      const numOfItemsInCart = cart.items.length;
       const {
         page = 1,
         limit = 8,
@@ -119,21 +152,22 @@ const loadPages = {
         minPrice = 0,
         maxPrice = 100000,
       } = req.query;
-
+  
       // Build filter object for product search based on price and active status.
       const filter = {
         price: { $gte: Number(minPrice), $lte: Number(maxPrice) },
         isActive: true,
       };
-
+  
       // Apply category filter if provided.
       if (category !== "all") {
         const categoryDoc = await Category.findOne({
           name: { $regex: new RegExp(`^${category}$`, "i") },
           isBlocked: false,
         });
-
+  
         if (!categoryDoc) {
+          // Provide a default for numOfItemsInCart (e.g., null)
           return res.status(httpStatus.OK).render("frontend/shop", {
             products: [],
             categories: await Category.find({ isBlocked: false }, "name"),
@@ -147,12 +181,12 @@ const loadPages = {
             minPrice,
             maxPrice,
             user: user || null,
-            numOfItemsInCart
+            numOfItemsInCart: null,
           });
         }
         filter.category = categoryDoc._id;
       }
-
+  
       // Apply search filter if provided.
       if (search) {
         filter.$or = [
@@ -160,10 +194,10 @@ const loadPages = {
           { description: { $regex: search, $options: "i" } },
         ];
       }
-
+  
       // Set sorting options based on query parameters.
       const sortOption = { [sort]: order === "asc" ? 1 : -1 };
-
+  
       // Calculate pagination values.
       const skip = (page - 1) * limit;
       const countPromise = Product.countDocuments(filter);
@@ -173,12 +207,35 @@ const loadPages = {
         .skip(skip)
         .limit(Number(limit))
         .lean();
-
-      const [totalProducts, products] = await Promise.all([countPromise, productsPromise]);
+  
+      const [totalProducts, products] = await Promise.all([
+        countPromise,
+        productsPromise,
+      ]);
       const totalPages = Math.ceil(totalProducts / limit);
       const breadcrumbs = [{ label: "Shop", url: "/shop" }];
-
-      res.status(httpStatus.OK).render("frontend/shop", {
+  
+      if (user) {
+        const cart = await getCart(req, res, next);
+        const numOfItemsInCart = cart.items.length;
+        return res.status(httpStatus.OK).render("frontend/shop", {
+          products,
+          categories: await Category.find({ isBlocked: false }, "name"),
+          currentPage: Number(page),
+          totalPages,
+          totalProducts,
+          sort,
+          order,
+          search,
+          breadcrumbs,
+          category,
+          minPrice: Number(minPrice),
+          maxPrice: Number(maxPrice),
+          user: user || null,
+          numOfItemsInCart,
+        });
+      }
+      return res.status(httpStatus.OK).render("frontend/shop", {
         products,
         categories: await Category.find({ isBlocked: false }, "name"),
         currentPage: Number(page),
@@ -192,13 +249,12 @@ const loadPages = {
         minPrice: Number(minPrice),
         maxPrice: Number(maxPrice),
         user: user || null,
-        numOfItemsInCart
+        numOfItemsInCart: null,
       });
     } catch (err) {
       next(err);
     }
   },
-
   /**
    * Renders the product details page.
    * - Retrieves product details, reviews, related products, and active coupons.

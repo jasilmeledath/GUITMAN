@@ -239,7 +239,7 @@
                 <div class="grid grid-cols-5 sm:grid-cols-6 gap-2 sm:gap-4" id="thumbnailsContainer">
                     <% product.images.forEach((image, index) => { %>
                         <button class="border rounded-lg overflow-hidden hover:border-indigo-500 transition-colors duration-200 <%= index === 0 ? 'thumbnail-active' : '' %>" 
-                                onclick="changeMainImage('<%= image %>', <%= index %>)"
+                                onclick="changeMainImage(`<%= image %>`, `<%= index %>`)"
                                 data-index="<%= index %>"
                                 aria-label="View <%= product.product_name %> image <%= index + 1 %>">
                             <img src="/<%= image %>" 
@@ -509,8 +509,8 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-2 text-gray-800">No Reviews Yet</h3>
                     <p class="text-gray-600 mb-6">Be the first to share your experience with this product!</p>
-                    <a href="/login" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                        <i class="fas fa-sign-in-alt mr-2"></i> Login to Write a Review
+                    <a href="#" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                        </i> Purchase to Write a Review
                     </a>
                 </div>
             <% } %>
@@ -528,7 +528,7 @@
                         <a href="/product-details/<%=product._id%>" class="group">
                             <div class="bg-white p-4 rounded-xl shadow-sm group-hover:shadow-md transition-shadow duration-300 flex flex-col h-full border border-gray-100 hover-scale">
                                 <div class="relative flex-1 overflow-hidden rounded-lg mb-4">
-                                    <div class="aspect-square flex items-center justify-center bg-gray-50">
+                                    <div class="aspect-square flex items-center justify-center bg-white-50">
                                         <img src="/<%= product.images[0] %>" 
                                              alt="<%= product.product_name %>" 
                                              class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105">
@@ -996,48 +996,56 @@
          * @param {string} imagePath - Path to the image
          * @param {number} index - Index of the image in the productImages array
          */
-        function changeMainImage(imagePath, index) {
-            // Show loading spinner
-            showImageLoading();
-            
-            // Update main image
-            const mainImage = document.getElementById('mainImage');
-            if (mainImage) {
-                mainImage.src = '/' + imagePath;
-                mainImage.setAttribute('data-index', index);
-            }
-            
-            // Update current index
-            currentImageIndex = index;
-            
-            // Update active thumbnail
-            const thumbnails = document.querySelectorAll('#thumbnailsContainer button');
-            thumbnails.forEach(thumb => {
-                thumb.classList.remove('thumbnail-active');
-                if (parseInt(thumb.getAttribute('data-index')) === index) {
-                    thumb.classList.add('thumbnail-active');
-                }
-            });
-            
-            // Update zoom result background image if it exists
-            const zoomResult = document.getElementById('zoomResult');
-            if (zoomResult) {
-                zoomResult.style.backgroundImage = `url('/${imagePath}')`;
-            }
-            
-            // Update mobile zoom image if it exists
-            const mobileZoomImage = document.getElementById('mobileZoomImage');
-            if (mobileZoomImage) {
-                mobileZoomImage.src = '/' + imagePath;
-            }
+         function changeMainImage(imagePath, index) {
+    // Show loading spinner
+    showImageLoading();
+
+    // Update main image
+    const mainImage = document.getElementById('mainImage');
+    if (mainImage) {
+        // Re-bind the load/error handlers:
+        mainImage.onload = function() {
+            hideImageLoading(); // hide the spinner once the image is loaded
+        };
+        mainImage.onerror = function() {
+            hideImageLoading(); // also hide it on error
+        };
+
+        // Now set the new src
+        mainImage.src = '/' + imagePath;
+        mainImage.setAttribute('data-index', index);
+    }
+
+    // Update current index
+    currentImageIndex = index;
+
+    // Update active thumbnail, zoom, etc...
+    const thumbnails = document.querySelectorAll('#thumbnailsContainer button');
+    thumbnails.forEach(thumb => {
+        thumb.classList.remove('thumbnail-active');
+        if (parseInt(thumb.getAttribute('data-index')) === index) {
+            thumb.classList.add('thumbnail-active');
         }
+    });
+
+    const zoomResult = document.getElementById('zoomResult');
+    if (zoomResult) {
+        zoomResult.style.backgroundImage = `url('/${imagePath}')`;
+    }
+
+    const mobileZoomImage = document.getElementById('mobileZoomImage');
+    if (mobileZoomImage) {
+        mobileZoomImage.src = '/' + imagePath;
+    }
+}
+
         
         /**
          * Quantity increment/decrement functions
          */
         function incrementQuantity() {
             const quantityInput = document.getElementById('quantity');
-            const maxStock = <%= product.stock %>;
+            const maxStock = `<%= product.stock %>`;
             const currentValue = parseInt(quantityInput.value);
             
             if (currentValue < maxStock) {
@@ -1048,7 +1056,6 @@
         function decrementQuantity() {
             const quantityInput = document.getElementById('quantity');
             const currentValue = parseInt(quantityInput.value);
-            
             if (currentValue > 1) {
                 quantityInput.value = currentValue - 1;
             }
@@ -1061,7 +1068,7 @@
                 quantityInput.addEventListener('input', function() {
                     this.value = this.value.replace(/[^0-9]/g, '');
                     
-                    const maxStock = <%= product.stock %>;
+                    const maxStock = `<%= product.stock %>`;
                     const currentValue = parseInt(this.value);
                     
                     if (isNaN(currentValue) || currentValue < 1) {

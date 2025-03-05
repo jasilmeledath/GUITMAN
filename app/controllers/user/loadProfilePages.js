@@ -244,7 +244,6 @@ const loadProfilePages = {
         path: 'items.product',
         model: 'Product'
       });
-      console.log(order);
       
     if (!order) {
       // If order is not found, send a 404 response.
@@ -253,9 +252,9 @@ const loadProfilePages = {
     
 
     // Render the order details view, passing the order object.
-    res.status(200).render('frontend/orderDetails', { order,currentRoute: req.path, user, numOfItemsInCart });
-  } catch (error) {
-    next(error);
+    res.status(httpStatus.OK).render('frontend/orderDetails', { order,currentRoute: req.path, user, numOfItemsInCart });
+  } catch (err) {
+    next(err);
   }
 }
 

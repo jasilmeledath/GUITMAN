@@ -5,6 +5,7 @@ const HttpStatus = require('../../utils/httpStatus');
 const Product = require('../../models/productModel');
 const Cart = require('../../models/cartModel');
 const { createOrder, verifyPayment } = require('../../services/razorpayService');
+const Review = require('../../models/reviewModel');
 
 const orderControls = {
   createOrder: async (req, res, next) => {
@@ -221,35 +222,29 @@ const orderControls = {
       next(err)
     }
   },
-  submitReview: async (req, res) => {
+  submitReview: async (req, res, next) => {
     try {
-      const rating = req.params.id;
-      const { productId, feedback } = req.body;
+      const { productId_0, review_0, rating_0, orderId } = req.body;
 
-      const user = req.user;
-      const userId = user.id; // Ensure this is a string (ObjectId)
-
-      // Fetch user details correctly
-      const userDetails = await User.findById(userId);
-
-      if (!userDetails) {
-        return res.status(404).send("User not found");
+      const user = await getUser(req,res,next);
+      if (!user) {
+        return res.status(HttpStatus.NOT_FOUND).json({message: "User not found"});
       }
-
       // Create a new review
       const review = new Review({
-        rating,
-        feedback,
-        product: productId,
-        user: userId, // Ensure this is an ObjectId
-        user_name: userDetails.first_name, // Send user name
+        rating: rating_0,
+        feedback: review_0,
+        order: orderId,
+        product: productId_0,
+        user: user._id, // Ensure this is an ObjectId
+        user_name: user.first_name, // Send user name
       });
 
       // Save the review to the database
       await review.save();
 
       // Redirect or send a response
-      res.redirect("/product-details/" + productId);
+      res.status(HttpStatus.OK).json({success:true, message:"Review added successfully!"})
     } catch (err) {
       next(err);
     }

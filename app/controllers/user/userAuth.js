@@ -1,9 +1,8 @@
-const bcrypt = require("bcrypt");
 const User = require("../../models/userModel");
-const Review = require("../../models/reviewModel");
+const bcrypt = require('bcrypt');
 const tokenBlacklist = require('../../utils/tokenBlacklist');
 const { validateSignup } = require("../../validators/validateSignup");
-const { generateSignupEmail } = require("../../utils/emailTemplates");
+const { generateSignupEmail,generateForgotPasswordEmail } = require("../../utils/emailTemplates");
 const { validateOtpRequest } = require("../../validators/otpValidator");
 const {createOtp} = require("../../services/otpService")
 const {
@@ -14,6 +13,9 @@ const {
 const { sendEmail } = require("../../services/emailService");
 const httpStatus = require("../../utils/httpStatus");
 const {userErrors, userSuccess}= require("../../utils/messages");
+const { resetPassword } = require("./loadPages");
+const { NOTFOUND } = require("dns");
+const { ok } = require("assert");
 
 
 const userAuth = {
@@ -92,7 +94,7 @@ const userAuth = {
 
       if (!isRequestValid) {
         return res
-          .status(400)
+          .status(httpStatus.BAD_REQUEST)
           .json({ success: false, errors: validationErrors });
       }
 
@@ -100,7 +102,7 @@ const userAuth = {
 
       if (!user || user.otp !== otp || user.otpExpires < new Date()) {
         return res
-          .status(400)
+          .status(httpStatus.BAD_REQUEST)
           .json({ success: false, error: userErrors.registration.otpMismatch });
       }
 
@@ -110,7 +112,7 @@ const userAuth = {
       );
 
       return res
-        .status(200)
+        .status(httpStatus.OK)
         .json({ success: true, message: userSuccess.registration.otpVerified});
       } catch (err) {
         next(err);
@@ -218,6 +220,73 @@ const userAuth = {
       next(err);
     }
   },
+  sendOtpToResetPassword: async(req,res,next)=>{
+    try {
+      const {email} = req.body;
+      const isExistingUser = await User.findOne({email:email});
+      if(!isExistingUser){
+        return res.status(httpStatus.NOT_FOUND)
+        .json({success: false, message:"User with this email does not exists !"});
+      }
+      const { otp, otpExpires } = createOtp();
+      isExistingUser.otp = otp;
+      isExistingUser.otpExpires = otpExpires;
+      await isExistingUser.save();
+      console.log('OTP is:', otp);
+
+      const emailContent = generateForgotPasswordEmail(isExistingUser.first_name, otp);
+      await sendEmail(
+        email,
+        emailContent.subject,
+        emailContent.text,
+        emailContent.html
+      );
+      res.status(httpStatus.OK)
+      .json({success: true, message:"Otp send successfully!"})
+    } catch (err) {
+      next(err)
+    }
+  },
+  verifOtpToResetPassword : async(req,res,next)=>{
+    try {
+      const{email, otp} = req.body;
+      const user = await User.findOne({email: email});
+      if (!user || user.otp !== otp || user.otpExpires < new Date()) {
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ success: false, error: userErrors.registration.otpMismatch });
+      }
+      await User.updateOne(
+        { email },
+        { $set: { isVerified: true, otp: null, otpExpires: null } }
+      );
+      return res
+        .status(httpStatus.OK)
+        .json({ success: true, message: "Security verification completed!"});
+    } catch (err) {
+      next(err);
+    }
+  },
+  resetPassword: async(req,res,next)=>{
+    try {      
+      const {email, password} = req.body;
+      const user = await User.findOne({email});
+      const isExistingPassword = await bcrypt.compare(password, user.password);
+      if(isExistingPassword){
+        return res.status(httpStatus.BAD_REQUEST)
+        .json({success:false, message:"Please choose a new password that you haven't used before."})
+      }
+      const hashedPassword = await hashPassword(password);
+      await User.updateOne(
+        { email },
+        { $set: { password: hashedPassword } }
+      );
+      res.status(httpStatus.OK)
+      .json({success: true, message:"Password Reset Successfull"})
+    } catch (err) {
+      next(err)
+    }
+  },
   logout: (req, res) => {
     try{
       const token = req.cookies.authToken;
@@ -225,7 +294,7 @@ const userAuth = {
       tokenBlacklist.add(token); 
     }
     res.clearCookie('authToken', { path: '/' });
-    return res.status(200).redirect("/login");
+    return res.status(httpStatus.OK).redirect("/login");
     }catch(err){
       next(err);
     }
