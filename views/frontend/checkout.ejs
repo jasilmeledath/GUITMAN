@@ -12,17 +12,17 @@
         extend: {
           colors: {
             primary: {
-              50: '#f0f9ff',
-              100: '#e0f2fe',
-              200: '#bae6fd',
-              300: '#7dd3fc',
-              400: '#38bdf8',
-              500: '#0ea5e9',
-              600: '#0284c7',
-              700: '#0369a1',
-              800: '#075985',
-              900: '#0c4a6e',
-              950: '#082f49',
+              50: '#faf5ff',
+              100: '#f3e8ff',
+              200: '#e9d5ff',
+              300: '#d8b4fe',
+              400: '#c084fc',
+              500: '#a855f7',
+              600: '#9333ea',
+              700: '#7e22ce',
+              800: '#6b21a8',
+              900: '#581c87',
+              950: '#3b0764',
             },
           },
           fontFamily: {
@@ -314,29 +314,29 @@
                     >
                       <div style="flex-shrink: 0; margin-top: 0.25rem;">
                         <div style="height: 1.25rem; width: 1.25rem; border-radius: 50%; border: 2px solid #d1d5db; position: relative; display: inline-block;">
-                          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); height: 0.75rem; width: 0.75rem; border-radius: 50%; background-color: #6366f1; opacity: 0; transition: opacity 0.2s;"></div>
+                          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); height: 0.75rem; width: 0.75rem; border-radius: 50%; background-color: #9333ea; opacity: 0; transition: opacity 0.2s;"></div>
                         </div>
                       </div>
                       <div style="margin-left: 0.75rem; flex-grow: 1;">
                         <p style="font-weight: 600; color: #111827;"><%= address.full_name %></p>
                         <p style="color: #4b5563; font-size: 0.875rem; margin-top: 0.25rem;"><%= address.address %>, <%= address.city %>, <%= address.state %>, <%= address.pincode %></p>
                         <div style="display: flex; align-items: center; margin-top: 0.5rem;">
-                          <span style="display: inline-flex; align-items: center; padding: 0.125rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; background-color: #e0e7ff; color: #4f46e5;">
+                          <span style="display: inline-flex; align-items: center; padding: 0.125rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; background-color: #f3e8ff; color: #7e22ce;">
                             <%= address.address_type %>
                           </span>
-                          <a href="/addresses/edit/<%= address._id %>" style="margin-left: 1rem; font-size: 0.75rem; color: #4f46e5;">Edit</a>
+                          <a href="/addresses/edit/<%= address._id %>" style="margin-left: 1rem; font-size: 0.75rem; color: #7e22ce;">Edit</a>
                         </div>
                       </div>
                     </label>
                     <style>
                       input[type="radio"]:checked + label {
-                        border-color: #6366f1;
+                        border-color: #9333ea;
                       }
                       input[type="radio"]:checked + label > div:first-child > div > div {
                         opacity: 1;
                       }
                       label.address-label:hover {
-                        border-color: #a5b4fc;
+                        border-color: #d8b4fe;
                       }
                     </style>
                   </div>
@@ -354,7 +354,7 @@
           </h2>
           <div class="mt-4 space-y-4">
             <div class="payment-radio">
-              <input id="credit-card" name="payment-method" type="radio" checked value="credit-card">
+              <input id="credit-card" name="payment-method" type="radio" value="credit-card">
               <label for="credit-card" class="group">
                 <div class="flex items-center">
                   <div class="payment-icon">
@@ -371,7 +371,7 @@
             </div>
             
             <div class="payment-radio">
-              <input id="upi" name="payment-method" type="radio" value="upi">
+              <input id="upi" name="payment-method" type="radio" value="upi" checked>
               <label for="upi" class="group">
                 <div class="flex items-center">
                   <div class="payment-icon">
@@ -402,7 +402,7 @@
           </div>
             
           <!-- Credit Card Form - Only visible when credit card is selected -->
-          <div id="credit-card-form" class="mt-6 p-5 border border-gray-200 rounded-lg bg-gray-50">
+          <div id="credit-card-form" class="mt-6 p-5 border border-gray-200 rounded-lg bg-gray-50 hidden">
             <div class="grid grid-cols-1 sm:grid-cols-6 gap-4 sm:gap-6">
               <div class="sm:col-span-6">
                 <label for="card-number" class="block text-sm font-medium text-gray-700">Card number</label>
@@ -472,7 +472,7 @@
           </div>
 
           <!-- Debit Cards Section - Only visible when credit card is selected -->
-          <div id="debit-cards-section" class="mt-6">
+          <div id="debit-cards-section" class="mt-6 hidden">
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-lg font-medium text-gray-900">Saved Cards</h3>
               <a href="/cards/add" class="text-primary-600 hover:text-primary-800 text-sm font-medium flex items-center">
@@ -719,7 +719,7 @@
             // Add selected styling to the initially checked radio button's label
             if (radio.checked) {
               label.classList.add('selected-address');
-              label.style.borderColor = '#6366f1';
+              label.style.borderColor = '#9333ea';
             }
             
             // Add event listener for change
@@ -732,7 +732,7 @@
               
               // Add styling to selected label
               label.classList.add('selected-address');
-              label.style.borderColor = '#6366f1';
+              label.style.borderColor = '#9333ea';
             });
           }
         });
@@ -797,8 +797,6 @@
           isOrderProcessing = true;
           
           try {
-            console.log('invoked');
-            
             // Disable button and show loading state
             this.disabled = true;
             this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
@@ -854,8 +852,6 @@
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
-                // Add any authentication headers if needed
-                // 'Authorization': `Bearer ${token}`
               },
               body: JSON.stringify(orderData)
             });
@@ -874,33 +870,55 @@
               const localOrderId = result.localOrderId;
   
               const options = {
-                key: 'YOUR_RAZORPAY_KEY_ID', // Replace with your Razorpay Key ID
+                key: 'rzp_test_8Dk8yuqXCyHL5B', // Replace with your Razorpay Key ID
                 amount: razorpayOrder.amount, // amount in paise
                 currency: razorpayOrder.currency,
-                name: 'Your Store Name',
+                name: 'Guitman Store',
                 description: 'Payment for Order',
                 order_id: razorpayOrder.id, // Razorpay order ID
-                handler: async function(paymentResponse) {
-                  // After successful payment, verify the payment by calling your backend verification endpoint.
-                  const verifyResponse = await fetch('/cart/verify-payment', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(paymentResponse)
-                  });
-                  const verifyResult = await verifyResponse.json();
-                  if (verifyResult.success) {
-                    window.location.href = `/cart/order-confirmation/${localOrderId}`;
-                  } else {
-                    throw new Error('Payment verification failed');
-                  }
-                },
                 prefill: {
                   name: 'Customer Name', // Replace with actual customer data
                   email: 'customer@example.com',
                   contact: '9876543210'
                 },
                 theme: {
-                  color: '#3399cc'
+                  color: '#9333ea' // Purple theme color
+                },
+                modal: {
+                  ondismiss: function() {
+                    // Re-enable the button if payment modal is dismissed
+                    placeOrderBtn.disabled = false;
+                    placeOrderBtn.innerHTML = '<i class="fas fa-lock mr-2"></i> Place Order';
+                    isOrderProcessing = false;
+                    showAlert('Payment cancelled. You can try again.', 'error');
+                  }
+                },
+                handler: async function(paymentResponse) {
+                  try {
+                    // After successful payment, verify the payment by calling your backend verification endpoint.
+                    const verifyResponse = await fetch('/cart/verify-payment', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                        razorpay_order_id: paymentResponse.razorpay_order_id,
+                        razorpay_signature: paymentResponse.razorpay_signature,
+                        order_id: localOrderId
+                      })
+                    });
+                    
+                    const verifyResult = await verifyResponse.json();
+                    if (verifyResult.success) {
+                      window.location.href = `/cart/order-confirmation/${localOrderId}`;
+                    } else {
+                      throw new Error('Payment verification failed');
+                    }
+                  } catch (error) {
+                    placeOrderBtn.disabled = false;
+                    placeOrderBtn.innerHTML = '<i class="fas fa-lock mr-2"></i> Place Order';
+                    isOrderProcessing = false;
+                    showAlert(error.message || 'Payment verification failed', 'error');
+                  }
                 }
               };
   

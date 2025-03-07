@@ -47,7 +47,7 @@ const loadPages = {
     res.status(httpStatus.OK).render("frontend/contact", {
       email: "",
       errors: {},
-      user: null,
+      user: req.user,
       currentRoute: req.path,
       numOfItemsInCart: null
     });
@@ -133,128 +133,111 @@ const loadPages = {
   },
 
   /**
-   * Renders the shop page with products filtered, sorted, and paginated based on query parameters.
-   *
-   * @param {Object} req - Express request object containing query parameters for filtering, sorting, and pagination.
-   * @param {Object} res - Express response object used to render the shop page.
-   * @param {Function} next - Express next middleware function for error handling.
-   */
-  loadShop: async (req, res, next) => {
-    try {
+ * Renders the shop page with products filtered, sorted, and paginated based on query parameters.
+ * Handles both full page loads and AJAX requests for live updates.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Next middleware function
+ */
+loadShop: async (req, res, next) => {
+  try {
       const user = await getUser(req, res, next);
+      const cart = await getCart(req, res, next);
+      const numOfItemsInCart = cart?.items.length || 0;
+      const isAjax = req.get('X-Requested-With') === 'XMLHttpRequest';
+
+      // Destructure and parse query parameters
       const {
-        page = 1,
-        limit = 8,
-        sort = "createdAt",
-        order = "desc",
-        search = "",
-        category = "all",
-        minPrice = 0,
-        maxPrice = 100000,
+          page = 1,
+          limit = 12,
+          sort = "createdAt",
+          order = "desc",
+          search = "",
+          category = "all",
+          minPrice = 0,
+          maxPrice = 100000,
       } = req.query;
-  
-      // Build filter object for product search based on price and active status.
+
+      // Build filter object
       const filter = {
-        price: { $gte: Number(minPrice), $lte: Number(maxPrice) },
-        isActive: true,
+          isActive: true,
+          price: { $gte: Number(minPrice), $lte: Number(maxPrice) },
       };
-  
-      // Apply category filter if provided.
+
+      // Handle category filter
       if (category !== "all") {
-        const categoryDoc = await Category.findOne({
-          name: { $regex: new RegExp(`^${category}$`, "i") },
-          isBlocked: false,
-        });
-  
-        if (!categoryDoc) {
-          // Provide a default for numOfItemsInCart (e.g., null)
-          return res.status(httpStatus.OK).render("frontend/shop", {
-            products: [],
-            categories: await Category.find({ isBlocked: false }, "name"),
-            currentPage: 1,
-            totalPages: 0,
-            totalProducts: 0,
-            sort,
-            order,
-            search,
-            category,
-            minPrice,
-            maxPrice,
-            user: user || null,
-            numOfItemsInCart: null,
+          const categoryDoc = await Category.findOne({
+              name: { $regex: new RegExp(`^${category}$`, "i") },
+              isBlocked: false,
           });
-        }
-        filter.category = categoryDoc._id;
+          filter.category = categoryDoc?._id || null;
       }
-  
-      // Apply search filter if provided.
+
+      // Apply search filter
       if (search) {
-        filter.$or = [
-          { product_name: { $regex: search, $options: "i" } },
-          { description: { $regex: search, $options: "i" } },
-        ];
+          filter.$or = [
+              { product_name: { $regex: search, $options: "i" } },
+              { description: { $regex: search, $options: "i" } },
+              { "category.name": { $regex: search, $options: "i" } }
+          ];
       }
-  
-      // Set sorting options based on query parameters.
-      const sortOption = { [sort]: order === "asc" ? 1 : -1 };
-  
-      // Calculate pagination values.
-      const skip = (page - 1) * limit;
-      const countPromise = Product.countDocuments(filter);
-      const productsPromise = Product.find(filter)
-        .populate("category", "name")
-        .sort(sortOption)
-        .skip(skip)
-        .limit(Number(limit))
-        .lean();
-  
-      const [totalProducts, products] = await Promise.all([
-        countPromise,
-        productsPromise,
+
+      // Define sort options
+      const sortOptions = {
+          "popularity_desc": { sales: -1 },
+          "price_asc": { price: 1 },
+          "price_desc": { price: -1 },
+          "rating_desc": { rating: -1 },
+          "isTopModel_desc": { isTopModel: -1 },
+          "createdAt_desc": { createdAt: -1 },
+          "product_name_asc": { product_name: 1 },
+          "product_name_desc": { product_name: -1 }
+      };
+
+      // Execute parallel queries
+      const [totalItems, products, categories] = await Promise.all([
+          Product.countDocuments(filter),
+          Product.find(filter)
+              .populate("category", "name")
+              .sort(sortOptions[`${sort}_${order}`] || { createdAt: -1 })
+              .skip((page - 1) * limit)
+              .limit(limit)
+              .lean(),
+          Category.find({ isBlocked: false }, "name")
       ]);
-      const totalPages = Math.ceil(totalProducts / limit);
-      const breadcrumbs = [{ label: "Shop", url: "/shop" }];
-  
-      if (user) {
-        const cart = await getCart(req, res, next);
-        const numOfItemsInCart = cart.items.length;
-        return res.status(httpStatus.OK).render("frontend/shop", {
+
+      // Prepare response data
+      const renderData = {
           products,
-          categories: await Category.find({ isBlocked: false }, "name"),
+          categories,
           currentPage: Number(page),
-          totalPages,
-          totalProducts,
+          totalPages: Math.ceil(totalItems / limit),
+          totalItems,
+          itemsPerPage: Number(limit),
           sort,
           order,
           search,
-          breadcrumbs,
+          breadcrumbs: [{ label: "Shop", url: "/shop" }],
           category,
           minPrice: Number(minPrice),
           maxPrice: Number(maxPrice),
           user: user || null,
           numOfItemsInCart,
-        });
+          isAjax
+      };
+
+      // Render appropriate view based on request type
+      if (isAjax) {
+          res.render("frontend/shop", renderData);
+      } else {
+          res.render("frontend/shop", renderData);
       }
-      return res.status(httpStatus.OK).render("frontend/shop", {
-        products,
-        categories: await Category.find({ isBlocked: false }, "name"),
-        currentPage: Number(page),
-        totalPages,
-        totalProducts,
-        sort,
-        order,
-        search,
-        breadcrumbs,
-        category,
-        minPrice: Number(minPrice),
-        maxPrice: Number(maxPrice),
-        user: user || null,
-        numOfItemsInCart: null,
-      });
-    } catch (err) {
+
+  } catch (err) {
       next(err);
-    }
-  },
+  }
+},
   /**
    * Renders the product details page.
    * - Retrieves product details, reviews, related products, and active coupons.
@@ -348,10 +331,8 @@ const loadPages = {
    */
   loadCart: async (req, res, next) => {
     try {
-      // Assuming the authenticated user's id is available at req.user._id
       const userId = req.user.id;
-
-      // Find the active cart for the current user and populate the product details for each item
+      const user  = await getUser(req,res,next);
       let cart = await Cart.findOne({ user: userId, status: 'active' })
         .populate('items.product')
         .exec();
@@ -365,8 +346,6 @@ const loadPages = {
           cart_total: 0
         };
       } else {
-        // For each cart item, ensure the product details are available.
-        // If not populated properly, fetch them manually.
         for (let i = 0; i < cart.items.length; i++) {
           if (!cart.items[i].product || !cart.items[i].product.product_name) {
             const productData = await Product.findById(cart.items[i].product).lean();
@@ -375,7 +354,6 @@ const loadPages = {
         }
       }
 
-      // Compute the total savings from discounted items (if any)
       let savings = 0;
       cart.items.forEach(item => {
         if (item.discounted_price > 0 && item.discounted_price < item.item_price) {
@@ -396,7 +374,7 @@ const loadPages = {
         savings,
         breadcrumbs,
         currentRoute: req.path,
-        user: req.user,
+        user,
         numOfItemsInCart: cart.items.length,
       });
     } catch (err) {
@@ -451,12 +429,12 @@ const loadPages = {
     try {
       const user = await getUser(req, res, next);
       const { orderId } = req.params;
-      const order = await Order.findOne({ order_id: orderId })
+      const order = await Order.findById(orderId)
         .populate('items.product')
         .populate('address');
 
       if (!order) {
-        return res.status(404).send('Order not found');
+        return res.status(httpStatus.NOT_FOUND).json({success:false, message:'Order not found'});
       }
 
 
@@ -464,7 +442,7 @@ const loadPages = {
         number: order.order_id,
         date: new Date(order.timestamp).toLocaleDateString(),
         paymentMethod: order.payment_method,
-        shippingMethod: 'Standard Shipping', // Default value – update if needed
+        shippingMethod: 'Standard Shipping', 
         items: order.items.map(item => ({
           image: item.product.images[0] || '/path/to/default-image.jpg',
           name: item.product.product_name,

@@ -4,7 +4,7 @@ const getUser = require('../../helpers/getUser');
 const HttpStatus = require('../../utils/httpStatus');
 const Product = require('../../models/productModel');
 const Cart = require('../../models/cartModel');
-const { createOrder, verifyPayment } = require('../../services/razorpayService');
+const { createOrder: createRazorpayOrder,verifyPayment } = require('../../services/razorpayServices');
 const Review = require('../../models/reviewModel');
 
 const orderControls = {
@@ -13,14 +13,12 @@ const orderControls = {
       const { addressId, paymentMethod, cardDetails, couponCode } = req.body;
       const cart = await getCart(req, res, next);
       const user = await getUser(req, res, next);
-
+  
       if (!addressId || !paymentMethod) {
         return res.status(HttpStatus.BAD_REQUEST)
           .json({ success: false, message: "Select the address and payment method!" });
       }
-      
-      console.log(paymentMethod);
-
+  
       if (paymentMethod === 'cod') {
         // Map cart items to the order items format
         const items = cart.items.map(item => ({
@@ -28,8 +26,8 @@ const orderControls = {
           quantity: item.quantity,
           price: item.item_price
         }));
-
-        // Create the local order record
+  
+        // Create the local order record for COD
         const order = new Order({
           items: items,
           payment_method: paymentMethod,
@@ -43,12 +41,12 @@ const orderControls = {
           status: 'placed' // Order confirmed for COD
         });
         const newOrder = await order.save();
-
+  
         if (!newOrder) {
           return res.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .json({ success: false, message: "Something went wrong! Please try again later!" });
         }
-
+  
         // Reduce the stock for each product based on the ordered quantity
         await Promise.all(
           cart.items.map(item =>
@@ -58,7 +56,7 @@ const orderControls = {
             )
           )
         );
-
+  
         // Empty the cart after placing the order
         await Cart.findOneAndUpdate(
           { _id: cart._id },
@@ -71,16 +69,16 @@ const orderControls = {
             savings: 0,
           }
         );
-
+  
         return res.status(HttpStatus.OK)
-          .json({ success: true, message: "Order Placed!", orderId: newOrder.order_id });
+          .json({ success: true, message: "Order Placed!", orderId: newOrder._id });
       }
-      
+  
       if (paymentMethod === 'upi') {
         // Create a Razorpay order using the service function.
-        // Ensure the amount is provided in rupees (the service should handle conversion to paise if needed).
-        const razorpayOrder = await createOrder({
-          amount: cart.cart_total, // amount in rupees; conversion to paise is done inside createOrder if implemented so
+        // Ensure the amount is provided in rupees (the service handles conversion to paise)
+        const razorpayOrder = await createRazorpayOrder({
+          amount: Number(cart.cart_total), // converting to number if not already
           currency: 'INR',
           receipt: `receipt#${Date.now()}`
         });
@@ -88,14 +86,14 @@ const orderControls = {
           return res.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .json({ success: false, message: "Failed to create Razorpay order!" });
         }
-
+  
         // Map cart items to the order items format
         const items = cart.items.map(item => ({
           product: item.product,
           quantity: item.quantity,
           price: item.item_price
         }));
-
+  
         // Create a local order record with the Razorpay order id and status 'pending'
         const newOrder = new Order({
           items: items,
@@ -111,14 +109,14 @@ const orderControls = {
           status: 'pending' // Payment not yet verified
         });
         const savedOrder = await newOrder.save();
+        console.log('Order saved',savedOrder);
+        
         if (!savedOrder) {
           return res.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .json({ success: false, message: "Failed to save order!" });
         }
-
+  
         // Return the Razorpay order details and local order ID to the client.
-        // The client will use these details to open the Razorpay checkout.
-        console.log('ok');
         return res.status(HttpStatus.OK)
           .json({
             success: true,
@@ -127,10 +125,74 @@ const orderControls = {
             localOrderId: savedOrder._id
           });
       }
+  
       // Optionally, handle other payment methods here
-
+  
     } catch (err) {
       next(err);
+    }
+  },
+  verifyRazorpayPayment : async (req, res, next) => {
+    try {
+      const {
+        razorpay_payment_id,
+        razorpay_order_id,
+        razorpay_signature,
+        order_id  // local order ID you sent to the client
+      } = req.body;
+
+      const cart = await getCart(req,res,next);
+  
+      // 1) Verify signature using your existing helper
+      const isValidSignature = verifyPayment({
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature
+      });
+  
+      if (!isValidSignature) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          success: false,
+          message: 'Invalid payment signature!'
+        });
+      }
+  
+      // 2) Find the order in DB
+      const order = await Order.findById(order_id);
+      if (!order) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          success: false,
+          message: 'Order not found!'
+        });
+      }
+  
+      // 3) Update order status to 'paid' (or your desired status)
+      order.status = 'paid';
+      // Store Razorpay payment details if you like
+      order.razorpay_payment_id = razorpay_payment_id;
+      await order.save();
+      
+      // Empty the cart after placing the order
+      await Cart.findOneAndUpdate(
+        { _id: cart._id },
+        {
+          items: [],
+          cart_subtotal: 0,
+          cart_total: 0,
+          tax: 0,
+          shipping_fee: 0,
+          savings: 0,
+        }
+      );
+
+      // 4) Return success response
+      return res.json({
+        success: true,
+        message: 'Payment verified successfully!'
+      });
+  
+    } catch (error) {
+      next(error);
     }
   },
   returnOrder: async (req, res) => {

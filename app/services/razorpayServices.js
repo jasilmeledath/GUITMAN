@@ -1,6 +1,11 @@
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 
+// Verify that environment variables are set
+if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+  throw new Error("Razorpay environment variables (RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET) are not set.");
+}
+
 // Instantiate Razorpay instance using environment variables
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -18,9 +23,13 @@ const razorpayInstance = new Razorpay({
  */
 async function createOrder({ amount, currency = 'INR', receipt, payment_capture = 1 }) {
   try {
-    // Convert rupees to paise
+    // Ensure amount is a number and convert rupees to paise
+    const rupees = Number(amount);
+    if (isNaN(rupees)) {
+      throw new Error("Invalid amount provided for order creation.");
+    }
     const orderOptions = {
-      amount: amount * 100,
+      amount: rupees * 100, // conversion from rupees to paise
       currency,
       receipt,
       payment_capture,
