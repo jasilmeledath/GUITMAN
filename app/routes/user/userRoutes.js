@@ -49,7 +49,7 @@ router.get('/product-details/:id', loadPages.loadProductDetails);
 // Protected routes (require authentication)
 router.get('/home', verifyUser, loadPages.home);
 router.use('/profile', verifyUser, profileRoutes);
-router.get('/profile/:id', verifyUser, loadProfilePages.userProfile);
+router.get('/profile', verifyUser, loadProfilePages.userProfile);
 router.use('/cart', verifyUser, cartRoutes);
 
 // Logout route

@@ -7,6 +7,7 @@ const { generateUpdatedEmailOtp } = require('../../utils/emailTemplates');
 const { sendEmail } = require('../../services/emailService');
 const Address = require('../../models/addressModel');
 const DebitCard = require('../../models/debitCardModel');
+const Wishlist = require('../../models/wishlistModel');
 
 
 const profileControls = {
@@ -348,7 +349,74 @@ const profileControls = {
         } catch (err) {
             next(err)
         }
-    } 
+    },
+    addToWishList: async(req,res,next)=>{
+        try {
+            const productId = req.params.id;
+            const user = await getUser(req,res,next);
 
+            let wishlist = await Wishlist.findOne({user: user._id});
+            if(!wishlist){
+                wishlist = new Wishlist({
+                    user: user._id,
+                    items:[]
+                });
+            }
+
+            const productExists = wishlist.items.some(item => item.product.toString() === productId);
+            if(productExists){
+                return res.status(httpStatus.BAD_REQUEST)
+                .json({success: false, message: "Product already exists in you bucketlist"});
+            }
+
+            wishlist.items.push({product: productId});
+
+            await wishlist.save();
+            
+            return res.status(httpStatus.OK)
+            .json({
+                success:true,
+                message: "Product added to wishlist successfully",
+                wishlist
+            });
+
+        } catch (err) {
+            next(err);
+        }
+    },
+    removeFromWishlsit: async(req,res,next)=>{
+        async (req, res) => {
+            try {
+              const { productId } = req.params;
+              if (!productId) {
+                return res.status(httpStatus.NOT_FOUND)
+                .json({success: false, message: 'Product ID is required' });
+              }
+
+              const user = await getUser(req,res,next);
+              const userId = user._id;
+
+              if (!userId) {
+                return res.status(httpStatus.UNAUTHORIZED)
+                .json({success: false,  message: 'Unauthorized: User not found' });
+              }
+          
+
+              const updatedWishlist = await Wishlist.findOneAndUpdate(
+                { user: userId },
+                { $pull: { items: { product: productId } } },
+                { new: true }
+              );
+          
+              if (!updatedWishlist) {
+                return res.status(httpStatus.NOT_FOUND)
+                .json({ success: false, message: 'Wishlist not found' });
+              }
+              res.status(httpStatus.OK).json({success: true, message: "Item removed successfully!", updatedWishlist});
+            } catch (err) {
+                next(err);
+            }
+          }
+    } 
 }
 module.exports = profileControls;

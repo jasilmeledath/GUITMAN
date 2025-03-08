@@ -141,7 +141,7 @@ const loadPages = {
  * @param {Function} next - Next middleware function
  */
 loadShop: async (req, res, next) => {
-  try {
+  try {    
       const user = await getUser(req, res, next);
       const cart = await getCart(req, res, next);
       const numOfItemsInCart = cart?.items.length || 0;

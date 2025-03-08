@@ -491,7 +491,7 @@
                     // Check for email change notification
                     document.addEventListener('DOMContentLoaded', function() {
                         // eslint-disable-next-line
-                        const emailChange = <%= typeof emailChange !== 'undefined' && emailChange ? 'true' : 'false' %>;
+                        const emailChange = `<%= typeof emailChange !== 'undefined' && emailChange ? 'true' : 'false' %>;`
                         
                         if (emailChange) {
                             Swal.fire({

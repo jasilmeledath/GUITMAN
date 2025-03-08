@@ -158,6 +158,7 @@ const loadProfilePages = {
           user,
           currentRoute: req.path,
           numOfItemsInCart,
+          wishlist: null
         });
     } catch (err) {
       next(err);
@@ -228,8 +229,6 @@ const loadProfilePages = {
  * @param {Function} next - Express next middleware function.
  */
  orderDetails : async (req, res, next) => {
-
-  
   try {
     const orderId = req.params.orderId;
     const user = await getUser(req,res,next);
