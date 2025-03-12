@@ -15,13 +15,39 @@ const loadAdminPage = {
   login: (req, res) => {
     res.status(httpStatus.OK).render("backend/adminLogin");
   },
-
-  /**
-   * Renders the admin dashboard page.
+/**
+   * Renders the admin dashboard page with sales data and pagination.
    */
-  dashboard: (req, res) => {
-    res.status(httpStatus.OK).render("backend/dashboard");
-  },
+dashboard: async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Fetch orders for the Sales Report section (sorted by most recent)
+    const orders = await Order.find()
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('user', 'name');
+
+    const totalOrdersCount = await Order.countDocuments();
+    const totalPages = Math.ceil(totalOrdersCount / limit);
+
+    // Render the dashboard view and pass orders and pagination data to the view.
+    res.status(httpStatus.OK).render("backend/dashboard", {
+      orders,
+      pagination: {
+        page,
+        limit,
+        totalPages,
+        totalOrders: totalOrdersCount
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+},
 
   /**
    * Fetches a paginated and filtered list of users.
@@ -103,22 +129,6 @@ const loadAdminPage = {
       }
 
       res.status(httpStatus.OK).render("backend/userDetails", { user, addresses });
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  /**
-   * Loads and renders available offers.
-   *
-   * @param {Object} req - Express request object.
-   * @param {Object} res - Express response object.
-   * @param {Function} next - Express next function for error handling.
-   */
-  loadOffers: async (req, res, next) => {
-    try {
-      const offers = await Offer.find({});
-      res.status(httpStatus.OK).render("backend/offers", { offers });
     } catch (err) {
       next(err);
     }
@@ -277,13 +287,19 @@ const loadAdminPage = {
     }
   },
 
-  /**
-   * Loads and renders the offers page.
+ /**
+   * Loads and renders offers page.
+   *
+   * @param {Object} req - Express request object.
+   * @param {Object} res - Express response object.
+   * @param {Function} next - Express next function for error handling.
    */
-  offers: async (req, res, next) => {
-    try {
+  loadOffers: async (req, res, next) => {
+    try {      
       const offers = await Offer.find({});
-      res.status(httpStatus.OK).render("backend/offers", { offers });
+      const products = await Product.find({});
+      const categories = await Category.find({});
+      res.status(httpStatus.OK).render("backend/offers", { offers, products, categories });
     } catch (err) {
       next(err);
     }

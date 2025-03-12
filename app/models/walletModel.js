@@ -3,53 +3,53 @@ const mongoose = require('mongoose');
 
 // Enhanced Wallet Schema
 const walletSchema = new mongoose.Schema({
-  balance: { 
-    type: Number, 
+  balance: {
+    type: Number,
     default: 0,
-    min: 0 
+    min: 0
   },
-  user: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true,
-    unique: true 
+    unique: true
   },
-  currency: { 
-    type: String, 
+  currency: {
+    type: String,
     default: 'INR',
-    enum: ['USD', 'EUR', 'GBP', 'INR', 'CAD'] 
+    enum: ['USD', 'EUR', 'GBP', 'INR', 'CAD']
   },
-  isActive: { 
-    type: Boolean, 
-    default: true 
+  isActive: {
+    type: Boolean,
+    default: true
   },
-  history: [{ 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'TransactionDetail' 
+  history: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Transactions'
   }],
-  cards: [{ 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'DebitCard' 
+  cards: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'DebitCard'
   }],
-  lastAccessed: { 
-    type: Date, 
-    default: Date.now 
+  lastAccessed: {
+    type: Date,
+    default: Date.now
   },
-  createdAt: { 
-    type: Date, 
+  createdAt: {
+    type: Date,
     default: Date.now,
-    immutable: true 
+    immutable: true
   },
-  updatedAt: { 
-    type: Date, 
-    default: Date.now 
+  updatedAt: {
+    type: Date,
+    default: Date.now
   }
 }, {
   timestamps: true
 });
 
 // Pre-save middleware to update the updatedAt field
-walletSchema.pre('save', function(next) {
+walletSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
   next();
 });

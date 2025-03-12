@@ -630,9 +630,8 @@
                     
                     const productId = button.getAttribute("data-product-id");
                     const heartIcon = button.querySelector("svg");
-                    
                     try {
-                        const response = await fetch("/wishlist/toggle", {
+                        const response = await fetch("/profile/wishlist/toggle", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ productId })

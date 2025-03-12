@@ -2,7 +2,7 @@ const Product = require("../../models/productModel");
 const Category = require("../../models/categoryModel");
 const Offer = require("../../models/offerModel");
 const httpStatus = require("../../utils/httpStatus");
-const {adminErrors, adminSuccess} = require("../../utils/messages");
+const { adminErrors, adminSuccess } = require("../../utils/messages");
 
 const productController = {
   /**
@@ -18,7 +18,7 @@ const productController = {
   addProduct: async (req, res, next) => {
     try {
       const { product_name, description, price, category, offer, isActive, stock } = req.body;
-      const images = req.body.images; 
+      const images = req.body.images;
       const isTopModel = req.body.isTopModel === "on";
       const isActiveParsed = req.body.isActive === "on";
 
@@ -26,7 +26,7 @@ const productController = {
         product_name,
         description,
         price,
-        stock: stock || 0, 
+        stock: stock || 0,
         images,
         category,
         offer: offer || null,
@@ -74,9 +74,9 @@ const productController = {
       const productId = req.params.id;
       let product = await Product.findById(productId);
       if (!product) {
-        return res.status(httpStatus.NOT_FOUND).json({ message: adminErrors.productManagement.productNotFound});
+        return res.status(httpStatus.NOT_FOUND).json({ message: adminErrors.productManagement.productNotFound });
       }
-  
+
       if (req.body.product_name) product.product_name = req.body.product_name;
       if (req.body.description) product.description = req.body.description;
       if (req.body.price) product.price = Number(req.body.price);
@@ -87,7 +87,7 @@ const productController = {
       if (req.body.isTopModel !== undefined) {
         product.isTopModel = req.body.isTopModel === 'true';
       }
-  
+
       if (req.files && req.files.length > 0) {
         req.files.forEach((file) => {
           const match = file.fieldname.match(/images_(\d+)/);
@@ -97,11 +97,11 @@ const productController = {
           }
         });
       }
-  
+
       await product.save();
       res.status(httpStatus.OK).json({ message: adminSuccess.productManagement.productUpdated, product });
     } catch (err) {
-      next(err); 
+      next(err);
     }
   },
 
@@ -117,14 +117,14 @@ const productController = {
   addCategory: async (req, res, next) => {
     try {
       const { name, description } = req.body;
-      const image = req.file; 
-  
+      const image = req.file;
+
       if (!image) {
         return res.status(httpStatus.BAD_REQUEST).render("admin/dashboard/product/categories", {
           error: adminErrors.general.noImage
         });
       }
-  
+
       const existingCategory = await Category.findOne({
         name: { $regex: new RegExp("^" + name + "$", "i") }
       });
@@ -135,17 +135,17 @@ const productController = {
           categories,
         });
       }
-  
+
       const category = new Category({
         name,
         description,
-        image: image.path 
+        image: image.path
       });
-  
+
       await category.save();
       res.redirect("/admin/dashboard/product/categories");
     } catch (err) {
-      next(err); 
+      next(err);
     }
   },
 
@@ -162,7 +162,7 @@ const productController = {
     try {
       const categoryId = req.params.id;
       const { name, description } = req.body;
-      const image = req.file; 
+      const image = req.file;
 
       // const existingCategory = await Category.findOne({
       //   name: { $regex: new RegExp("^" + name + "$", "i") },
@@ -174,12 +174,12 @@ const productController = {
 
       const updateFields = { name, description };
       if (image) {
-        updateFields.image = `uploads/product-images/${image.filename}`; 
+        updateFields.image = `uploads/product-images/${image.filename}`;
       }
       await Category.findByIdAndUpdate(categoryId, updateFields);
       res.status(httpStatus.OK).json({ success: true, message: adminSuccess.categoryManagement.categoryUpdated });
     } catch (err) {
-      next(err); 
+      next(err);
     }
   },
 
@@ -208,7 +208,7 @@ const productController = {
         category: updatedCategory,
       });
     } catch (err) {
-      next(err); 
+      next(err);
     }
   },
 
@@ -237,7 +237,7 @@ const productController = {
         category: updatedCategory,
       });
     } catch (err) {
-      next(err); 
+      next(err);
     }
   },
 
@@ -251,22 +251,117 @@ const productController = {
    */
   addOffer: async (req, res, next) => {
     try {
-      const { offer_type, offer_percentage, offer_price, expiry_date } = req.body;
+      const {
+        offer_type,
+        offer_percentage,
+        offer_price,
+        expiry_date,
+        products,
+        categories,
+        referral_code,
+        referral_bonus
+      } = req.body;
 
+      // Validate required fields
+      if (!offer_type || !expiry_date) {
+        return res.status(400).json({
+          success: false,
+          message: 'Offer type and expiry date are required.'
+        });
+      }
+
+      // Validate non-negative numeric values for offer percentage and price
+      if (offer_percentage < 0 || offer_price < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Offer percentage and offer price cannot be negative.'
+        });
+      }
+
+      // Validate referral offer fields if offer_type is 'referral'
+      if (offer_type === 'referral') {
+        if (!referral_code || referral_code.trim() === '') {
+          return res.status(400).json({
+            success: false,
+            message: 'Referral code is required for referral offers.'
+          });
+        }
+        if (referral_bonus < 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'Referral bonus cannot be negative.'
+          });
+        }
+      }
+
+      // Create and save the new offer
       const newOffer = new Offer({
         offer_type,
         offer_percentage,
         offer_price,
         expiry_date,
+        referral_code: offer_type === 'referral' ? referral_code : undefined,
+        referral_bonus: offer_type === 'referral' ? referral_bonus : 0
       });
 
-      await newOffer.save();
-      res.status(httpStatus.OK).redirect("/admin/dashboard/offers"); 
-    } catch (err) {
-      next(err); 
+      // Attach products if offer type is 'product'
+      if (offer_type === 'product' && products) {
+        newOffer.products = Array.isArray(products) ? products : [products];
+      }
+
+      // Attach categories if offer type is 'category'
+      if (offer_type === 'category' && categories) {
+        newOffer.categories = Array.isArray(categories) ? categories : [categories];
+      }
+
+      const savedOffer = await newOffer.save();
+
+      // Update related products if offer type is 'product'
+      if (offer_type === 'product' && newOffer.products && newOffer.products.length > 0) {
+        await Product.updateMany(
+          { _id: { $in: newOffer.products } },
+          { $set: { offer: savedOffer._id } }
+        );
+      }
+
+      // Update products belonging to categories if offer type is 'category'
+      if (offer_type === 'category' && newOffer.categories && newOffer.categories.length > 0) {
+        await Product.updateMany(
+          { category: { $in: newOffer.categories } },
+          { $set: { offer: savedOffer._id } }
+        );
+      }
+
+      return res.status(201).json({
+        success: true,
+        message: 'Offer created successfully',
+        offer: savedOffer
+      });
+    } catch (error) {
+      next(error);
     }
   },
-
+  /**
+   * Toggle offer status.
+   * - Finds and removes the offer by ID.
+   *
+   * @param {Object} req - Express request object containing offer ID.
+   * @param {Object} res - Express response object confirming the deletion.
+   * @param {Function} next - Express next function for error handling.
+   */
+  toggleActiveOffer: async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { isActive } = req.body;
+      const offer = await Offer.findByIdAndUpdate(id, { isActive: isActive }, { new: true });
+      if (!offer) {
+        return res.status(httpStatus.NOT_FOUND).json({ success: false, message: "Offer not found" });
+      }
+      res.status(httpStatus.OK).json({ success: true, message: `Offer ${isActive ? 'activated' : 'deactivated'} successfully!`, offer });
+    } catch (error) {
+      next(error);
+    }
+  },
   /**
    * Deletes an offer from the database.
    * - Finds and removes the offer by ID.
@@ -288,10 +383,10 @@ const productController = {
       res.status(httpStatus.OK).json({
         success: true,
         message: 'Offer deleted successfully',
-        deletedOffer, 
+        deletedOffer,
       });
     } catch (err) {
-      next(err); 
+      next(err);
     }
   },
 };

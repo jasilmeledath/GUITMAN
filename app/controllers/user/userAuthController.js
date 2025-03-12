@@ -13,10 +13,7 @@ const {
 const { sendEmail } = require("../../services/emailService");
 const httpStatus = require("../../utils/httpStatus");
 const {userErrors, userSuccess}= require("../../utils/messages");
-const { resetPassword } = require("./loadPages");
-const { NOTFOUND } = require("dns");
-const { ok } = require("assert");
-
+const createWallet = require('../../helpers/createWallet');
 
 const userAuth = {
 
@@ -77,7 +74,11 @@ const userAuth = {
         emailContent.html
       );
 
-      res.status(httpStatus.OK).json({ success: true, email });
+      req.user = user
+      await createWallet(req,res,next);
+
+      
+     return res.status(httpStatus.OK).json({ success: true, email });
     } catch (err) {
       next(err);
     }

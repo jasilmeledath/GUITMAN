@@ -1,8 +1,17 @@
 const mongoose = require('mongoose');
-const { v4: uuidv4 } = require('uuid');
+
+// Custom function to generate a 12-character random string (letters and digits)
+const generateShortOrderId = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let orderId = '';
+  for (let i = 0; i < 12; i++) {
+    orderId += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return orderId;
+};
 
 const orderSchema = new mongoose.Schema({
-  order_id: { type: String, required: true, default: () => uuidv4() },
+  order_id: { type: String, required: true, default: generateShortOrderId },
   items: [
     {
       product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },

@@ -367,53 +367,6 @@
                             </script>
 
                             <!-- Email Settings Section -->
-                            <% if(user.password){ %>
-                            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                                <h2 class="text-lg font-medium mb-4">Email Settings</h2>
-                                <div class="space-y-4">
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <p class="text-sm font-medium text-gray-900">
-                                                <%= user.email %>
-                                            </p>
-                                            <p class="text-sm text-gray-500">Your current email address</p>
-                                        </div>
-                                        <button type="button" id="change-email-btn" 
-                                            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                            Change Email
-                                        </button>
-                                        <script>
-                                            const changeEmailBtn = document.getElementById('change-email-btn');
-                                            changeEmailBtn.addEventListener('click', () =>{
-                                                window.location.href ='/profile/update-email';
-                                            })
-                                        </script>
-                                    </div>
-                                </div>
-                            </div>
-                            <% } else { %>
-                                <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                                    <h2 class="text-lg font-medium mb-4">Email Settings</h2>
-                                    <div class="space-y-4">
-                                      <div class="flex items-center justify-between">
-                                        <div>
-                                          <p class="text-sm font-medium text-gray-900">
-                                            <%= user.email %>
-                                          </p>
-                                          <p class="text-sm text-gray-500">Your current email address</p>
-                                        </div>
-                                        <div class="flex flex-col items-end">
-                                          <button type="button" id="change-email-btn" 
-                                                  class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                                                  disabled>
-                                            Change Email
-                                          </button>
-                                          <p class="mt-2 text-xs text-red-500">Please update your password first to change your email.</p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                            <% } %>                                  
 
                             <!-- Password Section -->
                             <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -487,33 +440,6 @@
             </div>
             <%- include('./partials/footer') %>
 
-                <script>
-                    // Check for email change notification
-                    document.addEventListener('DOMContentLoaded', function() {
-                        // eslint-disable-next-line
-                        const emailChange = `<%= typeof emailChange !== 'undefined' && emailChange ? 'true' : 'false' %>;`
-                        
-                        if (emailChange) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Email Updated!',
-                                text: 'Your email address has been successfully changed.',
-                                confirmButtonColor: '#4f46e5'
-                            });
-                        }
-                        
-                        // Preview profile image before upload
-                        document.getElementById('profile-image').addEventListener('change', function (e) {
-                            if (e.target.files && e.target.files[0]) {
-                                const reader = new FileReader();
-                                reader.onload = function (e) {
-                                    document.querySelector('img[alt="Profile"]').src = e.target.result;
-                                };
-                                reader.readAsDataURL(e.target.files[0]);
-                            }
-                        });
-                    });
-                </script>
 </body>
 
 </html>

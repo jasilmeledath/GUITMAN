@@ -44,7 +44,8 @@
       }
       .transaction-item:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                    0 2px 4px -1px rgba(0, 0, 0, 0.06);
       }
     </style>
   </head>
@@ -64,7 +65,6 @@
 
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Wallet Balance Card -->
-             
             <div class="lg:col-span-1">
               <div class="bg-white overflow-hidden shadow-sm rounded-xl">
                 <div class="p-6">
@@ -72,7 +72,9 @@
                   <div class="flex items-center justify-between">
                     <div>
                       <p class="text-sm text-gray-500">Available Balance</p>
-                      <p class="text-3xl font-bold text-gray-900">₹1,250.00</p>
+                      <p class="text-3xl font-bold text-gray-900">
+                        ₹<%= wallet ? wallet.balance.toFixed(2) : '0.00' %>
+                      </p>
                     </div>
                     <div class="bg-primary-100 p-3 rounded-full">
                       <i class="fas fa-wallet text-primary-600 text-xl"></i>
@@ -310,7 +312,7 @@
                           newCard.id = data.cardId || Date.now();
                           this.cards.push(newCard);
                           this.closeModal();
-                          window.location.reload
+                          window.location.reload();
                         } else {
                           Swal.fire({
                             title: 'Error',
@@ -374,175 +376,42 @@
                     </div>
                   </div>
 
-                  <!-- Transactions List -->
+                  <!-- Dynamic Transactions List -->
                   <div class="space-y-4">
-                    <!-- Today -->
-                    <div>
-                      <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Today</h3>
-                      
-                      <div class="space-y-3">
+                    <% if (wallet && wallet.history && wallet.history.length > 0) { %>
+                      <% wallet.history.forEach(function(transaction) { %>
                         <div class="bg-white border border-gray-100 rounded-lg p-4 transition-all duration-200 ease-in-out transaction-item">
                           <div class="flex items-center justify-between">
                             <div class="flex items-center">
-                              <div class="flex-shrink-0 bg-green-100 rounded-full p-2">
-                                <i class="fas fa-arrow-down text-green-600 text-sm"></i>
+                              <div class="flex-shrink-0 rounded-full p-2 <% if (transaction.transaction_type.toLowerCase() === 'deposit') { %>bg-green-100<% } else { %>bg-red-100<% } %>">
+                                <% if (transaction.transaction_type.toLowerCase() === 'deposit') { %>
+                                  <i class="fas fa-arrow-down text-green-600 text-sm"></i>
+                                <% } else { %>
+                                  <i class="fas fa-shopping-bag text-red-600 text-sm"></i>
+                                <% } %>
                               </div>
                               <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-900">Deposit from Bank Account</p>
-                                <p class="text-xs text-gray-500">Today, 10:45 AM</p>
+                                <p class="text-sm font-medium text-gray-900"><%= transaction.description %></p>
+                                <p class="text-xs text-gray-500"><%= new Date(transaction.date).toLocaleString() %></p>
                               </div>
                             </div>
                             <div class="text-right">
-                              <p class="text-sm font-semibold text-green-600">+$500.00</p>
+                              <% if (transaction.transaction_type.toLowerCase() === 'deposit') { %>
+                                <p class="text-sm font-semibold text-green-600">+₹<%= transaction.amount.toFixed(2) %></p>
+                              <% } else { %>
+                                <p class="text-sm font-semibold text-red-600">-₹<%= transaction.amount.toFixed(2) %></p>
+                              <% } %>
                               <p class="text-xs text-gray-500">Completed</p>
                             </div>
                           </div>
                         </div>
-
-                        <div class="bg-white border border-gray-100 rounded-lg p-4 transition-all duration-200 ease-in-out transaction-item">
-                          <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                              <div class="flex-shrink-0 bg-red-100 rounded-full p-2">
-                                <i class="fas fa-shopping-bag text-red-600 text-sm"></i>
-                              </div>
-                              <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-900">Purchase - Wireless Headphones</p>
-                                <p class="text-xs text-gray-500">Today, 09:15 AM</p>
-                              </div>
-                            </div>
-                            <div class="text-right">
-                              <p class="text-sm font-semibold text-red-600">-$129.99</p>
-                              <p class="text-xs text-gray-500">Completed</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Yesterday -->
-                    <div>
-                      <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Yesterday</h3>
-                      
-                      <div class="space-y-3">
-                        <div class="bg-white border border-gray-100 rounded-lg p-4 transition-all duration-200 ease-in-out transaction-item">
-                          <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                              <div class="flex-shrink-0 bg-green-100 rounded-full p-2">
-                                <i class="fas fa-undo text-green-600 text-sm"></i>
-                              </div>
-                              <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-900">Refund - Smart Watch</p>
-                                <p class="text-xs text-gray-500">Yesterday, 4:30 PM</p>
-                              </div>
-                            </div>
-                            <div class="text-right">
-                              <p class="text-sm font-semibold text-green-600">+$199.99</p>
-                              <p class="text-xs text-gray-500">Completed</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="bg-white border border-gray-100 rounded-lg p-4 transition-all duration-200 ease-in-out transaction-item">
-                          <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                              <div class="flex-shrink-0 bg-red-100 rounded-full p-2">
-                                <i class="fas fa-shopping-bag text-red-600 text-sm"></i>
-                              </div>
-                              <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-900">Purchase - Bluetooth Speaker</p>
-                                <p class="text-xs text-gray-500">Yesterday, 2:15 PM</p>
-                              </div>
-                            </div>
-                            <div class="text-right">
-                              <p class="text-sm font-semibold text-red-600">-$79.99</p>
-                              <p class="text-xs text-gray-500">Completed</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="bg-white border border-gray-100 rounded-lg p-4 transition-all duration-200 ease-in-out transaction-item">
-                          <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                              <div class="flex-shrink-0 bg-red-100 rounded-full p-2">
-                                <i class="fas fa-arrow-up text-red-600 text-sm"></i>
-                              </div>
-                              <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-900">Withdrawal to Bank Account</p>
-                                <p class="text-xs text-gray-500">Yesterday, 11:30 AM</p>
-                              </div>
-                            </div>
-                            <div class="text-right">
-                              <p class="text-sm font-semibold text-red-600">-$300.00</p>
-                              <p class="text-xs text-gray-500">Completed</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Last Week -->
-                    <div>
-                      <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Last Week</h3>
-                      
-                      <div class="space-y-3">
-                        <div class="bg-white border border-gray-100 rounded-lg p-4 transition-all duration-200 ease-in-out transaction-item">
-                          <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                              <div class="flex-shrink-0 bg-green-100 rounded-full p-2">
-                                <i class="fas fa-gift text-green-600 text-sm"></i>
-                              </div>
-                              <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-900">Reward Points Redeemed</p>
-                                <p class="text-xs text-gray-500">Jun 15, 2023, 3:45 PM</p>
-                              </div>
-                            </div>
-                            <div class="text-right">
-                              <p class="text-sm font-semibold text-green-600">+$25.00</p>
-                              <p class="text-xs text-gray-500">Completed</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="bg-white border border-gray-100 rounded-lg p-4 transition-all duration-200 ease-in-out transaction-item">
-                          <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                              <div class="flex-shrink-0 bg-red-100 rounded-full p-2">
-                                <i class="fas fa-shopping-bag text-red-600 text-sm"></i>
-                              </div>
-                              <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-900">Purchase - Smartphone Case</p>
-                                <p class="text-xs text-gray-500">Jun 14, 2023, 1:20 PM</p>
-                              </div>
-                            </div>
-                            <div class="text-right">
-                              <p class="text-sm font-semibold text-red-600">-$19.99</p>
-                              <p class="text-xs text-gray-500">Completed</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="bg-white border border-gray-100 rounded-lg p-4 transition-all duration-200 ease-in-out transaction-item">
-                          <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                              <div class="flex-shrink-0 bg-green-100 rounded-full p-2">
-                                <i class="fas fa-arrow-down text-green-600 text-sm"></i>
-                              </div>
-                              <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-900">Deposit from Credit Card</p>
-                                <p class="text-xs text-gray-500">Jun 12, 2023, 10:10 AM</p>
-                              </div>
-                            </div>
-                            <div class="text-right">
-                              <p class="text-sm font-semibold text-green-600">+$750.00</p>
-                              <p class="text-xs text-gray-500">Completed</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                      <% }); %>
+                    <% } else { %>
+                      <p class="text-center text-gray-500">No transactions found.</p>
+                    <% } %>
                   </div>
 
-                  <!-- Pagination -->
+                  <!-- Pagination (Static Example) -->
                   <div class="mt-6 flex items-center justify-between border-t border-gray-200 pt-4">
                     <div class="flex flex-1 justify-between sm:hidden">
                       <a href="#" class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Previous</a>

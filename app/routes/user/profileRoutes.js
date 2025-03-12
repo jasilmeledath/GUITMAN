@@ -25,6 +25,9 @@ router.delete('/address-delete', profileControls.deleteAddress);
 router.post('/card-add', profileControls.addCard);
 router.get('/order-details/:orderId', loadProfilePages.orderDetails);
 router.post('/submit-review', orderControls.submitReview);
+router.post('/wishlist/toggle', profileControls.toggleWishList);
+router.delete('/wishlist/remove',profileControls.removeFromWishlist);
+
 
 
 module.exports = router;

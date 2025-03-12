@@ -156,7 +156,7 @@
               <div class="wishlist-item bg-white rounded-xl border border-purple-100 shadow-sm overflow-hidden animate-fade-in" 
                    id="wishlist-item-<%= productId %>" data-product-id="<%= productId %>">
                 <!-- Product Image -->
-                <div class="relative h-48 overflow-hidden bg-purple-50">
+                <div class="relative h-48 overflow-hidden bg-white-50">
                   <a href="/product-details/<%= productId %>">
                     <img src="/<%= product && product.images ? product.images[0] : 'default-image.png' %>" 
                          alt="<%= product && product.product_name ? product.product_name : 'Product' %>" 
@@ -251,91 +251,6 @@
             </a>
           </div>
         <% } %>
-      </div>
-
-      <!-- Recently Viewed Section -->
-      <% //if (recentlyViewed && recentlyViewed.length > 0) { %>
-        // <div class="mt-16 mb-8">
-        //   <h2 class="text-2xl font-bold text-purple-900 mb-6">Recently Viewed</h2>
-        //   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="recently-viewed-container">
-        //     <%// recentlyViewed.forEach(product => { %>
-        //       <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-purple-100">
-        //         <div class="relative h-40 overflow-hidden bg-purple-50 rounded-lg mb-4">
-        //           <a href="/product-details/<%=// product._id %>">
-        //             <img src="/<%=// product.images[0] %>" 
-        //                  alt="<%=// product.product_name %>" 
-        //                  class="w-full h-full object-contain p-2 transition-transform duration-300 hover:scale-105" />
-        //           </a>
-        //           <button class="add-to-wishlist absolute top-2 right-2 p-2 bg-white rounded-full shadow-sm hover:bg-purple-50 transition-colors duration-200"
-        //                   data-product-id="<%// product._id %>">
-        //             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        //               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-        //                     d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-        //             </svg>
-        //           </button>
-        //         </div>
-        //         <a href="/product-details/<%=// product._id %>">
-        //           <h3 class="font-semibold text-gray-900 mb-2 hover:text-purple-700 transition-colors duration-200 line-clamp-2">
-        //             <%=// product.product_name %>
-        //           </h3>
-        //         </a>
-        //         <div class="flex items-center justify-between">
-        //           <p class="text-lg font-bold text-purple-700">₹<%=// product.price.toLocaleString('en-IN') %></p>
-        //           <button class="add-to-cart-btn p-2 bg-purple-100 rounded-full hover:bg-purple-200 transition-colors duration-200"
-        //                   data-product-id="<%=// product._id %>">
-        //             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        //               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-        //                     d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-        //             </svg>
-        //           </button>
-        //         </div>
-        //       </div>
-        //     <%// }); %>
-        //   </div>
-        // </div>
-      <% //} %>
-
-      <!-- Recommended Products Section -->
-      <% //if (recommendedProducts && recommendedProducts.length > 0) { %>
-        <div class="mt-16 mb-8">
-          <h2 class="text-2xl font-bold text-purple-900 mb-6">You Might Also Like</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="recommended-products-container">
-            <%// recommendedProducts.forEach(product => { %>
-              <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-purple-100">
-                <div class="relative h-40 overflow-hidden bg-purple-50 rounded-lg mb-4">
-                  <a href="/product-details/<%=// product._id %>">
-                    <img src="/<%=// product.images[0] %>" 
-                         alt="<%=// product.product_name %>" 
-                         class="w-full h-full object-contain p-2 transition-transform duration-300 hover:scale-105" />
-                  </a>
-                  <button class="add-to-wishlist absolute top-2 right-2 p-2 bg-white rounded-full shadow-sm hover:bg-purple-50 transition-colors duration-200"
-                          data-product-id="<%=// product._id %>">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                  </button>
-                </div>
-                <a href="/product-details/<%=// product._id %>">
-                  <h3 class="font-semibold text-gray-900 mb-2 hover:text-purple-700 transition-colors duration-200 line-clamp-2">
-                    <%=// product.product_name %>
-                  </h3>
-                </a>
-                <div class="flex items-center justify-between">
-                  <p class="text-lg font-bold text-purple-700">₹<%=// product.price.toLocaleString('en-IN') %></p>
-                  <button class="add-to-cart-btn p-2 bg-purple-100 rounded-full hover:bg-purple-200 transition-colors duration-200"
-                          data-product-id="<%=// product._id %>">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            <% //}); %>
-          </div>
-        </div>
-      <%// } %>
     </div>
   </main>
 
@@ -444,8 +359,9 @@
       function removeFromWishlist(productId) {
         // Show mini loader in the button
         const button = document.querySelector(`.remove-from-wishlist[data-product-id="${productId}"]`);
+        let originalContent;
         if (button) {
-          const originalContent = button.innerHTML;
+          originalContent = button.innerHTML;
           button.innerHTML = '<div class="mini-loader"></div>';
           button.disabled = true;
         }

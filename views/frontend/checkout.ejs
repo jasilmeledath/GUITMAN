@@ -78,6 +78,38 @@
     @apply border-primary-600 ring-2 ring-primary-600/20;
   }
 
+  /* Coupon badge styles */
+  .coupon-badge {
+    @apply flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-green-100 text-green-800;
+  }
+
+  /* Spinner animation */
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+
+  /* Fade in animation */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  /* Shake animation for error */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+  }
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+
   </style>
 </head>
 <body class="bg-gray-50">
@@ -166,32 +198,44 @@
 
           <!-- Coupon Section -->
           <div class="mt-6 border-t border-gray-100 pt-6">
-            <div class="flex items-center">
-              <div class="flex-grow relative">
-                <input 
-                  type="text" 
-                  id="coupon-code"
-                  placeholder="Enter coupon code" 
-                  class="pl-3 pr-10 py-2.5 w-full border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-sm"
-                >
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <i class="fas fa-tag text-gray-400"></i>
+            <div id="coupon-container">
+              <!-- Coupon input form (shown when no coupon is applied) -->
+              <div id="coupon-input-container" class="<%= cart && cart.coupon ? 'hidden' : '' %>">
+                <div class="flex items-center">
+                  <div class="flex-grow relative">
+                    <input 
+                      type="text" 
+                      id="coupon-code"
+                      placeholder="Enter coupon code" 
+                      class="pl-3 pr-10 py-2.5 w-full border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                    >
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <i class="fas fa-tag text-gray-400"></i>
+                    </div>
+                  </div>
+                  <button id="apply-coupon" class="bg-primary-600 text-white px-4 py-2.5 rounded-r-md hover:bg-primary-700 transition-colors text-sm font-medium flex items-center">
+                    <span>Apply</span>
+                  </button>
                 </div>
+                <div id="coupon-error" class="mt-2 text-sm text-red-600 hidden"></div>
               </div>
-              <button id="apply-coupon" class="bg-primary-600 text-white px-4 py-2.5 rounded-r-md hover:bg-primary-700 transition-colors text-sm font-medium flex items-center">
-                <span>Apply</span>
-              </button>
-            </div>
-            
-            <!-- Active coupon example (hidden by default) -->
-            <div id="active-coupon" class="mt-3 bg-green-50 border border-green-200 rounded-md p-3 flex justify-between items-center hidden">
-              <div class="flex items-center">
-                <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                <span class="text-sm text-green-800 font-medium">WELCOME10 applied!</span>
+              
+              <!-- Active coupon display (shown when a coupon is applied) -->
+              <div id="active-coupon" class="<%= cart && cart.coupon ? '' : 'hidden' %> mt-3 bg-green-50 border border-green-200 rounded-md p-3 flex justify-between items-center animate-fade-in">
+                <div class="flex items-center">
+                  <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                  <span class="text-sm text-green-800 font-medium">
+                    <% if (cart && cart.coupon) { %>
+                      <%= cart.coupon.code %> applied!
+                    <% } else { %>
+                      Coupon applied!
+                    <% } %>
+                  </span>
+                </div>
+                <button id="remove-coupon" class="text-xs text-red-600 hover:text-red-800">
+                  <i class="fas fa-times"></i>
+                </button>
               </div>
-              <button class="text-xs text-red-600 hover:text-red-800">
-                <i class="fas fa-times"></i>
-              </button>
             </div>
           </div>
 
@@ -199,29 +243,39 @@
           <div class="mt-6 space-y-3 bg-gray-50 p-4 rounded-lg">
             <div class="flex justify-between">
               <span class="text-sm text-gray-600">Subtotal</span>
-              <span class="text-sm font-medium text-gray-900">₹<%= cartTotals.subtotal.toFixed(2) %></span>
+              <span id="cart-subtotal" class="text-sm font-medium text-gray-900">₹<%= cartTotals.subtotal.toFixed(2) %></span>
             </div>
             <div class="flex justify-between">
               <span class="text-sm text-gray-600">Shipping</span>
               <% if (cartTotals.shipping > 0) { %>
-                <span class="text-sm font-medium text-gray-900">₹<%= cartTotals.shipping.toFixed(2) %></span>
+                <span id="cart-shipping" class="text-sm font-medium text-gray-900">₹<%= cartTotals.shipping.toFixed(2) %></span>
               <% } else { %>
-                <span class="text-sm font-medium text-green-600">Free</span>
+                <span id="cart-shipping" class="text-sm font-medium text-green-600">Free</span>
               <% } %>
             </div>
             <div class="flex justify-between">
               <span class="text-sm text-gray-600">Tax</span>
-              <span class="text-sm font-medium text-gray-900">₹<%= cartTotals.tax.toFixed(2) %></span>
+              <span id="cart-tax" class="text-sm font-medium text-gray-900">₹<%= cartTotals.tax.toFixed(2) %></span>
             </div>
-            <% if (cartTotals.discount && cartTotals.discount > 0) { %>
-              <div class="flex justify-between text-green-600">
-                <span class="text-sm">Discount</span>
-                <span class="text-sm font-medium">-₹<%= cartTotals.discount.toFixed(2) %></span>
-              </div>
-            <% } %>
+            
+            <!-- Coupon discount row (conditionally shown) -->
+            <div id="discount-row" class="flex justify-between text-green-600 <%= cart && cart.coupon && cartTotals.discount > 0 ? '' : 'hidden' %>">
+              <span class="text-sm flex items-center">
+                <i class="fas fa-tag text-green-500 mr-1"></i>
+                Discount
+              </span>
+              <span id="cart-discount" class="text-sm font-medium">
+                <% if (cartTotals.discount && cartTotals.discount > 0) { %>
+                  -₹<%= cartTotals.discount.toFixed(2) %>
+                <% } else { %>
+                  -₹0.00
+                <% } %>
+              </span>
+            </div>
+            
             <div class="flex justify-between pt-3 border-t border-gray-200">
               <span class="text-base font-medium text-gray-900">Total</span>
-              <span class="text-base font-bold text-primary-600">₹<%= cartTotals.total.toFixed(2) %></span>
+              <span id="cart-total" class="text-base font-bold text-primary-600">₹<%= cartTotals.total.toFixed(2) %></span>
             </div>
           </div>
 
@@ -636,12 +690,6 @@
         alertEl.classList.add('translate-x-full');
       };
   
-      // Replace existing alert calls
-      const originalAlert = window.alert;
-      window.alert = function(message) {
-        showAlert(message);
-      };
-  
       // Link click loading
       const links = document.querySelectorAll("a");
       links.forEach(link => {
@@ -766,25 +814,195 @@
         });
       }
   
-      // Coupon code functionality
+      // UPDATED: Coupon code functionality with backend integration
       const applyCouponBtn = document.getElementById('apply-coupon');
       const couponInput = document.getElementById('coupon-code');
       const activeCoupon = document.getElementById('active-coupon');
-      if (applyCouponBtn && couponInput && activeCoupon) {
-        applyCouponBtn.addEventListener('click', function() {
-          if (couponInput.value.trim() !== '') {
-            activeCoupon.classList.remove('hidden');
-            // Here you would typically make an AJAX call to validate the coupon
+      const couponInputContainer = document.getElementById('coupon-input-container');
+      const couponError = document.getElementById('coupon-error');
+      const removeCouponBtn = document.getElementById('remove-coupon');
+      const discountRow = document.getElementById('discount-row');
+      const cartDiscount = document.getElementById('cart-discount');
+      const cartTotal = document.getElementById('cart-total');
+      
+      if (applyCouponBtn && couponInput && activeCoupon && removeCouponBtn) {
+        // Apply coupon
+        applyCouponBtn.addEventListener('click', async function() {
+          const couponCode = couponInput.value.trim();
+          
+          // Validate coupon code
+          if (!couponCode) {
+            couponError.textContent = 'Please enter a coupon code';
+            couponError.classList.remove('hidden');
+            couponInput.classList.add('border-red-500');
+            couponInput.focus();
+            return;
+          }
+          
+          // Hide previous error
+          couponError.classList.add('hidden');
+          couponInput.classList.remove('border-red-500');
+          
+          // Show loading state
+          const originalBtnText = applyCouponBtn.innerHTML;
+          applyCouponBtn.disabled = true;
+          applyCouponBtn.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Applying...
+          `;
+          
+          try {
+            // Make API call to apply coupon
+            const response = await fetch('/cart/apply-coupon', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+              },
+              body: JSON.stringify({ couponCode })
+            });
+            
+            // Parse response
+            const data = await response.json();
+            
+            // Reset button state
+            applyCouponBtn.disabled = false;
+            applyCouponBtn.innerHTML = originalBtnText;
+            
+            if (data.success) {
+              // Show success message
+              showAlert(data.message || 'Coupon applied successfully!', 'success');
+              
+              // Update UI to show applied coupon
+              couponInputContainer.classList.add('hidden');
+              
+              // Update active coupon text
+              const couponText = activeCoupon.querySelector('span');
+              if (couponText) {
+                couponText.textContent = `${data.coupon.code} applied!`;
+              }
+              
+              // Show active coupon badge
+              activeCoupon.classList.remove('hidden');
+              
+              // Update discount row
+              if (data.discount > 0) {
+                discountRow.classList.remove('hidden');
+                cartDiscount.textContent = `-₹${data.discount.toFixed(2)}`;
+              }
+              
+              // Update cart total
+              if (cartTotal && data.total) {
+                cartTotal.textContent = `₹${data.total.toFixed(2)}`;
+                // Add highlight animation
+                cartTotal.classList.add('animate-pulse');
+                setTimeout(() => {
+                  cartTotal.classList.remove('animate-pulse');
+                }, 1000);
+              }
+            } else {
+              // Show error message
+              couponError.textContent = data.message || 'Invalid coupon code';
+              couponError.classList.remove('hidden');
+              couponInput.classList.add('border-red-500');
+              couponInput.classList.add('animate-shake');
+              setTimeout(() => {
+                couponInput.classList.remove('animate-shake');
+              }, 500);
+            }
+          } catch (error) {
+            // Reset button state
+            applyCouponBtn.disabled = false;
+            applyCouponBtn.innerHTML = originalBtnText;
+            
+            // Show error message
+            couponError.textContent = 'Network error. Please try again.';
+            couponError.classList.remove('hidden');
           }
         });
-        // Remove coupon when clicking the X button
-        const removeCouponBtn = activeCoupon.querySelector('button');
-        if (removeCouponBtn) {
-          removeCouponBtn.addEventListener('click', function() {
-            activeCoupon.classList.add('hidden');
-            couponInput.value = '';
-          });
-        }
+        
+        // Remove coupon
+        removeCouponBtn.addEventListener('click', async function() {
+          // Show loading state
+          const originalBtnText = removeCouponBtn.innerHTML;
+          removeCouponBtn.disabled = true;
+          removeCouponBtn.innerHTML = `
+            <svg class="animate-spin h-4 w-4 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          `;
+          
+          try {
+            // Make API call to remove coupon
+            const response = await fetch('/cart/remove-coupon', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+              }
+            });
+            
+            // Parse response
+            const data = await response.json();
+            
+            // Reset button state
+            removeCouponBtn.disabled = false;
+            removeCouponBtn.innerHTML = originalBtnText;
+            
+            if (data.success) {
+              // Show success message
+              showAlert(data.message || 'Coupon removed successfully!', 'success');
+              
+              // Update UI to hide applied coupon
+              activeCoupon.classList.add('hidden');
+              couponInputContainer.classList.remove('hidden');
+              
+              // Clear coupon input
+              couponInput.value = '';
+              
+              // Hide discount row
+              discountRow.classList.add('hidden');
+              
+              // Update cart total
+              if (cartTotal && data.total) {
+                cartTotal.textContent = `₹${data.total.toFixed(2)}`;
+                // Add highlight animation
+                cartTotal.classList.add('animate-pulse');
+                setTimeout(() => {
+                  cartTotal.classList.remove('animate-pulse');
+                }, 1000);
+              }
+            } else {
+              // Show error message
+              showAlert(data.message || 'Failed to remove coupon', 'error');
+            }
+          } catch (error) {
+            // Reset button state
+            removeCouponBtn.disabled = false;
+            removeCouponBtn.innerHTML = originalBtnText;
+            
+            // Show error message
+            showAlert('Network error. Please try again.', 'error');
+          }
+        });
+        
+        // Add keyboard support for coupon input
+        couponInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            applyCouponBtn.click();
+          }
+        });
+        
+        // Clear error when typing in coupon input
+        couponInput.addEventListener('input', function() {
+          couponError.classList.add('hidden');
+          couponInput.classList.remove('border-red-500');
+        });
       }
   
       // Place order button loading state with prevention of multiple calls
@@ -837,14 +1055,15 @@
             }
   
             // Get coupon code if applied
-            const couponCode = document.getElementById('coupon-code').value;
+            const couponCode = activeCoupon.classList.contains('hidden') ? null : 
+                              document.querySelector('#active-coupon span')?.textContent.split(' ')[0] || null;
   
             // Prepare order data
             const orderData = {
               addressId: selectedAddress.value,
               paymentMethod: selectedPayment.value,
               cardDetails: cardDetails,
-              couponCode: couponCode || null
+              couponCode: couponCode
             };
   
             // Send order to backend

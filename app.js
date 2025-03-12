@@ -55,6 +55,7 @@ app.use((req, res, next) => {
 // Custom middleware
 app.use(redirectIfAdminLoggedIn);
 
+
 // Routes
 app.use("/", userRoutes);
 app.use("/admin", adminRoutes);
@@ -101,7 +102,17 @@ app.use((err, req, res, next) => {
 // Start server
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-  console.log(`GuitMan is live on port: ${PORT}`);
+  const timestamp = new Date().toISOString();
+  const environment = process.env.NODE_ENV || 'development';
+  
+  console.log('\n\x1b[36m%s\x1b[0m', '==================================================');
+  console.log('\x1b[1m%s\x1b[0m', `  🎸 GUITMAN SERVER`);
+  console.log('\x1b[36m%s\x1b[0m', '--------------------------------------------------');
+  console.log(`  📅 Timestamp:   \x1b[33m${timestamp}\x1b[0m`);
+  console.log(`  🌐 Server URL:  \x1b[33mhttp://localhost:${PORT}\x1b[0m`);
+  console.log(`  🔌 Port:        \x1b[33m${PORT}\x1b[0m`);
+  console.log(`  ⚙️  Environment: \x1b[33m${environment}\x1b[0m`);
+  console.log('\x1b[36m%s\x1b[0m', '==================================================\n');
 });
 // const PORT = process.env.PORT || 8080;
 // app.listen(PORT, '172.20.10.4', () => {

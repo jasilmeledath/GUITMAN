@@ -6,6 +6,10 @@
     <link rel="shortcut icon" type="image/x-icon" href="/backend/imgs/theme/favicon.svg">
     <!-- Template CSS -->
     <link href="/backend/css/main.css" rel="stylesheet" type="text/css" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <body>
     <div id="notification" class="fixed top-4 right-4 z-50 hidden px-6 py-4 rounded-lg shadow-lg text-white font-medium"></div>
@@ -26,29 +30,69 @@
             <div class="card">
                 <div class="card-body">
                     <div class="row">
+                        <!-- Offer Creation Form -->
                         <div class="col-md-3">
-                            <form action="/admin/dashboard/product/add-product" method="POST">
+                            <form id="offerForm">
                                 <div class="mb-4">
                                     <label for="offer_type" class="form-label">Offer Type</label>
-                                    <input type="text" name="offer_type" placeholder="Type here" class="form-control" id="offer_type" required />
+                                    <select name="offer_type" class="form-control" id="offer_type" required>
+                                        <option value="">Select Offer Type</option>
+                                        <option value="product">Product</option>
+                                        <option value="category">Category</option>
+                                        <option value="referral">Referral</option>
+                                        <option value="other">Other</option>
+                                    </select>
                                 </div>
                                 <div class="mb-4">
                                     <label for="offer_percentage" class="form-label">Offer Percentage</label>
-                                    <input type="number" name="offer_percentage" placeholder="Type here" class="form-control" id="offer_percentage" />
+                                    <input type="number" name="offer_percentage" placeholder="Type here" class="form-control" id="offer_percentage" required />
                                 </div>
                                 <div class="mb-4">
                                     <label for="offer_price" class="form-label">Offer Price</label>
-                                    <input type="number" name="offer_price" placeholder="Type here" class="form-control" id="offer_price" />
+                                    <input type="number" name="offer_price" placeholder="Type here" class="form-control" id="offer_price" required />
                                 </div>
                                 <div class="mb-4">
                                     <label for="expiry_date" class="form-label">Expiry Date</label>
                                     <input type="date" name="expiry_date" class="form-control" id="expiry_date" required />
+                                </div>
+                                <div class="mb-4" id="productSelection" style="display:none;">
+                                    <label for="products" class="form-label">Products</label>
+                                    <select name="products" id="products" class="form-control" multiple>
+                                        <% if (products && products.length > 0) { %>
+                                            <% products.forEach(function(product) { %>
+                                                <option value="<%= product._id %>"><%= product.product_name %></option>
+                                            <% }); %>
+                                        <% } else { %>
+                                            <option value="">No products available</option>
+                                        <% } %>
+                                    </select>
+                                </div>
+                                <div class="mb-4" id="categorySelection" style="display:none;">
+                                    <label for="categories" class="form-label">Categories</label>
+                                    <select name="categories" id="categories" class="form-control" multiple>
+                                        <% if (categories && categories.length > 0) { %>
+                                            <% categories.forEach(function(category) { %>
+                                                <option value="<%= category._id %>"><%= category.name %></option>
+                                            <% }); %>
+                                        <% } else { %>
+                                            <option value="">No categories available</option>
+                                        <% } %>
+                                    </select>
+                                </div>
+                                <div class="mb-4" id="referralFields" style="display:none;">
+                                    <label for="referral_code" class="form-label">Referral Code</label>
+                                    <input type="text" name="referral_code" placeholder="Enter referral code" class="form-control" id="referral_code" />
+                                </div>
+                                <div class="mb-4" id="referralBonus" style="display:none;">
+                                    <label for="referral_bonus" class="form-label">Referral Bonus</label>
+                                    <input type="number" name="referral_bonus" placeholder="Enter referral bonus" class="form-control" id="referral_bonus" min="0" />
                                 </div>
                                 <div class="d-grid">
                                     <button type="submit" class="btn btn-primary">Create Offer</button>
                                 </div>
                             </form>
                         </div>
+                        <!-- Offer Listing Table -->
                         <div class="col-md-9">
                             <div class="table-responsive">
                                 <table class="table table-hover">
@@ -60,10 +104,11 @@
                                                 </div>
                                             </th>
                                             <th>ID</th>
-                                            <th>Type</th>
+                                            <th>Offer Type</th>
                                             <th>Percentage</th>
                                             <th>Price</th>
                                             <th>Expiry Date</th>
+                                            <th>Status</th>
                                             <th class="text-end">Action</th>
                                         </tr>
                                     </thead>
@@ -78,17 +123,21 @@
                                                 <td><%= index + 1 %></td>
                                                 <td><b><%= offer.offer_type %></b></td>
                                                 <td><%= offer.offer_percentage %> %</td>
-                                                <td>$<%= offer.offer_price %></td>
-                                                <td><%= offer.expiry_date.toDateString() %></td>
+                                                <td>₹<%= offer.offer_price %></td>
+                                                <td><%= new Date(offer.expiry_date).toDateString() %></td>
+                                                <td>
+                                                    <span class="<%= offer.isActive ? 'text-green-500' : 'text-red-500' %>">
+                                                        <%= offer.isActive ? 'Active' : 'Disabled' %>
+                                                    </span>
+                                                </td>
                                                 <td class="text-end">
-                                                    <div class="dropdown">
-                                                        <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
-                                                            <i class="material-icons md-more_horiz"></i>
-                                                        </a>
-                                                        <div class="dropdown-menu">
-                                                            <a class="dropdown-item" href="">Edit info</a>
-                                                            <a class="dropdown-item text-danger delete-offer" href="#" data-id="<%= offer._id %>">Delete</a>
-                                                        </div>
+                                                    <div class="flex items-center justify-end space-x-2">
+                                                        <label class="relative inline-flex items-center cursor-pointer">
+                                                            <!-- Use offer.isActive for consistency -->
+                                                            <input type="checkbox" value="" class="sr-only peer" <%= offer.isActive ? 'checked' : '' %> onchange="toggleOfferStatus('<%= offer._id %>', this.checked)">
+                                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                                        </label>
+                                                        <a class="btn btn-sm btn-outline-danger delete-offer" href="#" data-id="<%= offer._id %>">Delete</a>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -103,49 +152,160 @@
         </section>
         <%- include('./partials/footer') %>
     </main>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Notification function
+        // Function to show notifications using SweetAlert2
         function showNotification(message, isSuccess = true) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.classList.remove('hidden', 'bg-red-500', 'bg-green-500');
-            notification.classList.add(isSuccess ? 'bg-green-500' : 'bg-red-500');
-            notification.classList.remove('hidden');
-            
-            setTimeout(() => {
-                notification.classList.add('hidden');
-            }, 3000);
+            Swal.fire({
+                icon: isSuccess ? 'success' : 'error',
+                title: isSuccess ? 'Success!' : 'Error!',
+                text: message,
+                timer: 3000,
+                showConfirmButton: false
+            });
+        }
+
+        // Toggle Offer Active Status using fetch
+        async function toggleOfferStatus(id, isActive) {
+            try {
+                const response = await fetch(`/admin/dashboard/product/toggle-offer-status/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ isActive: isActive })
+                });
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: `Offer ${isActive ? 'activated' : 'deactivated'} successfully!`,
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    throw new Error('Failed to update offer status');
+                }
+            } catch (error) {
+                console.error('Error updating offer status:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Failed to update offer status. Please try again.'
+                });
+            }
         }
 
         document.addEventListener('DOMContentLoaded', function () {
+            // Toggle additional fields based on offer type selection
+            document.getElementById('offer_type').addEventListener('change', function() {
+                const type = this.value;
+                document.getElementById('productSelection').style.display = (type === 'product') ? 'block' : 'none';
+                document.getElementById('categorySelection').style.display = (type === 'category') ? 'block' : 'none';
+                document.getElementById('referralFields').style.display = (type === 'referral') ? 'block' : 'none';
+                document.getElementById('referralBonus').style.display = (type === 'referral') ? 'block' : 'none';
+            });
+
+            // Offer creation form submission using fetch with validation for negative values
+            const offerForm = document.getElementById('offerForm');
+            offerForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const offerType = document.getElementById('offer_type').value;
+                const offerPercentage = parseFloat(document.getElementById('offer_percentage').value);
+                const offerPrice = parseFloat(document.getElementById('offer_price').value);
+                const expiryDate = document.getElementById('expiry_date').value;
+
+                // Validate for negative values in offer percentage and price
+                if (offerPercentage < 0 || offerPrice < 0) {
+                    Swal.fire('Error', 'Negative values are not allowed for percentage or price.', 'error');
+                    return;
+                }
+
+                const formData = { 
+                    offer_type: offerType, 
+                    offer_percentage: offerPercentage, 
+                    offer_price: offerPrice, 
+                    expiry_date: expiryDate 
+                };
+
+                // Add additional fields based on offer type
+                if (offerType === 'product') {
+                    const selectedProducts = Array.from(document.getElementById('products').selectedOptions).map(option => option.value);
+                    if(selectedProducts.length > 0){
+                        formData.products = selectedProducts;
+                    }
+                } else if (offerType === 'category') {
+                    const selectedCategories = Array.from(document.getElementById('categories').selectedOptions).map(option => option.value);
+                    if(selectedCategories.length > 0){
+                        formData.categories = selectedCategories;
+                    }
+                } else if (offerType === 'referral') {
+                    const referralCode = document.getElementById('referral_code').value;
+                    const referralBonus = parseFloat(document.getElementById('referral_bonus').value || "0");
+                    if(referralCode.trim() === ""){
+                        Swal.fire('Error', 'Referral code is required for referral offers.', 'error');
+                        return;
+                    }
+                    if(referralBonus < 0){
+                        Swal.fire('Error', 'Negative value is not allowed for referral bonus.', 'error');
+                        return;
+                    }
+                    formData.referral_code = referralCode;
+                    formData.referral_bonus = referralBonus;
+                }
+
+                fetch('/admin/dashboard/product/add-offer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire('Success', data.message, 'success').then(() => window.location.reload());
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error('Network error:', err);
+                    Swal.fire('Error', 'An unexpected error occurred. Please try again.', 'error');
+                });
+            });
+
+            // Delete offer functionality using fetch and SweetAlert2 confirmation
             const deleteButtons = document.querySelectorAll('.delete-offer');
-            
             deleteButtons.forEach(button => {
                 button.addEventListener('click', function (e) {
                     e.preventDefault();
                     const offerId = this.getAttribute('data-id');
-
-                    if (confirm('Are you sure you want to delete this offer?')) {
-                        fetch(`/admin/dashboard/product/delete-offer/${offerId}`, {
-                            method: 'DELETE',
-                            headers: { 'Content-Type': 'application/json' },
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                showNotification(data.message, true);
-                                setTimeout(() => {
-                                    window.location.reload();
-                                }, 1000);
-                            } else {
-                                showNotification(`Error: ${data.message}`, false);
-                            }
-                        })
-                        .catch(err => {
-                            console.error('Network error:', err);
-                            showNotification('An unexpected error occurred. Please try again.', false);
-                        });
-                    }
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You won't be able to revert this!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            fetch(`/admin/dashboard/product/delete-offer/${offerId}`, {
+                                method: 'DELETE',
+                                headers: { 'Content-Type': 'application/json' },
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire('Deleted!', data.message, 'success').then(() => window.location.reload());
+                                } else {
+                                    Swal.fire('Error!', data.message, 'error');
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Network error:', err);
+                                Swal.fire('Error!', 'An unexpected error occurred. Please try again.', 'error');
+                            });
+                        }
+                    });
                 });
             });
         });

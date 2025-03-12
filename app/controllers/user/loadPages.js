@@ -140,104 +140,120 @@ const loadPages = {
  * @param {Object} res - Express response object
  * @param {Function} next - Next middleware function
  */
-loadShop: async (req, res, next) => {
-  try {    
+  loadShop: async (req, res, next) => {
+    try {    
       const user = await getUser(req, res, next);
       const cart = await getCart(req, res, next);
       const numOfItemsInCart = cart?.items.length || 0;
       const isAjax = req.get('X-Requested-With') === 'XMLHttpRequest';
 
-      // Destructure and parse query parameters
-      const {
-          page = 1,
-          limit = 12,
-          sort = "createdAt",
-          order = "desc",
-          search = "",
-          category = "all",
-          minPrice = 0,
-          maxPrice = 100000,
+      // Destructure and parse query parameters with defaults
+      let {
+        page = 1,
+        limit = 12,
+        sort = "createdAt",
+        order = "desc",
+        search = "",
+        category = "all",
+        minPrice = 0,
+        maxPrice = 100000,
       } = req.query;
+
+      page = Number(page);
+      limit = Number(limit);
+      minPrice = Number(minPrice);
+      maxPrice = Number(maxPrice);
 
       // Build filter object
       const filter = {
-          isActive: true,
-          price: { $gte: Number(minPrice), $lte: Number(maxPrice) },
+        isActive: true,
+        price: { $gte: minPrice, $lte: maxPrice },
       };
 
-      // Handle category filter
+      // Handle category filter:
+      // If category is "featured", filter by isTopModel: true;
+      // Otherwise, look up the category document.
       if (category !== "all") {
+        if (category.toLowerCase() === "featured") {
+          filter.isTopModel = true;
+        } else {
           const categoryDoc = await Category.findOne({
-              name: { $regex: new RegExp(`^${category}$`, "i") },
-              isBlocked: false,
+            name: { $regex: new RegExp(`^${category}$`, "i") },
+            isBlocked: false,
           });
-          filter.category = categoryDoc?._id || null;
+          filter.category = categoryDoc ? categoryDoc._id : null;
+        }
       }
 
-      // Apply search filter
+      // Apply search filter (only on product name and description)
       if (search) {
-          filter.$or = [
-              { product_name: { $regex: search, $options: "i" } },
-              { description: { $regex: search, $options: "i" } },
-              { "category.name": { $regex: search, $options: "i" } }
-          ];
+        filter.$or = [
+          { product_name: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } },
+        ];
       }
 
       // Define sort options
       const sortOptions = {
-          "popularity_desc": { sales: -1 },
-          "price_asc": { price: 1 },
-          "price_desc": { price: -1 },
-          "rating_desc": { rating: -1 },
-          "isTopModel_desc": { isTopModel: -1 },
-          "createdAt_desc": { createdAt: -1 },
-          "product_name_asc": { product_name: 1 },
-          "product_name_desc": { product_name: -1 }
+        "popularity_desc": { sales: -1 },
+        "price_asc": { price: 1 },
+        "price_desc": { price: -1 },
+        "rating_desc": { rating: -1 },
+        "isTopModel_desc": { isTopModel: -1 },
+        "createdAt_desc": { createdAt: -1 },
+        "product_name_asc": { product_name: 1 },
+        "product_name_desc": { product_name: -1 }
       };
 
-      // Execute parallel queries
+      // For alphabetical sorting, if sort equals 'product_name' and order is not specified, default to asc
+      if (sort === "product_name" && !order) {
+        order = "asc";
+      }
+
+      // Construct sort key and criteria
+      const sortKey = `${sort}_${order}`;
+      const sortCriteria = sortOptions[sortKey] || { createdAt: -1 };
+
+      // Execute parallel queries for total count, products, and available categories
       const [totalItems, products, categories] = await Promise.all([
-          Product.countDocuments(filter),
-          Product.find(filter)
-              .populate("category", "name")
-              .sort(sortOptions[`${sort}_${order}`] || { createdAt: -1 })
-              .skip((page - 1) * limit)
-              .limit(limit)
-              .lean(),
-          Category.find({ isBlocked: false }, "name")
+        Product.countDocuments(filter),
+        Product.find(filter)
+          .populate("category", "name")
+          .sort(sortCriteria)
+          .skip((page - 1) * limit)
+          .limit(limit)
+          .lean(),
+        Category.find({ isBlocked: false }, "name")
       ]);
+
+      const totalPages = Math.ceil(totalItems / limit);
 
       // Prepare response data
       const renderData = {
-          products,
-          categories,
-          currentPage: Number(page),
-          totalPages: Math.ceil(totalItems / limit),
-          totalItems,
-          itemsPerPage: Number(limit),
-          sort,
-          order,
-          search,
-          breadcrumbs: [{ label: "Shop", url: "/shop" }],
-          category,
-          minPrice: Number(minPrice),
-          maxPrice: Number(maxPrice),
-          user: user || null,
-          numOfItemsInCart,
-          isAjax
+        products,
+        categories,
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        sort,
+        order,
+        search,
+        breadcrumbs: [{ label: "Shop", url: "/shop" }],
+        category,
+        minPrice,
+        maxPrice,
+        user: user || null,
+        numOfItemsInCart,
+        isAjax
       };
 
-      // Render appropriate view based on request type
-      if (isAjax) {
-          res.render("frontend/shop", renderData);
-      } else {
-          res.render("frontend/shop", renderData);
-      }
-
-  } catch (err) {
+      // Render the shop view
+      res.render("frontend/shop", renderData);
+    } catch (err) {
       next(err);
-  }
-},
+    }
+  },
   /**
    * Renders the product details page.
    * - Retrieves product details, reviews, related products, and active coupons.
