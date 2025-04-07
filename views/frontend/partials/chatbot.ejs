@@ -1,0 +1,289 @@
+<style>
+    .chat-widget {
+        transition: all 0.3s ease;
+        transform: translateX(100%);
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+    }
+    
+    .chat-widget.open {
+        transform: translateX(0);
+    }
+    
+    .chat-messages {
+        scrollbar-width: thin;
+        scrollbar-color: #a855f7 #f1f1f1;
+    }
+    
+    .chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .chat-messages::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: #a855f7;
+        border-radius: 3px;
+    }
+    
+    .chat-message {
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    .chat-message-user {
+        background-color: #a855f7;
+        color: white;
+        border-radius: 18px 18px 0 18px;
+        align-self: flex-end;
+    }
+    
+    .chat-message-bot {
+        background-color: #f3f4f6;
+        color: #1f2937;
+        border-radius: 18px 18px 18px 0;
+        align-self: flex-start;
+    }
+    
+    .suggestion-chip {
+        transition: all 0.2s ease;
+    }
+    
+    .suggestion-chip:hover {
+        background-color: #a855f7;
+        color: white;
+    }
+    
+    .chat-button-pulse {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(168, 85, 247, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); }
+    }
+    
+    /* Mobile responsiveness for chat widget */
+    @media (max-width: 640px) {
+        .chat-widget {
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 0 !important;
+            max-width: none !important;
+        }
+    }
+</style>
+<!-- Chat Widget Button -->
+<div class="fixed bottom-8 right-8 z-50">
+    <button id="chat-button" class="bg-purple-600 text-white px-6 py-3 rounded-full hover:bg-purple-700 transition-all duration-300 shadow-lg font-semibold flex items-center chat-button-pulse">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd" />
+        </svg>
+        Talk with our expert
+    </button>
+</div>
+<div id="chat-widget" class="chat-widget fixed bottom-0 right-0 w-full sm:w-96 h-[550px] max-h-[80vh] bg-white rounded-tl-2xl rounded-bl-2xl flex flex-col overflow-hidden">
+    <!-- Chat Header -->
+    <div class="bg-purple-600 text-white p-4 flex justify-between items-center">
+        <div class="flex items-center">
+            <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center mr-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+            </div>
+            <div>
+                <h3 class="font-bold">GUITMAN Support</h3>
+                <div class="flex items-center text-xs">
+                    <span class="w-2 h-2 bg-green-400 rounded-full mr-1"></span>
+                    <span>Online</span>
+                </div>
+            </div>
+        </div>
+        <button id="close-chat" class="text-white hover:text-gray-200 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+    
+    <!-- Chat Messages -->
+    <div id="chat-messages" class="chat-messages flex-1 p-4 overflow-y-auto flex flex-col gap-4 relative">
+        <!-- Messages will be appended here -->
+    </div>
+    
+    <!-- Suggested Questions -->
+    <div id="suggested-questions" class="p-3 border-t border-gray-200 bg-gray-50 flex flex-wrap gap-2">
+        <!-- Suggested questions will be added here by JavaScript -->
+    </div>
+    
+    <!-- Chat Input -->
+    <div class="p-3 border-t border-gray-200 bg-white relative">
+        <form id="chat-form" class="flex gap-2">
+            <button type="button" id="emoji-button" class="text-xl focus:outline-none">
+            </button>
+            <input 
+                type="text" 
+                id="chat-input" 
+                placeholder="Type your message..." 
+                class="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                autocomplete="off"
+            >
+            <button 
+                type="submit" 
+                class="bg-purple-600 text-white p-2 rounded-full hover:bg-purple-700 transition-colors duration-300 flex items-center justify-center"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
+                </svg>
+            </button>
+        </form>
+        <!-- Emoji Picker Panel -->
+        <div id="emoji-picker" class="emoji-picker hidden">
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const chatButton = document.getElementById('chat-button');
+        const chatWidget = document.getElementById('chat-widget');
+        const closeChat = document.getElementById('close-chat');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const suggestedQuestions = document.getElementById('suggested-questions');
+        const emojiButton = document.getElementById('emoji-button');
+        const emojiPicker = document.getElementById('emoji-picker');
+
+        // Suggested questions data
+        const suggestions = [
+            "What acoustic guitars do you recommend?",
+            "Do you offer any discounts?",
+            "How long is the warranty?",
+            "What are your shipping options?",
+            "Can I speak with a live agent?"
+        ];
+        
+        // Open chat widget
+        chatButton.addEventListener('click', () => {
+            chatWidget.style.transform = 'translateX(0)';
+            chatButton.classList.remove('chat-button-pulse');
+            
+            if (chatMessages.children.length === 0) {
+                addBotMessage("👋 Welcome to GUITMAN Support! How can I help you today?");
+                renderSuggestedQuestions();
+            }
+            setTimeout(() => chatInput.focus(), 300);
+        });
+        
+        // Close chat widget
+        closeChat.addEventListener('click', () => {
+            chatWidget.style.transform = 'translateX(100%)';
+        });
+        
+        // Emoji picker toggle
+        emojiButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            emojiPicker.classList.toggle('hidden');
+        });
+        
+        // Append emoji to chat input when selected
+        emojiPicker.querySelectorAll('span').forEach(emoji => {
+            emoji.addEventListener('click', () => {
+                chatInput.value += emoji.textContent;
+                emojiPicker.classList.add('hidden');
+                chatInput.focus();
+            });
+        });
+        
+        // Handle form submission
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            if (message) {
+                addUserMessage(message);
+                chatInput.value = '';
+                
+                try {
+                    const response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ message })
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        setTimeout(() => {
+                            addBotMessage(data.reply);
+                        }, 300);
+                    } else {
+                        addBotMessage("Sorry, I'm having trouble connecting to our servers. Please try again later.");
+                    }
+                } catch (error) {
+                    addBotMessage("Sorry, I'm having trouble connecting to our servers. Please try again later.");
+                }
+            }
+        });
+        
+        // Function to add user message to chat
+        function addUserMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'chat-message chat-message-user py-2 px-4 max-w-[80%] break-words';
+            messageElement.textContent = message;
+            chatMessages.appendChild(messageElement);
+            scrollToBottom();
+        }
+        
+        // Function to add bot message to chat
+        function addBotMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'chat-message chat-message-bot py-2 px-4 max-w-[80%] break-words';
+            messageElement.textContent = message;
+            chatMessages.appendChild(messageElement);
+            scrollToBottom();
+        }
+        
+        // Function to render suggested questions
+        function renderSuggestedQuestions() {
+            suggestedQuestions.innerHTML = '';
+            suggestions.forEach(question => {
+                const chip = document.createElement('button');
+                chip.className = 'suggestion-chip text-sm bg-gray-200 hover:bg-purple-100 px-3 py-1 rounded-full text-gray-700 transition-colors';
+                chip.textContent = question;
+                chip.addEventListener('click', () => {
+                    chatInput.value = question;
+                    chatForm.dispatchEvent(new Event('submit'));
+                });
+                suggestedQuestions.appendChild(chip);
+            });
+        }
+        
+        // Function to scroll chat to bottom
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Responsive resizing for chat widget
+        window.addEventListener('resize', () => {
+            if (window.innerWidth < 640) {
+                chatWidget.style.height = '100%';
+                chatWidget.style.maxHeight = '100%';
+            } else {
+                chatWidget.style.height = '550px';
+                chatWidget.style.maxHeight = '80vh';
+            }
+        });
+        
+        if (window.innerWidth < 640) {
+            chatWidget.style.height = '100%';
+            chatWidget.style.maxHeight = '100%';
+        }
+    });
+</script>

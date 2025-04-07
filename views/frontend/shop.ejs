@@ -28,7 +28,7 @@
                     },
                     animation: {
                         'fade-in': 'fadeIn 0.3s ease-in-out',
-                        'fade-out': 'fadeOut 0.3s ease-in-out',
+                        'fade-out': 'fadeOut 0.3s ease-out',
                         'slide-in': 'slideIn 0.3s ease-out',
                     },
                     keyframes: {
@@ -72,7 +72,7 @@
             animation: fadeIn 0.3s ease-in-out forwards;
         }
         .alert-animate-out {
-            animation: fadeOut 0.3s ease-in-out forwards;
+            animation: fadeOut 0.3s ease-out forwards;
         }
         .product-card {
             transition: all 0.3s ease;
@@ -121,6 +121,28 @@
         .fade-in {
             opacity: 1;
         }
+        /* New badge styles */
+        .new-badge {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            background-color: #10b981;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            z-index: 10;
+        }
+        /* Heart icon filled state */
+        .heart-filled {
+            fill: #e11d48;
+            color: #e11d48;
+        }
+        .heart-outline {
+            fill: none;
+            color: #6b7280;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -166,30 +188,37 @@
             <p class="text-gray-600 mb-6 md:mb-8">Find the perfect instrument to match your style and sound</p>
             
             <!-- Advanced Search Panel -->
-            <div class="bg-white rounded-2xl shadow-md p-4 md:p-6 mb-6 md:mb-8">
+            <div class="bg-white rounded-2xl shadow-md p-4 md:p-6 mb-6 md:mb-8 overflow-hidden">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-gray-800">Advanced Search</h3>
                     <button id="toggleFilters" class="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center">
                         <span id="filterText">Hide Filters</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
                             <path id="filterIcon" fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                         </svg>
                     </button>
                 </div>
                 
-                <div id="filterContent">
-                    <!-- Search and Sort Row -->
-                    <div id="filterForm" class="space-y-6">
+                <div id="filterContent" class="transition-all duration-300 origin-top">
+                    <form id="searchForm" action="/shop" method="GET" class="space-y-6">
                         <div class="flex flex-col md:flex-row gap-4">
-                            <!-- Search Input - Fixed alignment -->
+                            <!-- Search Input with Button -->
                             <div class="relative flex-grow">
-                                
-                                <input type="text" 
-                                    id="searchInput"
-                                    name="search"
-                                    value="<%= search %>"
-                                    placeholder="Search products..."
-                                    class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                <div class="flex">
+                                    <input type="text" 
+                                        id="searchInput"
+                                        name="search"
+                                        value="<%= search %>"
+                                        placeholder="Search products..."
+                                        class="w-full pl-4 pr-4 py-2.5 rounded-l-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                    <button type="submit" 
+                                            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-r-lg transition-colors duration-200 flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                        <span class="ml-1 hidden sm:inline">Search</span>
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Sort Dropdown -->
@@ -197,7 +226,7 @@
                                 <div class="relative">
                                     <select id="sortSelect" 
                                             name="sort"
-                                            class="w-full appearance-none px-4 py-2.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 pr-10">
+                                            class="w-full appearance-none px-4 py-2.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 pr-10">
                                         <option value="popularity_desc" <%= (sort + '_' + order) === 'popularity_desc' ? 'selected' : '' %>>Popularity</option>
                                         <option value="price_asc" <%= (sort + '_' + order) === 'price_asc' ? 'selected' : '' %>>Price: Low to High</option>
                                         <option value="price_desc" <%= (sort + '_' + order) === 'price_desc' ? 'selected' : '' %>>Price: High to Low</option>
@@ -238,41 +267,6 @@
                                 <input type="hidden" id="categoryInput" name="category" value="<%= category %>">
                             </div>
                             
-                            <style>
-                                .category-btn.active-category span {
-                                    background-color: transparent !important;
-                                    color: white !important;
-                                }
-                                .category-btn.active-category {
-                                    color: white !important;
-                                }
-                            </style>
-                            
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function() {
-                                    const categoryButtons = document.querySelectorAll('.category-btn');
-                                    const categoryInput = document.getElementById('categoryInput');
-                            
-                                    categoryButtons.forEach(button => {
-                                        button.addEventListener('click', function() {
-                                            // Remove active class from all buttons
-                                            categoryButtons.forEach(btn => {
-                                                btn.classList.remove('active-category');
-                                                btn.querySelector('span').classList.remove('bg-transparent', 'text-white');
-                                            });
-                            
-                                            // Add active class to clicked button
-                                            this.classList.add('active-category');
-                                            this.querySelector('span').classList.add('bg-transparent', 'text-white');
-                            
-                                            // Update hidden input
-                                            const category = this.getAttribute('data-category');
-                                            categoryInput.value = category;
-                                        });
-                                    });
-                                });
-                            </script>
-
                             <!-- Price Range Filter -->
                             <div>
                                 <style>
@@ -326,15 +320,28 @@
                         <input type="hidden" id="pageInput" name="page" value="1">
                         <input type="hidden" id="orderInput" name="order" value="<%= order %>">
                         
-                        <!-- Reset Button -->
-                        <div class="flex justify-end pt-4 border-t border-gray-200">
+                        <!-- Action Buttons -->
+                        <div class="flex justify-between pt-4 border-t border-gray-200">
                             <button type="button" id="resetFilters" class="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200">
                                 Reset Filters
                             </button>
+                            <button type="submit" class="px-6 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 shadow-md">
+                                Apply Filters
+                            </button>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
+
+            <style>
+                .category-btn.active-category span {
+                    background-color: transparent !important;
+                    color: white !important;
+                }
+                .category-btn.active-category {
+                    color: white !important;
+                }
+            </style>
 
             <!-- Results Summary and Loading Indicator -->
             <div class="flex flex-col md:flex-row justify-between items-center mb-6">
@@ -418,147 +425,8 @@
                         </button>
                     </div>
                 <% } else { %>
-                    <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                        <% products.forEach(product => { %>
-                          <div class="product-card bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
-                            <a href="/product-details/<%=product._id%>" class="block relative group">
-                              <div class="relative overflow-hidden">
-                                <img src="/<%= product.images[0] %>" 
-                                     alt="<%= product.product_name %>" 
-                                     class="w-full h-48 sm:h-56 md:h-64 object-contain transition-transform duration-500 group-hover:scale-105">
-                                
-                                <% if (product.isNew) { %>
-                                <div class="absolute top-4 left-4 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-md">
-                                    NEW
-                                </div>
-                                <% } %>
-                                
-                                <% if (product.discount > 0) { %>
-                                <div class="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md">
-                                    -<%= product.discount %>%
-                                </div>
-                                <% } %>
-                                
-                                <button class="wishlist-btn absolute top-4 right-4 bg-white p-2 rounded-full shadow-sm hover:bg-gray-100 transition-colors duration-200"
-                                        data-product-id="<%= product._id %>">
-                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 hover:text-red-500 transition-colors duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                  </svg>
-                                </button>
-                              </div>
-                            </a>
-                            
-                            <div class="p-4 md:p-5">
-                              <div class="mb-2">
-                                <% if (product.rating) { %>
-                                <div class="flex items-center mb-1">
-                                    <% for(let i = 1; i <= 5; i++) { %>
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 <%= i <= product.rating ? 'text-yellow-400' : 'text-gray-300' %>" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                        </svg>
-                                    <% } %>
-                                    <span class="text-xs text-gray-600 ml-1">(<%= product.reviewCount || 0 %>)</span>
-                                </div>
-                                <% } %>
-                                <a href="/product-details/<%=product._id%>" class="block">
-                                    <h3 class="font-semibold text-lg text-gray-800 hover:text-purple-600 transition-colors duration-200 truncate"><%= product.product_name %></h3>
-                                </a>
-                                <p class="text-sm text-gray-500 truncate"><%= product.category %></p>
-                              </div>
-                              
-                              <div class="flex items-center justify-between mt-4">
-                                <div>
-                                    <% if (product.originalPrice && product.originalPrice > product.price) { %>
-                                    <span class="text-sm text-gray-500 line-through">₹<%= product.originalPrice.toLocaleString('en-IN') %></span>
-                                    <% } %>
-                                    <span class="text-xl font-bold text-purple-600 ml-1">₹<%= product.price.toLocaleString('en-IN') %></span>
-                                </div>
-                                <button class="p-2.5 bg-purple-100 rounded-full hover:bg-purple-200 transition-colors duration-200 add-to-cart-btn" 
-                                        data-product-id="<%= product._id %>">
-                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                                  </svg>
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        <% }); %>
-                    </div>
+                    <%- include('./partials/productCards') %>
                     
-                    <div id="productsList" class="hidden space-y-4">
-                        <% products.forEach(product => { %>
-                            <div class="product-card bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
-                                <div class="flex flex-col md:flex-row">
-                                    <a href="/product-details/<%=product._id%>" class="block relative md:w-1/4">
-                                        <div class="relative h-48 md:h-40 overflow-hidden">
-                                            <img src="/<%= product.images[0] %>"
-                                                alt="<%= product.product_name %>"
-                                                class="w-full h-full object-contain">
-                                            <% if (product.isNew) { %>
-                                            <div class="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-md">
-                                                NEW
-                                            </div>
-                                            <% } %>
-                                            <% if (product.discount > 0) { %>
-                                            <div class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md">
-                                                -<%= product.discount %>%
-                                            </div>
-                                            <% } %>
-                                        </div>
-                                    </a>
-                                    <div class="p-4 flex-1 flex flex-col justify-between">
-                                        <div>
-                                            <% if (product.rating) { %>
-                                            <div class="flex items-center mb-1">
-                                                <% for(let i = 1; i <= 5; i++) { %>
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 <%= i <= product.rating ? 'text-yellow-400' : 'text-gray-300' %>" viewBox="0 0 20 20" fill="currentColor">
-                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                                </svg>
-                                                <% } %>
-                                                <span class="text-xs text-gray-600 ml-1">(<%= product.reviewCount || 0 %>)</span>
-                                            </div>
-                                            <% } %>
-                                            <a href="/product-details/<%=product._id%>" class="block">
-                                                <h3 class="font-semibold text-lg text-gray-800 hover:text-primary-600 transition-colors duration-200"><%= product.product_name %></h3>
-                                            </a>
-                                            <p class="text-gray-700 text-sm mb-2"><%= product.category %></p>
-                                            <p class="text-gray-600 mb-2 line-clamp-2 text-sm"><%= product.description || 'No description available' %></p>
-                                        </div>
-                                        <div class="flex items-center justify-between mt-2">
-                                            <div>
-                                                <% if (product.originalPrice && product.originalPrice > product.price) { %>
-                                                <span class="text-xs text-gray-500 line-through">₹<%= product.originalPrice.toLocaleString('en-IN') %></span>
-                                                <% } %>
-                                                <span class="text-xl font-bold text-indigo-600">₹<%= product.price.toLocaleString('en-IN') %></span>
-                                            </div>
-                                            <div class="flex space-x-2">
-                                                <button class="wishlist-btn p-2 bg-purple-100 hover:bg-purple-200 rounded-full transition-colors duration-200 group"
-                                                        data-product-id="<%= product._id %>">
-                                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                                         class="h-4 w-4 text-purple-600 group-hover:text-purple-800 transition-colors"
-                                                         fill="none"
-                                                         viewBox="0 0 24 24"
-                                                         stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                                    </svg>
-                                                </button>
-                                                <button class="add-to-cart-btn p-2 bg-purple-100 hover:bg-purple-200 rounded-full transition-colors duration-200 group"
-                                                        data-product-id="<%= product._id %>">
-                                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                                         class="h-4 w-4 text-purple-600 group-hover:text-purple-800 transition-colors"
-                                                         fill="none"
-                                                         viewBox="0 0 24 24"
-                                                         stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        <% }); %>
-                        </div>
                 <% } %>
             </div>
 
@@ -619,14 +487,13 @@
         </div>
     </section>
 
-
+    <%- include('./partials/chatbot') %>
     <%- include('./partials/footer') %>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.5.0/nouislider.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Cache DOM elements
-            const filterForm = document.getElementById('filterForm');
             const searchInput = document.getElementById('searchInput');
             const sortSelect = document.getElementById('sortSelect');
             const categoryButtons = document.querySelectorAll('.category-btn');
@@ -639,95 +506,108 @@
             const clearFilters = document.getElementById('clearFilters');
             const loadingIndicator = document.getElementById('loadingIndicator');
             const productsContainer = document.getElementById('productsContainer');
+            const searchForm = document.getElementById('searchForm');
             
-            // Toggle Filter Panel
+            // Toggle Filter Panel with smooth animation
             const toggleFilters = document.getElementById('toggleFilters');
             const filterContent = document.getElementById('filterContent');
             const filterText = document.getElementById('filterText');
             const filterIcon = document.getElementById('filterIcon');
             
-            toggleFilters.addEventListener('click', function() {
-                if (filterContent.style.display === 'none') {
-                    filterContent.style.display = 'block';
-                    filterText.textContent = 'Hide Filters';
-                    filterIcon.setAttribute('d', 'M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z');
-                } else {
-                    filterContent.style.display = 'none';
-                    filterText.textContent = 'Show Filters';
-                    filterIcon.setAttribute('d', 'M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z');
-                }
-            });
+            // Initialize panel state from localStorage or default to open
+            const isPanelOpen = localStorage.getItem('filterPanelOpen') !== 'false';
             
-            // View Mode Switcher
-            const gridView = document.getElementById('gridView');
-            const listView = document.getElementById('listView');
-            const productsGrid = document.getElementById('productsGrid');
-            const productsList = document.getElementById('productsList');
-            
-            gridView.addEventListener('click', function() {
-                productsGrid.classList.remove('hidden');
-                productsList.classList.add('hidden');
-                gridView.classList.add('bg-primary-600', 'text-white');
-                gridView.classList.remove('bg-white', 'text-gray-700');
-                listView.classList.add('bg-white', 'text-gray-700');
-                listView.classList.remove('bg-primary-600', 'text-white');
-                
-                // Save preference in localStorage
-                localStorage.setItem('viewMode', 'grid');
-            });
-            
-            listView.addEventListener('click', function() {
-                productsGrid.classList.add('hidden');
-                productsList.classList.remove('hidden');
-                listView.classList.add('bg-primary-600', 'text-white');
-                listView.classList.remove('bg-white', 'text-gray-700');
-                gridView.classList.add('bg-white', 'text-gray-700');
-                gridView.classList.remove('bg-primary-600', 'text-white');
-                
-                // Save preference in localStorage
-                localStorage.setItem('viewMode', 'list');
-            });
-            
-            // Load saved view mode preference
-            const savedViewMode = localStorage.getItem('viewMode');
-            if (savedViewMode === 'list') {
-                listView.click();
+            // Set initial state
+            if (!isPanelOpen) {
+                filterContent.style.maxHeight = '0';
+                filterContent.style.opacity = '0';
+                filterContent.style.overflow = 'hidden';
+                filterText.textContent = 'Show Filters';
+                filterIcon.style.transform = 'rotate(-90deg)';
+            } else {
+                filterContent.style.maxHeight = filterContent.scrollHeight + 'px';
+                filterContent.style.opacity = '1';
+                filterContent.style.overflow = 'visible';
             }
             
-            // Price Range Slider Initialization
-            const priceSlider = document.getElementById('priceRange');
-            noUiSlider.create(priceSlider, {
-                start: ['<%= minPrice %>', '<%= maxPrice %>'],
-                connect: true,
-                range: {
-                    'min': 0,
-                    'max': 100000
-                },
-                step: 100,
-                format: {
-                    to: value => Math.round(value),
-                    from: value => value
+            toggleFilters.addEventListener('click', function() {
+                const isOpen = filterContent.style.maxHeight !== '0px';
+                
+                if (isOpen) {
+                    // Close panel
+                    filterContent.style.maxHeight = '0';
+                    filterContent.style.opacity = '0';
+                    filterContent.style.overflow = 'hidden';
+                    filterText.textContent = 'Show Filters';
+                    filterIcon.style.transform = 'rotate(-90deg)';
+                    localStorage.setItem('filterPanelOpen', 'false');
+                } else {
+                    // Open panel
+                    filterContent.style.maxHeight = filterContent.scrollHeight + 'px';
+                    filterContent.style.opacity = '1';
+                    setTimeout(() => {
+                        filterContent.style.overflow = 'visible';
+                    }, 300);
+                    filterText.textContent = 'Hide Filters';
+                    filterIcon.style.transform = 'rotate(0)';
+                    localStorage.setItem('filterPanelOpen', 'true');
                 }
             });
-
-            // Price Range Update Handler with debounce
-            let priceTimeout;
-            priceSlider.noUiSlider.on('update', (values, handle) => {
-                const [min, max] = values.map(Number);
-                document.getElementById('priceMinValue').textContent = min;
-                document.getElementById('priceMaxValue').textContent = max;
-                minPriceInput.value = min;
-                maxPriceInput.value = max;
+            
+            // Submit event for the search form to trigger AJAX filtering
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                pageInput.value = 1;
+                fetchFilteredResults();
             });
             
-            priceSlider.noUiSlider.on('change', () => {
-                clearTimeout(priceTimeout);
-                priceTimeout = setTimeout(() => {
-                    pageInput.value = 1; // Reset to first page when changing price
+            // Use "keydown" instead of "keypress" for proper Enter key detection
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    pageInput.value = 1;
                     fetchFilteredResults();
-                }, 500);
+                }
             });
-
+            
+            // Attach input event for search field with debounce
+            searchInput.addEventListener('input', debounce(function() {
+                pageInput.value = 1; // Reset to first page when searching
+                fetchFilteredResults();
+            }, 500));
+            
+            // Sort dropdown change event
+            sortSelect.addEventListener('change', function() {
+                const [sortField, order] = this.value.split('_');
+                orderInput.value = order;
+                fetchFilteredResults();
+            });
+            
+            // Category button click handlers
+            categoryButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const category = this.getAttribute('data-category');
+                    categoryInput.value = category;
+                    
+                    // Update visual state
+                    categoryButtons.forEach(btn => {
+                        btn.classList.remove('active-category');
+                        const span = btn.querySelector('span');
+                        span.classList.remove('bg-transparent', 'text-white');
+                        span.classList.add('bg-white');
+                    });
+                    
+                    this.classList.add('active-category');
+                    const span = this.querySelector('span');
+                    span.classList.add('bg-transparent', 'text-white');
+                    span.classList.remove('bg-white');
+                    
+                    pageInput.value = 1; // Reset to first page when changing category
+                    
+                    fetchFilteredResults();
+                });
+            });
+            
             // Function to fetch filtered results via AJAX
             function fetchFilteredResults() {
                 // Show loading indicator
@@ -748,8 +628,10 @@
                 params.append('sort', sortField);
                 params.append('order', order);
                 
-                // Fetch filtered results
+                // Fetch filtered results with GET method and no-cache
                 fetch(`/shop?${params.toString()}`, {
+                    method: 'GET',
+                    cache: 'no-cache',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'
                     }
@@ -825,122 +707,46 @@
                 });
             }
             
-            // Attach event listeners to product elements
-            function attachProductEventListeners() {
-                // Add to Cart buttons
-                const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
-                addToCartButtons.forEach(button => {
-                    button.addEventListener('click', async (event) => {
-                        event.preventDefault();
-                        event.stopPropagation(); // Prevent event bubbling
-                        const productId = button.getAttribute('data-product-id');
-                        
-                        try {
-                            const response = await fetch('/cart/add', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ productId, quantity: 1 })
-                            });
-                            
-                            const result = await response.json();
-                            
-                            if (response.ok) {
-                                showAlert(result.message, 'success');
-                            } else {
-                                showAlert(result.message || 'Failed to add item to cart', 'error');
-                            }
-                        } catch (error) {
-                            showAlert('Please login to continue with the cart!', 'error');
-                        }
-                    });
-                });
-                
-                // Wishlist buttons
-                const wishlistButtons = document.querySelectorAll(".wishlist-btn");
-                wishlistButtons.forEach(button => {
-                  button.addEventListener("click", async (event) => {
-                    event.preventDefault();
-                    event.stopPropagation(); // Prevent event bubbling
-                    
-                    const productId = button.getAttribute("data-product-id");
-                    const heartIcon = button.querySelector("svg");
-                    
-                    try {
-                      const response = await fetch("/profile/wishlist/toggle", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ productId })
-                      });
-                      
-                      const result = await response.json();
-                      
-                      if (response.ok && result.success) {
-                        if (result.message === "Product added to wishlist successfully") {
-                          heartIcon.classList.add("text-purple-600");
-                          heartIcon.classList.remove("text-gray-600");
-                        } else if (result.message === "Item removed successfully!") {
-                          heartIcon.classList.remove("text-purple-600");
-                          heartIcon.classList.add("text-gray-600");
-                        }
-                        showAlert(result.message, 'success');
-                      } else {
-                        showAlert(result.message || "Failed to update wishlist", 'error');
-                      }
-                    } catch (error) {
-                      showAlert("Please login to add to wishlist", 'error');
-                    }
-                  });
-                });
-            }
-            
-            // Event listeners for filter inputs
-            searchInput.addEventListener('input', debounce(function() {
-                pageInput.value = 1; // Reset to first page when searching
-                fetchFilteredResults();
-            }, 500));
-            
-            sortSelect.addEventListener('change', function() {
-                const [sortField, order] = this.value.split('_');
-                orderInput.value = order;
-                fetchFilteredResults();
-            });
-            
-            // Category button click handlers
-            categoryButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const category = this.getAttribute('data-category');
-                    categoryInput.value = category;
-                    
-                    // Update visual state
-                    categoryButtons.forEach(btn => {
-                        btn.classList.remove('bg-primary-600', 'text-white');
-                        btn.classList.add('bg-white', 'border', 'border-gray-300', 'hover:bg-gray-100');
-                    });
-                    
-                    this.classList.add('bg-primary-600', 'text-white');
-                    this.classList.remove('bg-white', 'border', 'border-gray-300', 'hover:bg-gray-100');
-                    
-                    pageInput.value = 1; // Reset to first page when changing category
-                    fetchFilteredResults();
-                });
-            });
-            
-            // Reset filters
-            resetFilters.addEventListener('click', function() {
-                window.location.href = '/shop';
-            });
-            
-            if (clearFilters) {
-                clearFilters.addEventListener('click', function() {
-                    window.location.href = '/shop';
-                });
-            }
-            
             // Initialize pagination listeners
             attachPaginationListeners();
             
             // Initialize product event listeners
             attachProductEventListeners();
+            
+            // Initialize price slider if it exists
+            const priceSlider = document.getElementById('priceRange');
+            if (priceSlider && window.noUiSlider) {
+                if (!priceSlider.noUiSlider) {
+                    noUiSlider.create(priceSlider, {
+                        start: [`<%= minPrice %>`, `<%= maxPrice %>`],
+                        connect: true,
+                        range: {
+                            'min': 0,
+                            'max': 100000
+                        },
+                        step: 100,
+                        format: {
+                            to: value => Math.round(value),
+                            from: value => value
+                        }
+                    });
+                    
+                    // Update hidden inputs and display values
+                    priceSlider.noUiSlider.on('update', (values, handle) => {
+                        const [min, max] = values.map(Number);
+                        document.getElementById('priceMinValue').textContent = min;
+                        document.getElementById('priceMaxValue').textContent = max;
+                        document.getElementById('minPriceInput').value = min;
+                        document.getElementById('maxPriceInput').value = max;
+                    });
+                    
+                    // Add change handler for AJAX approach
+                    priceSlider.noUiSlider.on('change', () => {
+                        pageInput.value = 1; // Reset to first page when changing price
+                        fetchFilteredResults();
+                    });
+                }
+            }
             
             // Debounce function to limit how often a function is called
             function debounce(func, wait) {
@@ -953,6 +759,11 @@
                         func.apply(context, args);
                     }, wait);
                 };
+            }
+            
+            // Placeholder for product event listeners reattachment
+            function attachProductEventListeners() {
+                // Add any event listeners needed for product cards here
             }
             
             // Alert System
@@ -997,6 +808,47 @@
                     setTimeout(() => alertElement.remove(), 300);
                 }, 3000);
             };
+            
+            // Reset filters
+            resetFilters.addEventListener('click', function() {
+                searchInput.value = '';
+                categoryInput.value = 'all';
+                
+                // Reset category buttons
+                categoryButtons.forEach(btn => {
+                    btn.classList.remove('active-category');
+                    const span = btn.querySelector('span');
+                    span.classList.remove('bg-transparent', 'text-white');
+                    span.classList.add('bg-white');
+                });
+                
+                // Set "All" category as active
+                const allCategoryBtn = document.querySelector('[data-category="all"]');
+                allCategoryBtn.classList.add('active-category');
+                const span = allCategoryBtn.querySelector('span');
+                span.classList.add('bg-transparent', 'text-white');
+                span.classList.remove('bg-white');
+                
+                // Reset price slider
+                if (priceSlider && priceSlider.noUiSlider) {
+                    priceSlider.noUiSlider.set([0, 100000]);
+                }
+                
+                // Reset sort
+                if (sortSelect) {
+                    sortSelect.value = 'popularity_desc';
+                }
+                
+                // Submit the form via AJAX
+                pageInput.value = 1;
+                fetchFilteredResults();
+            });
+            
+            if (clearFilters) {
+                clearFilters.addEventListener('click', function() {
+                    window.location.href = '/shop';
+                });
+            }
         });
     </script>
 </body>

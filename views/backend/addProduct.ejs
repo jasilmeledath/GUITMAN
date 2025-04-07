@@ -5,6 +5,114 @@
     <%- include('./partials/meta') %>
     <link rel="shortcut icon" type="image/x-icon" href="/backend/imgs/theme/favicon.svg">
     <link href="/backend/css/main.css" rel="stylesheet" type="text/css" />
+    <!-- Cropper.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <style>
+        .image-container {
+            position: relative;
+            display: inline-block;
+            margin: 10px;
+        }
+        .image-preview {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .remove-image {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff5555;
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            text-align: center;
+            line-height: 22px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        /* Modal styles */
+        .crop-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+        }
+        .crop-modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .crop-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .crop-modal-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .crop-modal-body {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            height: 60vh;
+        }
+        .crop-modal-footer {
+            margin-top: 15px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .crop-img-container {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .crop-img {
+            max-height: 100%;
+            max-width: 100%;
+            display: block;
+        }
+        .hidden-file-inputs {
+            display: none;
+        }
+        .loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            z-index: 1;
+        }
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+    </style>
 </head>
 
 <body>
@@ -105,7 +213,7 @@
                                 <div class="mb-4">
                                     <label class="form-check">
                                         <input
-                                            id="publishCheckbox"
+                                            id="isActiveCheckbox"
                                             name="isActive"
                                             class="form-check-input"
                                             type="checkbox"
@@ -119,7 +227,7 @@
                                 <div class="mb-4">
                                     <label class="form-check">
                                         <input
-                                            id="publishCheckbox"
+                                            id="isTopModelCheckbox"
                                             name="isTopModel"
                                             class="form-check-input"
                                             type="checkbox"
@@ -149,23 +257,31 @@
                                 <!-- Media Section -->
                                 <div class="mb-4">
                                     <label class="form-label">Upload Images</label>
-                                    <input
-                                        id="imageInput"
-                                        name="files"
-                                        class="form-control"
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                    />
+                                    <div class="d-flex align-items-center">
+                                        <button type="button" id="uploadButton" class="btn btn-primary">
+                                            <i class="material-icons md-add"></i> Crop and Add Images
+                                        </button>
+                                        <button type="button" id="uploadNoCropButton" class="btn btn-secondary ml-2">
+                                            <i class="material-icons md-photo_library"></i> Add Without Crop
+                                        </button>
+                                        <small class="text-muted ms-3">You can upload and crop multiple images or add them directly without cropping</small>
+                                    </div>
+                                    
+                                    <div class="hidden-file-inputs">
+                                        <!-- This will be the actual file input that submits with the form -->
+                                        <div id="croppedImagesContainer"></div>
+                                    </div>
+                                    
+                                    <div
+                                        id="imagePreviewContainer"
+                                        style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;"
+                                    >
+                                        <!-- Image previews will be added here -->
+                                    </div>
+                                    
                                     <% if (errors && errors.images) { %>
                                         <span class="text-danger"><%= errors.images %></span>
                                     <% } %>
-                                    <div
-                                        id="imagePreviewContainer"
-                                        style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;"
-                                    >
-                                        <!-- Image previews -->
-                                    </div>
                                 </div>
                                 <button type="submit" class="btn btn-primary">Add Product</button>
                             </form>
@@ -177,36 +293,329 @@
         <%- include('./partials/footer') %>
     </main>
 
+    <!-- Crop Modal (Completely Redesigned) -->
+    <div id="cropModal" class="crop-modal">
+        <div class="crop-modal-content">
+            <div class="crop-modal-header">
+                <div class="crop-modal-title">Crop Image</div>
+            </div>
+            <div class="crop-modal-body">
+                <div id="loadingSpinner" class="loading-spinner"></div>
+                <div class="crop-img-container">
+                    <img id="cropImage" class="crop-img">
+                </div>
+            </div>
+            <div class="crop-modal-footer">
+                <button id="cancelCropBtn" class="btn btn-light">Cancel</button>
+                <button id="rotateCropBtn" class="btn btn-secondary">Rotate</button>
+                <button id="applyCropBtn" class="btn btn-primary">Apply Crop</button>
+            </div>
+        </div>
+    </div>
+
     <%- include('./partials/scriptsLinks') %>
+    
+    <!-- Cropper.js Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
     <script>
-        // Image preview logic
-        document.getElementById("imageInput").addEventListener("change", function (event) {
-            const files = event.target.files;
-            const previewContainer = document.getElementById("imagePreviewContainer");
-            previewContainer.innerHTML = ""; // Clear previous previews
-
-            if (files.length > 0) {
-                Array.from(files).forEach((file) => {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const imgElement = document.createElement("img");
-                        imgElement.src = e.target.result;
-                        imgElement.style.width = "100px";
-                        imgElement.style.height = "100px";
-                        imgElement.style.objectFit = "cover";
-                        imgElement.style.borderRadius = "5px";
-                        imgElement.style.border = "1px solid #ccc";
-                        previewContainer.appendChild(imgElement);
-                    };
-                    reader.readAsDataURL(file);
+        document.addEventListener('DOMContentLoaded', function() {
+            // Variables
+            const uploadButton = document.getElementById('uploadButton');
+            const uploadNoCropButton = document.getElementById('uploadNoCropButton');
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+            const cropModal = document.getElementById('cropModal');
+            const cropImage = document.getElementById('cropImage');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const applyCropBtn = document.getElementById('applyCropBtn');
+            const cancelCropBtn = document.getElementById('cancelCropBtn');
+            const rotateCropBtn = document.getElementById('rotateCropBtn');
+            const croppedImagesContainer = document.getElementById('croppedImagesContainer');
+            const isActiveCheckbox = document.getElementById('isActiveCheckbox');
+            const isTopModelCheckbox = document.getElementById('isTopModelCheckbox');
+            
+            let cropper = null;
+            let currentImageIndex = 0;
+            let imageFiles = [];
+            
+            // Handle checkbox logic
+            isActiveCheckbox.addEventListener("change", function() {
+                this.value = this.checked ? "true" : "false";
+            });
+            
+            if (isTopModelCheckbox) {
+                isTopModelCheckbox.addEventListener("change", function() {
+                    this.value = this.checked ? "true" : "false";
                 });
             }
-        });
-
-        // Handle "Publish now" checkbox logic
-        document.getElementById("publishCheckbox").addEventListener("change", function () {
-            this.value = this.checked ? "true" : "false";
+            
+            // Initialize file upload with cropping
+            uploadButton.addEventListener('click', function() {
+                // Create a temporary file input
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.accept = 'image/*';
+                fileInput.multiple = true;
+                
+                fileInput.addEventListener('change', function(event) {
+                    const files = event.target.files;
+                    if (files && files.length > 0) {
+                        handleImageSelection(files, true);
+                    }
+                });
+                
+                fileInput.click();
+            });
+            
+            // Initialize file upload without cropping
+            uploadNoCropButton.addEventListener('click', function() {
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.accept = 'image/*';
+                fileInput.multiple = true;
+                
+                fileInput.addEventListener('change', function(event) {
+                    const files = event.target.files;
+                    if (files && files.length > 0) {
+                        handleImageSelection(files, false);
+                    }
+                });
+                
+                fileInput.click();
+            });
+            
+            // Handle image selection; crop if shouldCrop is true, else add directly
+            function handleImageSelection(files, shouldCrop) {
+                Array.from(files).forEach(file => {
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const imageData = {
+                                file: file,
+                                originalSrc: e.target.result,
+                                croppedBlob: null
+                            };
+                            
+                            if (shouldCrop) {
+                                imageFiles.push(imageData);
+                                // If this is the first image of this selection, start cropping
+                                if (imageFiles.length === 1 || (imageFiles.length > 1 && imageFiles.length === files.length)) {
+                                    currentImageIndex = imageFiles.length - files.length;
+                                    startCropping(currentImageIndex);
+                                }
+                            } else {
+                                // For images without cropping, store and add directly
+                                imageData.croppedBlob = file;
+                                imageData.croppedSrc = e.target.result;
+                                imageFiles.push(imageData);
+                                addImagePreview(imageFiles.length - 1);
+                                createFormElement(imageFiles.length - 1, file);
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+            
+            // Start cropping process for an image
+            function startCropping(index) {
+                if (index >= imageFiles.length) {
+                    return;
+                }
+                
+                const imageData = imageFiles[index];
+                loadingSpinner.style.display = 'block';
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+                cropImage.src = '';
+                cropImage.onload = function() {
+                    console.log('Image loaded successfully');
+                    loadingSpinner.style.display = 'none';
+                    setTimeout(() => {
+                        try {
+                            cropper = new Cropper(cropImage, {
+                                aspectRatio: 1,
+                                viewMode: 1,
+                                guides: true,
+                                movable: true,
+                                rotatable: true,
+                                responsive: true,
+                                restore: true,
+                                autoCropArea: 0.8,
+                                background: false,
+                                modal: true,
+                                zoomable: true,
+                                checkCrossOrigin: false
+                            });
+                            console.log('Cropper initialized successfully');
+                        } catch (error) {
+                            console.error('Error initializing cropper:', error);
+                            alert('Error initializing image cropper. Please try again.');
+                            cropModal.style.display = 'none';
+                        }
+                    }, 100);
+                };
+                cropImage.onerror = function(e) {
+                    console.error('Failed to load image:', e);
+                    alert('Failed to load image. Please try again with a different image.');
+                    loadingSpinner.style.display = 'none';
+                    cropModal.style.display = 'none';
+                };
+                cropModal.style.display = 'block';
+                console.log('Setting image source:', imageData.originalSrc);
+                cropImage.src = imageData.originalSrc;
+            }
+            
+            // Apply crop
+            applyCropBtn.addEventListener('click', function() {
+                if (!cropper) {
+                    console.error('Cropper not initialized');
+                    return;
+                }
+                
+                try {
+                    const canvas = cropper.getCroppedCanvas({
+                        width: 800,
+                        height: 800,
+                        imageSmoothingEnabled: true,
+                        imageSmoothingQuality: 'high'
+                    });
+                    
+                    if (!canvas) {
+                        console.error('Failed to get cropped canvas');
+                        return;
+                    }
+                    
+                    canvas.toBlob(function(blob) {
+                        if (!blob) {
+                            console.error('Failed to create blob from canvas');
+                            return;
+                        }
+                        
+                        const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                        imageFiles[currentImageIndex].croppedBlob = blob;
+                        imageFiles[currentImageIndex].croppedSrc = croppedDataUrl;
+                        addImagePreview(currentImageIndex);
+                        createFormElement(currentImageIndex, blob);
+                        if (cropper) {
+                            cropper.destroy();
+                            cropper = null;
+                        }
+                        cropModal.style.display = 'none';
+                        currentImageIndex++;
+                        if (currentImageIndex < imageFiles.length) {
+                            startCropping(currentImageIndex);
+                        }
+                    }, 'image/jpeg', 0.9);
+                } catch (error) {
+                    console.error('Error during crop operation:', error);
+                    alert('An error occurred while cropping the image. Please try again.');
+                    if (cropper) {
+                        cropper.destroy();
+                        cropper = null;
+                    }
+                    cropModal.style.display = 'none';
+                }
+            });
+            
+            // Rotate image
+            rotateCropBtn.addEventListener('click', function() {
+                if (cropper) {
+                    cropper.rotate(90);
+                }
+            });
+            
+            // Cancel cropping
+            cancelCropBtn.addEventListener('click', function() {
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+                cropModal.style.display = 'none';
+                imageFiles.splice(currentImageIndex, 1);
+                if (currentImageIndex < imageFiles.length) {
+                    startCropping(currentImageIndex);
+                }
+            });
+            
+            // Add image preview to the container
+            function addImagePreview(index) {
+                const imageData = imageFiles[index];
+                const container = document.createElement('div');
+                container.className = 'image-container';
+                container.dataset.index = index;
+                const img = document.createElement('img');
+                img.src = imageData.croppedSrc;
+                img.className = 'image-preview';
+                img.alt = 'Product Image';
+                const removeBtn = document.createElement('div');
+                removeBtn.className = 'remove-image';
+                removeBtn.innerHTML = '×';
+                removeBtn.addEventListener('click', function() {
+                    removeImage(parseInt(container.dataset.index));
+                });
+                container.appendChild(img);
+                container.appendChild(removeBtn);
+                imagePreviewContainer.appendChild(container);
+            }
+            
+            // Create a form element for the cropped image
+            function createFormElement(index, blob) {
+                const filename = `product_image_${Date.now()}_${index}.jpg`;
+                const file = new File([blob], filename, { type: 'image/jpeg' });
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.name = 'files';
+                input.style.display = 'none';
+                input.dataset.index = index;
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                input.files = dataTransfer.files;
+                croppedImagesContainer.appendChild(input);
+            }
+            
+            // Remove an image
+            function removeImage(index) {
+                const containers = imagePreviewContainer.querySelectorAll('.image-container');
+                containers.forEach(container => {
+                    if (parseInt(container.dataset.index) === index) {
+                        container.remove();
+                    }
+                });
+                const inputs = croppedImagesContainer.querySelectorAll('input');
+                inputs.forEach(input => {
+                    if (parseInt(input.dataset.index) === index) {
+                        input.remove();
+                    }
+                });
+                imageFiles = imageFiles.filter((_, i) => i !== index);
+                updateIndices();
+            }
+            
+            // Update indices after removal
+            function updateIndices() {
+                const containers = imagePreviewContainer.querySelectorAll('.image-container');
+                containers.forEach((container, i) => {
+                    container.dataset.index = i;
+                });
+                const inputs = croppedImagesContainer.querySelectorAll('input');
+                inputs.forEach((input, i) => {
+                    input.dataset.index = i;
+                });
+            }
+            
+            // Close modal if user clicks outside of it
+            window.addEventListener('click', function(event) {
+                if (event.target === cropModal) {
+                    if (cropper) {
+                        cropper.destroy();
+                        cropper = null;
+                    }
+                    cropModal.style.display = 'none';
+                }
+            });
         });
     </script>
 </body>

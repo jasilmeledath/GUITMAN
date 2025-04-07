@@ -2,292 +2,231 @@
 <html lang="en">
   <head>
     <%- include('./partials/meta') %>
-    <!-- ˀ -->
     <!-- Favicon -->
-    <link
-      rel="shortcut icon"
-      type="image/x-icon"
-      href="/backend/imgs/theme/favicon.svg"
-    />
-
+    <link rel="shortcut icon" type="image/x-icon" href="/backend/imgs/theme/favicon.svg" />
     <!-- Template CSS -->
     <link href="/backend/css/main.css" rel="stylesheet" type="text/css" />
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                DEFAULT: '#3b82f6',
+                dark: '#2563eb'
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* Custom styles for chart containers */
+      .chart-card {
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+      }
+      .chart-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
+      }
+      .chart-card h4 {
+        margin-bottom: 15px;
+        font-size: 18px;
+        color: #333;
+        font-weight: 600;
+      }
+      .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+      }
+      
+      /* Stat card animations */
+      .stat-card {
+        transition: all 0.3s ease;
+      }
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      }
+      
+      /* Table styles */
+      .table-responsive {
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .table th {
+        background-color: #f9fafb;
+        font-weight: 600;
+      }
+      .table tr {
+        transition: background-color 0.2s;
+      }
+      .table tbody tr:hover {
+        background-color: #f9fafb;
+      }
+      
+      /* Badge styles */
+      .badge-soft-success {
+        background-color: #d1fae5;
+        color: #047857;
+      }
+      .badge-soft-danger {
+        background-color: #fee2e2;
+        color: #b91c1c;
+      }
+      .badge-soft-warning {
+        background-color: #fef3c7;
+        color: #92400e;
+      }
+      .badge-soft-info {
+        background-color: #e0f2fe;
+        color: #0369a1;
+      }
+      
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #a1a1a1;
+      }
+      
+      /* Dropdown animations */
+      .group:hover .group-hover\:block {
+        animation: fadeIn 0.2s ease-in-out;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      /* Form controls */
+      .form-control:focus, .form-select:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      }
+      
+      /* Button styles */
+      .btn-primary {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+        color: white;
+        transition: all 0.2s;
+      }
+      .btn-primary:hover {
+        background-color: #2563eb;
+        border-color: #2563eb;
+      }
+      
+      /* Pagination styles */
+      .pagination .page-item.active .page-link {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+      }
+      .pagination .page-link {
+        color: #3b82f6;
+      }
+      .pagination .page-link:hover {
+        background-color: #eff6ff;
+      }
+    </style>
   </head>
 
-  <body class="dark">
+  <body class="bg-gray-50">
     <div class="screen-overlay"></div>
     <%- include('./partials/leftNav') %>
-    <main class="main-wrap">
+    <main class="main-wrap min-h-screen flex flex-col">
       <%- include('./partials/header') %>
-      <section class="content-main">
-        <div class="content-header">
+      <section class="content-main flex-grow p-6">
+        <div class="content-header mb-6">
           <div>
-            <h2 class="content-title card-title">Dashboard</h2>
-            <p>Whole data about your business here</p>
-          </div>
-          <div>
-            <a href="#" class="btn btn-primary">
-              <i class="text-muted material-icons md-post_add"></i>Create report
-            </a>
+            <h2 class="content-title card-title text-2xl font-bold text-gray-800">Dashboard</h2>
+            <p class="text-gray-500">Whole data about your business here</p>
           </div>
         </div>
-        <div class="row">
-          <div class="col-lg-3">
-            <div class="card card-body mb-4">
-              <article class="icontext">
-                <span class="icon icon-sm rounded-circle bg-primary-light">
-                  <i class="text-primary material-icons md-monetization_on"></i>
-                </span>
-                <div class="text">
-                  <h6 class="mb-1 card-title">Revenue</h6>
-                  <span>₹1,13,456.5</span>
-                  <span class="text-sm"> Shipping fees are not included </span>
-                </div>
-              </article>
-            </div>
-          </div>
-          <div class="col-lg-3">
-            <div class="card card-body mb-4">
-              <article class="icontext">
-                <span class="icon icon-sm rounded-circle bg-success-light">
-                  <i class="text-success material-icons md-local_shipping"></i>
-                </span>
-                <div class="text">
-                  <h6 class="mb-1 card-title">Orders</h6>
-                  <span>53.668</span>
-                  <span class="text-sm"> Excluding orders in transit </span>
-                </div>
-              </article>
-            </div>
-          </div>
-          <div class="col-lg-3">
-            <div class="card card-body mb-4">
-              <article class="icontext">
-                <span class="icon icon-sm rounded-circle bg-warning-light">
-                  <i class="text-warning material-icons md-qr_code"></i>
-                </span>
-                <div class="text">
-                  <h6 class="mb-1 card-title">Products</h6>
-                  <span>9.856</span>
-                  <span class="text-sm"> In 19 Categories </span>
-                </div>
-              </article>
-            </div>
-          </div>
-          <div class="col-lg-3">
-            <div class="card card-body mb-4">
-              <article class="icontext">
-                <span class="icon icon-sm rounded-circle bg-info-light">
-                  <i class="text-info material-icons md-shopping_basket"></i>
-                </span>
-                <div class="text">
-                  <h6 class="mb-1 card-title">Monthly Earning</h6>
-                  <span>₹6,55,982</span>
-                  <span class="text-sm"> Based in your local time. </span>
-                </div>
-              </article>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-xl-8 col-lg-12">
-            <div class="card mb-4">
-              <article class="card-body">
-                <h5 class="card-title">Sale statistics</h5>
-                <canvas id="myChart" height="120px"></canvas>
-              </article>
-            </div>
-            <div class="row">
-              <div class="col-lg-5">
-                <div class="card mb-4">
-                  <article class="card-body">
-                    <h5 class="card-title">New Members</h5>
-                    <div class="new-member-list">
-                      <div class="d-flex align-items-center justify-content-between mb-4">
-                        <div class="d-flex align-items-center">
-                          <img src="assets/imgs/people/avatar4.jpg" alt="" class="avatar" />
-                          <div>
-                            <h6>Patric Adams</h6>
-                            <p class="text-muted font-xs">Sanfrancisco</p>
-                          </div>
-                        </div>
-                        <a href="#" class="btn btn-xs">
-                          <i class="material-icons md-add"></i> Add
-                        </a>
-                      </div>
-                      <div class="d-flex align-items-center justify-content-between mb-4">
-                        <div class="d-flex align-items-center">
-                          <img src="assets/imgs/people/avatar2.jpg" alt="" class="avatar" />
-                          <div>
-                            <h6>Dilan Specter</h6>
-                            <p class="text-muted font-xs">Sanfrancisco</p>
-                          </div>
-                        </div>
-                        <a href="#" class="btn btn-xs">
-                          <i class="material-icons md-add"></i> Add
-                        </a>
-                      </div>
-                      <div class="d-flex align-items-center justify-content-between mb-4">
-                        <div class="d-flex align-items-center">
-                          <img src="assets/imgs/people/avatar3.jpg" alt="" class="avatar" />
-                          <div>
-                            <h6>Tomas Baker</h6>
-                            <p class="text-muted font-xs">Sanfrancisco</p>
-                          </div>
-                        </div>
-                        <a href="#" class="btn btn-xs">
-                          <i class="material-icons md-add"></i> Add
-                        </a>
-                      </div>
-                    </div>
-                  </article>
-                </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="stat-card bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <article class="flex items-start gap-4">
+              <span class="icon flex-shrink-0 w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                <i class="text-primary material-icons md-monetization_on"></i>
+              </span>
+              <div class="flex flex-col">
+                <h6 class="mb-1 text-sm font-medium text-gray-500">Revenue</h6>
+                <span class="text-xl font-bold text-gray-800">₹<%=revenue%></span>
+                <span class="text-xs text-gray-500 mt-1">Shipping fees are not included</span>
               </div>
-              <div class="col-lg-7">
-                <div class="card mb-4">
-                  <article class="card-body">
-                    <h5 class="card-title">Recent activities</h5>
-                    <ul class="verti-timeline list-unstyled font-sm">
-                      <li class="event-list">
-                        <div class="event-timeline-dot">
-                          <i class="material-icons md-play_circle_outline font-xxl"></i>
-                        </div>
-                        <div class="media">
-                          <div class="me-3">
-                            <h6>
-                              <span>Today</span>
-                              <i class="material-icons md-trending_flat text-brand ml-15 d-inline-block"></i>
-                            </h6>
-                          </div>
-                          <div class="media-body">
-                            <div>Lorem ipsum dolor sit amet consectetur</div>
-                          </div>
-                        </div>
-                      </li>
-                      <li class="event-list active">
-                        <div class="event-timeline-dot">
-                          <i class="material-icons md-play_circle_outline font-xxl animation-fade-right"></i>
-                        </div>
-                        <div class="media">
-                          <div class="me-3">
-                            <h6>
-                              <span>17 May</span>
-                              <i class="material-icons md-trending_flat text-brand ml-15 d-inline-block"></i>
-                            </h6>
-                          </div>
-                          <div class="media-body">
-                            <div>Debitis nesciunt voluptatum dicta reprehenderit</div>
-                          </div>
-                        </div>
-                      </li>
-                      <li class="event-list">
-                        <div class="event-timeline-dot">
-                          <i class="material-icons md-play_circle_outline font-xxl"></i>
-                        </div>
-                        <div class="media">
-                          <div class="me-3">
-                            <h6>
-                              <span>13 May</span>
-                              <i class="material-icons md-trending_flat text-brand ml-15 d-inline-block"></i>
-                            </h6>
-                          </div>
-                          <div class="media-body">
-                            <div>Accusamus voluptatibus voluptas.</div>
-                          </div>
-                        </div>
-                      </li>
-                      <li class="event-list">
-                        <div class="event-timeline-dot">
-                          <i class="material-icons md-play_circle_outline font-xxl"></i>
-                        </div>
-                        <div class="media">
-                          <div class="me-3">
-                            <h6>
-                              <span>05 April</span>
-                              <i class="material-icons md-trending_flat text-brand ml-15 d-inline-block"></i>
-                            </h6>
-                          </div>
-                          <div class="media-body">
-                            <div>At vero eos et accusamus et iusto odio dignissi</div>
-                          </div>
-                        </div>
-                      </li>
-                      <li class="event-list">
-                        <div class="event-timeline-dot">
-                          <i class="material-icons md-play_circle_outline font-xxl"></i>
-                        </div>
-                        <div class="media">
-                          <div class="me-3">
-                            <h6>
-                              <span>26 Mar</span>
-                              <i class="material-icons md-trending_flat text-brand ml-15 d-inline-block"></i>
-                            </h6>
-                          </div>
-                          <div class="media-body">
-                            <div>Responded to need “Volunteer Activities</div>
-                          </div>
-                        </div>
-                      </li>
-                    </ul>
-                  </article>
-                </div>
-              </div>
-            </div>
+            </article>
           </div>
-          <div class="col-xl-4 col-lg-12">
-            <div class="card mb-4">
-              <article class="card-body">
-                <h5 class="card-title">Revenue Base on Area</h5>
-                <canvas id="myChart2" height="217"></canvas>
-              </article>
-            </div>
-            <div class="card mb-4">
-              <article class="card-body">
-                <h5 class="card-title">Marketing Chanel</h5>
-                <span class="text-muted font-xs">Facebook</span>
-                <div class="progress mb-3">
-                  <div class="progress-bar" role="progressbar" style="width: 15%">
-                    15%
-                  </div>
-                </div>
-                <span class="text-muted font-xs">Instagram</span>
-                <div class="progress mb-3">
-                  <div class="progress-bar" role="progressbar" style="width: 65%">
-                    65%
-                  </div>
-                </div>
-                <span class="text-muted font-xs">Google</span>
-                <div class="progress mb-3">
-                  <div class="progress-bar" role="progressbar" style="width: 51%">
-                    51%
-                  </div>
-                </div>
-                <span class="text-muted font-xs">Twitter</span>
-                <div class="progress mb-3">
-                  <div class="progress-bar" role="progressbar" style="width: 80%">
-                    80%
-                  </div>
-                </div>
-                <span class="text-muted font-xs">Other</span>
-                <div class="progress mb-3">
-                  <div class="progress-bar" role="progressbar" style="width: 80%">
-                    80%
-                  </div>
-                </div>
-              </article>
-            </div>
+          <div class="stat-card bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <article class="flex items-start gap-4">
+              <span class="icon flex-shrink-0 w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                <i class="text-green-600 material-icons md-local_shipping"></i>
+              </span>
+              <div class="flex flex-col">
+                <h6 class="mb-1 text-sm font-medium text-gray-500">Orders</h6>
+                <span class="text-xl font-bold text-gray-800"><%= ordersCount %></span>
+                <span class="text-xs text-gray-500 mt-1">Excluding orders in transit</span>
+              </div>
+            </article>
+          </div>
+          <div class="stat-card bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <article class="flex items-start gap-4">
+              <span class="icon flex-shrink-0 w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                <i class="text-amber-600 material-icons md-qr_code"></i>
+              </span>
+              <div class="flex flex-col">
+                <h6 class="mb-1 text-sm font-medium text-gray-500">Products</h6>
+                <span class="text-xl font-bold text-gray-800"><%= productsCount %></span>
+                <span class="text-xs text-gray-500 mt-1">In your inventory</span>
+              </div>
+            </article>
+          </div>
+          <div class="stat-card bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <article class="flex items-start gap-4">
+              <span class="icon flex-shrink-0 w-12 h-12 rounded-full bg-sky-100 flex items-center justify-center">
+                <i class="text-sky-600 material-icons md-shopping_basket"></i>
+              </span>
+              <div class="flex flex-col">
+                <h6 class="mb-1 text-sm font-medium text-gray-500">Monthly Earning</h6>
+                <span class="text-xl font-bold text-gray-800">₹ <%= monthlyEarning %></span>
+                <span class="text-xs text-gray-500 mt-1">Based in your local time</span>
+              </div>
+            </article>
           </div>
         </div>
         <!-- Sales Report Section -->
-        <div class="card mb-4">
-          <header class="card-header">
-            <h4 class="card-title">Sales Report</h4>
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mt-6">
+          <header class="flex flex-wrap items-center justify-between mb-4 pb-4 border-b border-gray-100">
+            <h4 class="text-lg font-bold text-gray-800">Sales Report</h4>
+            <div class="flex gap-2">
+              <button id="exportPdf" class="btn btn-danger bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">Export PDF</button>
+              <button id="exportExcel" class="btn btn-success bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">Export Excel</button>
+            </div>
           </header>
           <div class="card-body">
-            <form id="salesReportForm" method="GET" action="/sales-report">
-              <div class="row">
-                <div class="col-md-3">
-                  <select name="reportType" class="form-select">
+            <form id="salesReportForm" method="GET" action="/sales-report" class="mb-6">
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <select name="reportType" class="form-select w-full rounded-lg border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
                     <option value="">Select Report Type</option>
                     <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
@@ -295,126 +234,205 @@
                     <option value="custom">Custom</option>
                   </select>
                 </div>
-                <div class="col-md-3">
-                  <input type="date" name="startDate" class="form-control" placeholder="Start Date" />
+                <div>
+                  <input type="date" name="startDate" class="form-control w-full rounded-lg border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" placeholder="Start Date" />
                 </div>
-                <div class="col-md-3">
-                  <input type="date" name="endDate" class="form-control" placeholder="End Date" />
+                <div>
+                  <input type="date" name="endDate" class="form-control w-full rounded-lg border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" placeholder="End Date" />
                 </div>
-                <div class="col-md-3">
-                  <button type="submit" class="btn btn-primary">Filter and View</button>
+                <div>
+                  <button type="submit" class="btn btn-primary w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">Filter and View</button>
                 </div>
               </div>
             </form>
-            <div class="mt-3">
-              <button id="exportPdf" class="btn btn-danger">Export PDF</button>
-              <button id="exportExcel" class="btn btn-success">Export Excel</button>
-            </div>
-            <div class="mt-4" id="salesReportResults">
+            <div class="mt-4 p-4 bg-gray-50 rounded-lg" id="salesReportResults">
               <!-- Render filtered sales report results here (via AJAX) -->
+              <div class="text-center text-gray-500 py-8">
+                <p>Select report type and date range to view sales data</p>
+              </div>
             </div>
-            <div class="pagination-area mt-30" id="salesReportPagination">
+            <div class="pagination-area mt-6" id="salesReportPagination">
               <!-- Pagination controls will be rendered here -->
             </div>
           </div>
         </div>
+        <!-- New Section: Sales Charts -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+          <div class="chart-card">
+            <h4 class="flex items-center gap-2"><i class="material-icons md-trending_up text-blue-500"></i> Yearly Sales</h4>
+            <div class="chart-container">
+              <canvas id="yearlyChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h4 class="flex items-center gap-2"><i class="material-icons md-date_range text-green-500"></i> Monthly Sales</h4>
+            <div class="chart-container">
+              <canvas id="monthlyChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h4 class="flex items-center gap-2"><i class="material-icons md-today text-amber-500"></i> Daily Sales</h4>
+            <div class="chart-container">
+              <canvas id="dailyChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <!-- New Section: Top 10 Selling Products and Categories -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <header class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+              <h4 class="text-lg font-bold text-gray-800">Top 10 Selling Products</h4>
+            </header>
+            <div class="p-6">
+              <% if(bestSellingProducts && bestSellingProducts.length > 0) { %>
+                <div class="table-responsive">
+                  <table class="table w-full">
+                    <thead>
+                      <tr>
+                        <th scope="col" class="px-4 py-3 text-left">Product Name</th>
+                        <th scope="col" class="px-4 py-3 text-right">Total Quantity Sold</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% bestSellingProducts.forEach(function(product) { %>
+                        <tr class="border-t border-gray-100">
+                          <td class="px-4 py-3"><%= product.product_name %></td>
+                          <td class="px-4 py-3 text-right font-medium"><%= product.totalQuantity %></td>
+                        </tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                </div>
+              <% } else { %>
+                <p class="text-center text-gray-500 py-8">No products found.</p>
+              <% } %>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <header class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+              <h4 class="text-lg font-bold text-gray-800">Top 10 Selling Categories</h4>
+            </header>
+            <div class="p-6">
+              <% if(bestSellingCategories && bestSellingCategories.length > 0) { %>
+                <div class="table-responsive">
+                  <table class="table w-full">
+                    <thead>
+                      <tr>
+                        <th scope="col" class="px-4 py-3 text-left">Category Name</th>
+                        <th scope="col" class="px-4 py-3 text-right">Total Quantity Sold</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% bestSellingCategories.forEach(function(category) { %>
+                        <tr class="border-t border-gray-100">
+                          <td class="px-4 py-3"><%= category.name %></td>
+                          <td class="px-4 py-3 text-right font-medium"><%= category.totalQuantity %></td>
+                        </tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                </div>
+              <% } else { %>
+                <p class="text-center text-gray-500 py-8">No categories found.</p>
+              <% } %>
+            </div>
+          </div>
+        </div>
         <!-- Latest Orders Section: Display dynamic orders data -->
-        <div class="card mb-4">
-          <header class="card-header">
-            <h4 class="card-title">Latest Orders</h4>
-            <div class="row align-items-center">
-              <div class="col-md-3 col-12 me-auto mb-md-0 mb-3">
-                <div class="custom_select">
-                  <select class="form-select select-nice">
-                    <option selected>All Categories</option>
-                    <option>Women's Clothing</option>
-                    <option>Men's Clothing</option>
-                    <option>Cellphones</option>
-                    <option>Computer & Office</option>
-                    <option>Consumer Electronics</option>
-                    <option>Jewelry & Accessories</option>
-                    <option>Home & Garden</option>
-                    <option>Luggage & Bags</option>
-                    <option>Shoes</option>
-                    <option>Mother & Kids</option>
-                  </select>
-                </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-6">
+          <header class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+            <h4 class="text-lg font-bold text-gray-800 mb-4">Latest Orders</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <select class="form-select w-full rounded-lg border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                  <option selected>All Categories</option>
+                  <option>Women's Clothing</option>
+                  <option>Men's Clothing</option>
+                  <option>Cellphones</option>
+                  <option>Computer & Office</option>
+                  <option>Consumer Electronics</option>
+                  <option>Jewelry & Accessories</option>
+                  <option>Home & Garden</option>
+                  <option>Luggage & Bags</option>
+                  <option>Shoes</option>
+                  <option>Mother & Kids</option>
+                </select>
               </div>
-              <div class="col-md-2 col-6">
-                <input type="date" value="02.05.2022" class="form-control" />
+              <div>
+                <input type="date" value="02.05.2022" class="form-control w-full rounded-lg border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" />
               </div>
-              <div class="col-md-2 col-6">
-                <div class="custom_select">
-                  <select class="form-select select-nice">
-                    <option selected>Status</option>
-                    <option>All</option>
-                    <option>Paid</option>
-                    <option>Chargeback</option>
-                    <option>Refund</option>
-                  </select>
-                </div>
+              <div>
+                <select class="form-select w-full rounded-lg border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                  <option selected>Status</option>
+                  <option>All</option>
+                  <option>Paid</option>
+                  <option>Chargeback</option>
+                  <option>Refund</option>
+                </select>
               </div>
             </div>
           </header>
-          <div class="card-body">
-            <div class="table-responsive">
-              <table class="table align-middle table-nowrap mb-0">
-                <thead class="table-light">
+          <div class="p-6">
+            <div class="table-responsive rounded-lg overflow-hidden border border-gray-200">
+              <table class="table w-full">
+                <thead class="bg-gray-50">
                   <tr>
-                    <th scope="col" class="text-center">
-                      <div class="form-check align-middle">
-                        <input class="form-check-input" type="checkbox" id="transactionCheck01" />
+                    <th scope="col" class="px-4 py-3 text-center w-10">
+                      <div class="form-check">
+                        <input class="form-check-input rounded" type="checkbox" id="transactionCheck01" />
                         <label class="form-check-label" for="transactionCheck01"></label>
                       </div>
                     </th>
-                    <th class="align-middle" scope="col">Order ID</th>
-                    <th class="align-middle" scope="col">Billing Name</th>
-                    <th class="align-middle" scope="col">Date</th>
-                    <th class="align-middle" scope="col">Total</th>
-                    <th class="align-middle" scope="col">Payment Status</th>
-                    <th class="align-middle" scope="col">Payment Method</th>
-                    <th class="align-middle" scope="col">View Details</th>
+                    <th class="px-4 py-3 text-left" scope="col">Order ID</th>
+                    <th class="px-4 py-3 text-left" scope="col">Billing Name</th>
+                    <th class="px-4 py-3 text-left" scope="col">Date</th>
+                    <th class="px-4 py-3 text-right" scope="col">Total</th>
+                    <th class="px-4 py-3 text-center" scope="col">Payment Status</th>
+                    <th class="px-4 py-3 text-left" scope="col">Payment Method</th>
+                    <th class="px-4 py-3 text-center" scope="col">View Details</th>
                   </tr>
                 </thead>
                 <tbody>
                   <% if(orders && orders.length > 0) { %>
                     <% orders.forEach(function(order) { %>
-                      <tr>
-                        <td class="text-center">
+                      <tr class="border-t border-gray-100 hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-3 text-center">
                           <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="transactionCheck-<%= order.order_id %>" />
+                            <input class="form-check-input rounded" type="checkbox" id="transactionCheck-<%= order.order_id %>" />
                             <label class="form-check-label" for="transactionCheck-<%= order.order_id %>"></label>
                           </div>
                         </td>
-                        <td><a href="#" class="fw-bold"><%= order.order_id %></a></td>
-                        <td><%= order.user ? order.user.name : 'N/A' %></td>
-                        <td><%= new Date(order.timestamp).toLocaleDateString() %></td>
-                        <td>$<%= order.total.toFixed(2) %></td>
-                        <td>
+                        <td class="px-4 py-3"><a href="#" class="text-blue-600 hover:underline font-medium">#<%= order.order_id %></a></td>
+                        <td class="px-4 py-3"><%= order.user ? order.user.email : 'N/A' %></td>
+                        <td class="px-4 py-3 text-gray-600"><%= new Date(order.timestamp).toLocaleDateString() %></td>
+                        <td class="px-4 py-3 text-right font-medium">₹<%= order.total.toFixed(2) %></td>
+                        <td class="px-4 py-3 text-center">
                           <% if(order.payment_status === 'paid') { %>
-                            <span class="badge badge-pill badge-soft-success">Paid</span>
+                            <span class="badge badge-soft-success px-3 py-1 rounded-full text-xs font-medium">Paid</span>
                           <% } else if(order.payment_status === 'Chargeback') { %>
-                            <span class="badge badge-pill badge-soft-danger">Chargeback</span>
+                            <span class="badge badge-soft-danger px-3 py-1 rounded-full text-xs font-medium">Chargeback</span>
                           <% } else if(order.payment_status === 'Refund') { %>
-                            <span class="badge badge-pill badge-soft-warning">Refund</span>
+                            <span class="badge badge-soft-warning px-3 py-1 rounded-full text-xs font-medium">Refund</span>
                           <% } else { %>
-                            <span class="badge badge-pill badge-soft-info"><%= order.payment_status %></span>
+                            <span class="badge badge-soft-info px-3 py-1 rounded-full text-xs font-medium"><%= order.payment_status %></span>
                           <% } %>
                         </td>
-                        <td>
+                        <td class="px-4 py-3">
                           <% if(order.payment_method) { %>
-                            <i class="material-icons md-payment font-xxl text-muted mr-5"></i>
-                            <%= order.payment_method %>
+                            <div class="flex items-center gap-2">
+                              <i class="material-icons md-payment text-gray-500"></i>
+                              <span><%= order.payment_method %></span>
+                            </div>
                           <% } %>
                         </td>
-                        <td>
-                          <a href="/order/<%= order.order_id %>" class="btn btn-xs">View details</a>
+                        <td class="px-4 py-3 text-center">
+                          <a href="/order/<%= order.order_id %>" class="btn btn-xs bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-xs transition-colors">View details</a>
                         </td>
                       </tr>
                     <% }) %>
                   <% } else { %>
                     <tr>
-                      <td colspan="8" class="text-center">No orders found</td>
+                      <td colspan="8" class="px-4 py-8 text-center text-gray-500">No orders found</td>
                     </tr>
                   <% } %>
                 </tbody>
@@ -423,12 +441,12 @@
           </div>
         </div>
         <!-- Pagination for orders -->
-        <div class="pagination-area mt-30 mb-50">
+        <div class="pagination-area mt-6 mb-8 flex justify-center">
           <nav aria-label="Page navigation example">
-            <ul class="pagination justify-content-start">
+            <ul class="pagination flex gap-1">
               <% for(let i = 1; i <= pagination.totalPages; i++) { %>
                 <li class="page-item <%= (pagination.page === i) ? 'active' : '' %>">
-                  <a class="page-link" href="?page=<%= i %>&limit=<%= pagination.limit %>"><%= i %></a>
+                  <a class="page-link flex items-center justify-center w-10 h-10 rounded-lg border <%= (pagination.page === i) ? 'bg-blue-500 text-white border-blue-500' : 'border-gray-200 text-gray-700 hover:bg-gray-50' %>" href="?page=<%= i %>&limit=<%= pagination.limit %>"><%= i %></a>
                 </li>
               <% } %>
             </ul>
@@ -459,50 +477,201 @@
       });
 
       function loadSalesReportPage(page) {
-  const form = document.getElementById('salesReportForm');
-  const queryParams = new URLSearchParams(new FormData(form));
-  queryParams.set('page', page);
-  fetch('/admin/dashboard/sales-report?' + queryParams.toString())
-    .then(response => response.json())
-    .then(data => {
-      let html = '<h5>Sales Summary</h5>';
-      html += `<p>Total Orders: ${data.summary.count}</p>`;
-      html += `<p>Total Sales: ₹${data.summary.totalSales.toFixed(2)}</p>`;
-      html += `<p>Overall Discount: ₹${data.summary.overallDiscount.toFixed(2)}</p>`;
-      html += `<p>Normal Discount: ₹${data.summary.totalNormalDiscount.toFixed(2)}</p>`;
-      html += `<p>Coupon Deduction: ₹${data.summary.totalCouponDeduction.toFixed(2)}</p>`;
-      if (data.orders && data.orders.length > 0) {
-        html += '<table class="table table-bordered"><thead><tr><th>Order ID</th><th>Billing Email</th><th>Date</th><th>Total</th></tr></thead><tbody>';
-        data.orders.forEach(order => {
-          html += `<tr>
-                     <td>${order.order_id}</td>
-                     <td>${order.user && order.user.email ? order.user.name : 'N/A'}</td>
-                     <td>${new Date(order.timestamp).toLocaleDateString()}</td>
-                     <td>₹${order.total.toFixed(2)}</td>
-                   </tr>`;
+        const form = document.getElementById('salesReportForm');
+        const queryParams = new URLSearchParams(new FormData(form));
+        queryParams.set('page', page);
+        
+        // Show loading state
+        document.getElementById('salesReportResults').innerHTML = '<div class="text-center py-8"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div><p class="mt-2 text-gray-500">Loading data...</p></div>';
+        
+        fetch('/admin/dashboard/sales-report?' + queryParams.toString())
+          .then(response => response.json())
+          .then(data => {
+            let html = '<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">';
+            html += '<h5 class="text-lg font-bold text-gray-800 mb-4">Sales Summary</h5>';
+            html += '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">';
+            html += `<div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                      <p class="text-sm text-gray-500">Total Orders</p>
+                      <p class="text-xl font-bold text-gray-800">${data.summary.count}</p>
+                    </div>`;
+            html += `<div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                      <p class="text-sm text-gray-500">Total Sales</p>
+                      <p class="text-xl font-bold text-gray-800">₹${data.summary.totalSales.toFixed(2)}</p>
+                    </div>`;
+            html += `<div class="bg-amber-50 p-4 rounded-lg border border-amber-100">
+                      <p class="text-sm text-gray-500">Overall Discount</p>
+                      <p class="text-xl font-bold text-gray-800">₹${data.summary.overallDiscount.toFixed(2)}</p>
+                    </div>`;
+            html += `<div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                      <p class="text-sm text-gray-500">Normal Discount</p>
+                      <p class="text-xl font-bold text-gray-800">₹${data.summary.totalNormalDiscount.toFixed(2)}</p>
+                    </div>`;
+            html += `<div class="bg-pink-50 p-4 rounded-lg border border-pink-100">
+                      <p class="text-sm text-gray-500">Coupon Deduction</p>
+                      <p class="text-xl font-bold text-gray-800">₹${data.summary.totalCouponDeduction.toFixed(2)}</p>
+                    </div>`;
+            html += '</div>';
+            
+            if (data.orders && data.orders.length > 0) {
+              html += '<div class="overflow-x-auto rounded-lg border border-gray-200">';
+              html += '<table class="table w-full"><thead class="bg-gray-50"><tr><th class="px-4 py-3 text-left">Order ID</th><th class="px-4 py-3 text-left">Billing Email</th><th class="px-4 py-3 text-left">Date</th><th class="px-4 py-3 text-right">Total</th></tr></thead><tbody>';
+              data.orders.forEach(order => {
+                html += `<tr class="border-t border-gray-100 hover:bg-gray-50 transition-colors">
+                           <td class="px-4 py-3"><a href="#" class="text-blue-600 hover:underline">#${order.order_id}</a></td>
+                           <td class="px-4 py-3">${order.user && order.user.email ? order.user.email : 'N/A'}</td>
+                           <td class="px-4 py-3 text-gray-600">${new Date(order.timestamp).toLocaleDateString()}</td>
+                           <td class="px-4 py-3 text-right font-medium">₹${order.total.toFixed(2)}</td>
+                         </tr>`;
+              });
+              html += '</tbody></table>';
+              html += '</div>';
+            } else {
+              html += '<div class="text-center py-8 bg-gray-50 rounded-lg border border-gray-200"><p class="text-gray-500">No sales report data found for the selected criteria.</p></div>';
+            }
+            html += '</div>';
+            document.getElementById('salesReportResults').innerHTML = html;
+
+            // Build pagination for Sales Report
+            let paginationHtml = '<nav aria-label="Sales report pagination"><ul class="pagination flex gap-1 justify-center mt-4">';
+            for (let i = 1; i <= data.pagination.totalPages; i++) {
+              paginationHtml += `<li class="page-item">
+                                    <a class="page-link flex items-center justify-center w-10 h-10 rounded-lg border ${data.pagination.page === i ? 'bg-blue-500 text-white border-blue-500' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}" href="#" onclick="loadSalesReportPage(${i}); return false;">${i}</a>
+                                  </li>`;
+            }
+            paginationHtml += '</ul></nav>';
+            document.getElementById('salesReportPagination').innerHTML = paginationHtml;
+          })
+          .catch(error => {
+            console.error(error);
+            document.getElementById('salesReportResults').innerHTML = '<div class="text-center py-8 bg-red-50 rounded-lg border border-red-100"><p class="text-red-500">Error loading sales report. Please try again.</p></div>';
+          });
+      }
+
+      // Initialize Charts using Chart.js
+
+      // Dummy data for charts (replace with real data from backend if available)
+      const yearlyLabels = <%- JSON.stringify(chartDataYearlyLabels || []) %>;
+      const yearlySales = <%- JSON.stringify(chartDataYearlySales || []) %>;
+
+      const monthlyLabels = <%- JSON.stringify(chartDataMonthlyLabels || []) %>;
+      const monthlySales = <%- JSON.stringify(chartDataMonthlySales || []) %>;
+
+      const dailyLabels = <%- JSON.stringify(chartDataDailyLabels || []) %>;
+      const dailySales = <%- JSON.stringify(chartDataDailySales || []) %>;
+
+      // Yearly Chart
+      const ctxYearly = document.getElementById('yearlyChart').getContext('2d');
+      const yearlyChart = new Chart(ctxYearly, {
+        type: 'line',
+        data: {
+          labels: yearlyLabels,
+          datasets: [{
+            label: 'Yearly Sales',
+            data: yearlySales,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            fill: true,
+            tension: 0.3,
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: true, position: 'top' },
+            title: { display: false }
+          },
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, grid: { color: '#e0e0e0' } }
+          }
+        }
+      });
+
+      // Monthly Chart
+      const ctxMonthly = document.getElementById('monthlyChart').getContext('2d');
+      const monthlyChart = new Chart(ctxMonthly, {
+        type: 'bar',
+        data: {
+          labels: monthlyLabels,
+          datasets: [{
+            label: 'Monthly Sales',
+            data: monthlySales,
+            backgroundColor: '#22c55e',
+            borderColor: '#22c55e',
+            borderWidth: 1,
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: true, position: 'top' },
+            title: { display: false }
+          },
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, grid: { color: '#e0e0e0' } }
+          }
+        }
+      });
+
+      // Daily Chart
+      const ctxDaily = document.getElementById('dailyChart').getContext('2d');
+      const dailyChart = new Chart(ctxDaily, {
+        type: 'pie',
+        data: {
+          labels: dailyLabels,
+          datasets: [{
+            label: 'Daily Sales',
+            data: dailySales,
+            backgroundColor: ['#3b82f6', '#22c55e', '#ef4444', '#6b7280', '#f59e0b', '#8b5cf6'],
+            borderWidth: 1,
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom' },
+            title: { display: false }
+          }
+        }
+      });
+      
+      // Add smooth scrolling to all links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          document.querySelector(this.getAttribute('href')).scrollIntoView({
+            behavior: 'smooth'
+          });
         });
-        html += '</tbody></table>';
-      } else {
-        html += '<p>No sales report data found.</p>';
+      });
+      
+      // Toggle dark mode
+      document.querySelector('.darkmode').addEventListener('click', function() {
+        document.body.classList.toggle('dark-theme');
+        // Save preference to localStorage
+        if (document.body.classList.contains('dark-theme')) {
+          localStorage.setItem('theme', 'dark');
+        } else {
+          localStorage.setItem('theme', 'light');
+        }
+      });
+      
+      // Check for saved theme preference
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-theme');
       }
-      document.getElementById('salesReportResults').innerHTML = html;
-
-      // Build pagination for Sales Report
-      let paginationHtml = '<nav aria-label="Sales report pagination"><ul class="pagination">';
-      for (let i = 1; i <= data.pagination.totalPages; i++) {
-        paginationHtml += `<li class="page-item ${data.pagination.page === i ? 'active' : ''}">
-                              <a class="page-link" href="#" onclick="loadSalesReportPage(${i}); return false;">${i}</a>
-                            </li>`;
-      }
-      paginationHtml += '</ul></nav>';
-      document.getElementById('salesReportPagination').innerHTML = paginationHtml;
-    })
-    .catch(error => {
-      console.error(error);
-      document.getElementById('salesReportResults').innerHTML = '<p>Error loading sales report.</p>';
-    });
-}
-
+      
+      // Fullscreen functionality
+      document.querySelector('.requestfullscreen').addEventListener('click', function() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          }
+        }
+      });
     </script>
   </body>
 </html>

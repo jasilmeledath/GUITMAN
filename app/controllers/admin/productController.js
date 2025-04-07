@@ -241,27 +241,18 @@ const productController = {
     }
   },
 
-  /**
-   * Adds a new offer to the database.
-   * - Saves the offer details provided in the request body.
-   *
-   * @param {Object} req - Express request object containing offer data.
-   * @param {Object} res - Express response object for redirecting after creation.
-   * @param {Function} next - Express next function for error handling.
-   */
   addOffer: async (req, res, next) => {
     try {
       const {
         offer_type,
         offer_percentage,
-        offer_price,
         expiry_date,
         products,
         categories,
         referral_code,
         referral_bonus
       } = req.body;
-
+  
       // Validate required fields
       if (!offer_type || !expiry_date) {
         return res.status(400).json({
@@ -269,15 +260,26 @@ const productController = {
           message: 'Offer type and expiry date are required.'
         });
       }
-
+  
+      // Validate expiry date is not in the past
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const offerExpiryDate = new Date(expiry_date);
+      if (offerExpiryDate < today) {
+        return res.status(400).json({
+          success: false,
+          message: 'Expiry date must be today or a future date.'
+        });
+      }
+  
       // Validate non-negative numeric values for offer percentage and price
-      if (offer_percentage < 0 || offer_price < 0) {
+      if (offer_percentage < 0) {
         return res.status(400).json({
           success: false,
           message: 'Offer percentage and offer price cannot be negative.'
         });
       }
-
+  
       // Validate referral offer fields if offer_type is 'referral'
       if (offer_type === 'referral') {
         if (!referral_code || referral_code.trim() === '') {
@@ -293,29 +295,28 @@ const productController = {
           });
         }
       }
-
+  
       // Create and save the new offer
       const newOffer = new Offer({
         offer_type,
         offer_percentage,
-        offer_price,
         expiry_date,
         referral_code: offer_type === 'referral' ? referral_code : undefined,
         referral_bonus: offer_type === 'referral' ? referral_bonus : 0
       });
-
+  
       // Attach products if offer type is 'product'
       if (offer_type === 'product' && products) {
         newOffer.products = Array.isArray(products) ? products : [products];
       }
-
+  
       // Attach categories if offer type is 'category'
       if (offer_type === 'category' && categories) {
         newOffer.categories = Array.isArray(categories) ? categories : [categories];
       }
-
+  
       const savedOffer = await newOffer.save();
-
+  
       // Update related products if offer type is 'product'
       if (offer_type === 'product' && newOffer.products && newOffer.products.length > 0) {
         await Product.updateMany(
@@ -323,7 +324,7 @@ const productController = {
           { $set: { offer: savedOffer._id } }
         );
       }
-
+  
       // Update products belonging to categories if offer type is 'category'
       if (offer_type === 'category' && newOffer.categories && newOffer.categories.length > 0) {
         await Product.updateMany(
@@ -331,7 +332,7 @@ const productController = {
           { $set: { offer: savedOffer._id } }
         );
       }
-
+  
       return res.status(201).json({
         success: true,
         message: 'Offer created successfully',
@@ -340,28 +341,52 @@ const productController = {
     } catch (error) {
       next(error);
     }
-  },
+  },  
   /**
-   * Toggle offer status.
-   * - Finds and removes the offer by ID.
-   *
-   * @param {Object} req - Express request object containing offer ID.
-   * @param {Object} res - Express response object confirming the deletion.
-   * @param {Function} next - Express next function for error handling.
-   */
-  toggleActiveOffer: async (req, res, next) => {
-    try {
-      const { id } = req.params;
-      const { isActive } = req.body;
-      const offer = await Offer.findByIdAndUpdate(id, { isActive: isActive }, { new: true });
-      if (!offer) {
-        return res.status(httpStatus.NOT_FOUND).json({ success: false, message: "Offer not found" });
-      }
-      res.status(httpStatus.OK).json({ success: true, message: `Offer ${isActive ? 'activated' : 'deactivated'} successfully!`, offer });
-    } catch (error) {
-      next(error);
+ * Toggle offer status.
+ * - Finds the offer by ID, updates its isActive status.
+ * - If deactivated, removes the offer reference from related products.
+ * - If activated, adds the offer reference back to related products based on offer type.
+ *
+ * @param {Object} req - Express request object containing offer ID and isActive in body.
+ * @param {Object} res - Express response object confirming the update.
+ * @param {Function} next - Express next function for error handling.
+ */
+toggleActiveOffer: async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+    const offer = await Offer.findByIdAndUpdate(id, { isActive: isActive }, { new: true });
+    if (!offer) {
+      return res.status(httpStatus.NOT_FOUND).json({ success: false, message: "Offer not found" });
     }
-  },
+    if (!isActive) {
+      // When deactivated, remove the offer reference from all products that have this offer.
+      await Product.updateMany(
+        { offer: offer._id },
+        { $unset: { offer: "" } }
+      );
+    } else {
+      // When activated, re-apply the offer to related products.
+      if (offer.offer_type === 'product' && offer.products && offer.products.length > 0) {
+        await Product.updateMany(
+          { _id: { $in: offer.products } },
+          { $set: { offer: offer._id } }
+        );
+      }
+      if (offer.offer_type === 'category' && offer.categories && offer.categories.length > 0) {
+        await Product.updateMany(
+          { category: { $in: offer.categories } },
+          { $set: { offer: offer._id } }
+        );
+      }
+    }
+    res.status(httpStatus.OK).json({ success: true, message: `Offer ${isActive ? 'activated' : 'deactivated'} successfully!`, offer });
+  } catch (error) {
+    next(error);
+  }
+},
+
   /**
    * Deletes an offer from the database.
    * - Finds and removes the offer by ID.

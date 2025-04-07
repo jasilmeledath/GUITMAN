@@ -64,7 +64,7 @@
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Wallet Balance Card -->
+            <!-- Wallet Balance & Cards -->
             <div class="lg:col-span-1">
               <div class="bg-white overflow-hidden shadow-sm rounded-xl">
                 <div class="p-6">
@@ -119,12 +119,10 @@
 
               <!-- Wallet Cards -->
               <div x-data="cardStore()">
-                <!-- Wallet Cards -->
                 <div class="mt-6 bg-white overflow-hidden shadow-sm rounded-xl">
                   <div class="p-6">
                     <div class="flex items-center justify-between mb-4">
                       <h2 class="text-lg font-medium text-gray-900">Payment Methods</h2>
-                      <!-- Use a link or button to trigger modal (adjust href or onclick as needed) -->
                       <button @click="openModal()" class="text-primary-600 hover:text-primary-700 text-sm font-medium">
                         <i class="fas fa-plus mr-1"></i> Add New
                       </button>
@@ -230,7 +228,6 @@
                     validateForm() {
                       this.errors = {};
                       let valid = true;
-                      // Validate card number: must be 16 digits (ignoring spaces)
                       const cleanedNumber = this.cardNumber.replace(/\s+/g, '');
                       if (!this.cardNumber.trim()) {
                         this.errors.cardNumber = "Card Number is required";
@@ -239,12 +236,10 @@
                         this.errors.cardNumber = "Card Number must be 16 digits";
                         valid = false;
                       }
-                      // Validate card holder name
                       if (!this.cardHolder.trim()) {
                         this.errors.cardHolder = "Card Holder name is required";
                         valid = false;
                       }
-                      // Validate expiry date in MM/YY format
                       if (!this.expiry.trim()) {
                         this.errors.expiry = "Expiry Date is required";
                         valid = false;
@@ -252,7 +247,6 @@
                         this.errors.expiry = "Expiry Date must be in MM/YY format";
                         valid = false;
                       }
-                      // Validate card type
                       if (!this.cardType.trim()) {
                         this.errors.cardType = "Card Type is required";
                         valid = false;
@@ -342,52 +336,52 @@
             <div class="lg:col-span-2">
               <div class="bg-white overflow-hidden shadow-sm rounded-xl">
                 <div class="p-6">
-                  <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-lg font-medium text-gray-900">Transaction History</h2>
+                  <!-- Filtering Form -->
+                  <form method="GET" action="" class="flex items-center justify-between mb-6">
                     <div class="flex space-x-2">
                       <div class="relative">
-                        <select class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md">
-                          <option>All Transactions</option>
-                          <option>Deposits</option>
-                          <option>Withdrawals</option>
-                          <option>Purchases</option>
-                          <option>Refunds</option>
+                        <select name="type" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md">
+                          <option value="all" <%= (typeof type === 'undefined' || type === 'all') ? 'selected' : '' %>>All Transactions</option>
+                          <option value="deposit" <%= type === 'deposit' ? 'selected' : '' %>>Deposits</option>
+                          <option value="withdrawal" <%= type === 'withdrawal' ? 'selected' : '' %>>Withdrawals</option>
+                          <option value="purchase" <%= type === 'purchase' ? 'selected' : '' %>>Purchases</option>
+                          <option value="refund" <%= type === 'refund' ? 'selected' : '' %>>Refunds</option>
                         </select>
                       </div>
                       <div class="relative">
-                        <select class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md">
-                          <option>Last 30 Days</option>
-                          <option>Last 7 Days</option>
-                          <option>This Month</option>
-                          <option>Last Month</option>
-                          <option>Custom Range</option>
+                        <select name="dateRange" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md">
+                          <option value="all" <%= (typeof dateRange === 'undefined' || dateRange === 'all') ? 'selected' : '' %>>All Dates</option>
+                          <option value="last30Days" <%= dateRange === 'last30Days' ? 'selected' : '' %>>Last 30 Days</option>
+                          <option value="last7Days" <%= dateRange === 'last7Days' ? 'selected' : '' %>>Last 7 Days</option>
+                          <option value="thisMonth" <%= dateRange === 'thisMonth' ? 'selected' : '' %>>This Month</option>
+                          <option value="lastMonth" <%= dateRange === 'lastMonth' ? 'selected' : '' %>>Last Month</option>
+                          <option value="custom" <%= dateRange === 'custom' ? 'selected' : '' %>>Custom Range</option>
                         </select>
                       </div>
                     </div>
-                  </div>
-
-                  <!-- Search Bar -->
-                  <div class="mb-6">
-                    <div class="relative rounded-md shadow-sm">
-                      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i class="fas fa-search text-gray-400"></i>
+                    <div class="w-1/3">
+                      <div class="relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <input type="text" name="search" value="<%= typeof search !== 'undefined' ? search : '' %>" class="focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md" placeholder="Search transactions...">
                       </div>
-                      <input type="text" class="focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md" placeholder="Search transactions...">
                     </div>
-                  </div>
+                    <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700">Filter</button>
+                  </form>
 
                   <!-- Dynamic Transactions List -->
                   <div class="space-y-4">
-                    <% if (wallet && wallet.history && wallet.history.length > 0) { %>
-                      <% wallet.history.forEach(function(transaction) { %>
+                    <% if (transactions && transactions.length > 0) { %>
+                      <% transactions.forEach(function(transaction) { %>
                         <div class="bg-white border border-gray-100 rounded-lg p-4 transition-all duration-200 ease-in-out transaction-item">
                           <div class="flex items-center justify-between">
                             <div class="flex items-center">
-                              <div class="flex-shrink-0 rounded-full p-2 <% if (transaction.transaction_type.toLowerCase() === 'deposit') { %>bg-green-100<% } else { %>bg-red-100<% } %>">
-                                <% if (transaction.transaction_type.toLowerCase() === 'deposit') { %>
+                              <div class="flex-shrink-0 rounded-full p-2 <% if (['deposit','refund'].includes(transaction.transaction_type.toLowerCase())) { %>bg-green-100<% } else { %>bg-red-100<% } %>">
+                                <% if (['deposit','refund'].includes(transaction.transaction_type.toLowerCase())) { %>
                                   <i class="fas fa-arrow-down text-green-600 text-sm"></i>
                                 <% } else { %>
-                                  <i class="fas fa-shopping-bag text-red-600 text-sm"></i>
+                                  <i class="fas fa-arrow-up text-red-600 text-sm"></i>
                                 <% } %>
                               </div>
                               <div class="ml-4">
@@ -396,7 +390,7 @@
                               </div>
                             </div>
                             <div class="text-right">
-                              <% if (transaction.transaction_type.toLowerCase() === 'deposit') { %>
+                              <% if (['deposit','refund'].includes(transaction.transaction_type.toLowerCase())) { %>
                                 <p class="text-sm font-semibold text-green-600">+₹<%= transaction.amount.toFixed(2) %></p>
                               <% } else { %>
                                 <p class="text-sm font-semibold text-red-600">-₹<%= transaction.amount.toFixed(2) %></p>
@@ -411,36 +405,46 @@
                     <% } %>
                   </div>
 
-                  <!-- Pagination (Static Example) -->
+                  <!-- Pagination -->
                   <div class="mt-6 flex items-center justify-between border-t border-gray-200 pt-4">
                     <div class="flex flex-1 justify-between sm:hidden">
-                      <a href="#" class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Previous</a>
-                      <a href="#" class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Next</a>
+                      <% if (currentPage > 1) { %>
+                        <a href="?page=<%= currentPage - 1 %>&limit=<%= limit %>" class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Previous</a>
+                      <% } %>
+                      <% if (currentPage < totalPages) { %>
+                        <a href="?page=<%= currentPage + 1 %>&limit=<%= limit %>" class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Next</a>
+                      <% } %>
                     </div>
                     <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                       <div>
                         <p class="text-sm text-gray-700">
-                          Showing <span class="font-medium">1</span> to <span class="font-medium">10</span> of <span class="font-medium">23</span> results
+                          Showing <span class="font-medium"><%= (currentPage - 1) * limit + 1 %></span> to <span class="font-medium"><%= Math.min(currentPage * limit, totalTransactions) %></span> of <span class="font-medium"><%= totalTransactions %></span> results
                         </p>
                       </div>
                       <div>
                         <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                          <a href="#" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
-                            <span class="sr-only">Previous</span>
-                            <i class="fas fa-chevron-left h-5 w-5"></i>
-                          </a>
-                          <a href="#" aria-current="page" class="relative z-10 inline-flex items-center bg-primary-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">1</a>
-                          <a href="#" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">2</a>
-                          <a href="#" class="relative hidden items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 md:inline-flex">3</a>
-                          <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">...</span>
-                          <a href="#" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
-                            <span class="sr-only">Next</span>
-                            <i class="fas fa-chevron-right h-5 w-5"></i>
-                          </a>
+                          <% if (currentPage > 1) { %>
+                            <a href="?page=<%= currentPage - 1 %>&limit=<%= limit %>" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                              <span class="sr-only">Previous</span>
+                              <i class="fas fa-chevron-left h-5 w-5"></i>
+                            </a>
+                          <% } %>
+                          <% for (var i = 1; i <= totalPages; i++) { %>
+                            <a href="?page=<%= i %>&limit=<%= limit %>" class="<%= currentPage === i ? 'bg-primary-600 text-white' : 'text-gray-900' %> relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                              <%= i %>
+                            </a>
+                          <% } %>
+                          <% if (currentPage < totalPages) { %>
+                            <a href="?page=<%= currentPage + 1 %>&limit=<%= limit %>" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                              <span class="sr-only">Next</span>
+                              <i class="fas fa-chevron-right h-5 w-5"></i>
+                            </a>
+                          <% } %>
                         </nav>
                       </div>
                     </div>
                   </div>
+                  
                 </div>
               </div>
             </div>

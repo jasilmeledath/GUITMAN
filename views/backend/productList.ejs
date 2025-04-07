@@ -86,6 +86,9 @@
                   <span class="font-semibold">Rs.<%= product.price %></span>
                 </div>
                 <div class="w-1/4 md:w-1/5 text-center">
+                  <span class="font-semibold"><%= product.stock %> in stock</span>
+                </div>
+                <div class="w-1/4 md:w-1/5 text-center">
                   <!-- Added id for status span to update dynamically -->
                   <span id="status-<%= product._id %>" class="px-2 py-1 rounded-full text-xs <%= product.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' %>">
                     <%= product.isActive ? 'Active' : 'Inactive' %>

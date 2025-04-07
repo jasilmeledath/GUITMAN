@@ -327,121 +327,64 @@
             });
         });
 
-        // Create Coupon Form: Client-side validation for negative values
-        document.querySelector('#createCouponForm').addEventListener('submit', function(event) {
+        // Create Coupon Form: Use fetch for form submission and client-side validation
+        document.querySelector('#createCouponForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const form = this;
             const couponCode = document.querySelector('#coupon_code').value.trim();
-            const discount = parseFloat(document.querySelector('#discount').value);
-            const minAmount = document.querySelector('#min_amount').value ? parseFloat(document.querySelector('#min_amount').value) : 0;
-            const maxDiscount = document.querySelector('#max_discount').value ? parseFloat(document.querySelector('#max_discount').value) : 0;
-            const usageLimit = document.querySelector('#usage_limit').value ? parseFloat(document.querySelector('#usage_limit').value) : 0;
+            const couponType = document.querySelector('#coupon_type').value;
+            const discount = document.querySelector('#discount').value;
+            const minAmount = document.querySelector('#min_amount').value || 0;
+            const maxDiscount = document.querySelector('#max_discount').value || 0;
+            const expireDate = document.querySelector('#expire_date').value;
+            const usageLimit = document.querySelector('#usage_limit').value || 0;
+            const singleUsePerUser = document.querySelector('#single_use_per_user').value;
             
+            // Basic validation
             if (!couponCode) {
-                event.preventDefault();
                 showNotification("Coupon code is required.", false);
                 return;
             }
-            if(discount < 0) {
-                event.preventDefault();
+            if (discount < 0) {
                 showNotification("Discount cannot be negative.", false);
                 return;
             }
             if(minAmount < 0) {
-                event.preventDefault();
                 showNotification("Minimum amount cannot be negative.", false);
                 return;
             }
             if(maxDiscount < 0) {
-                event.preventDefault();
                 showNotification("Maximum discount cannot be negative.", false);
                 return;
             }
             if(usageLimit < 0) {
-                event.preventDefault();
                 showNotification("Usage limit cannot be negative.", false);
                 return;
             }
-        });
-
-        // Edit Coupon Modal: Populate with data
-        $('#editCouponModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget);
-            var id = button.data('id');
-            var coupon_code = button.data('coupon_code');
-            var coupon_type = button.data('coupon_type');
-            var discount = button.data('discount');
-            var min_amount = button.data('min_amount');
-            var max_discount = button.data('max_discount');
-            var expire_date = button.data('expire_date');
-            var usage_limit = button.data('usage_limit');
-            var single_use_per_user = button.data('single_use_per_user');
-            var modal = $(this);
-            modal.find('#edit-coupon-id').val(id);
-            modal.find('#edit-coupon-code').val(coupon_code);
-            modal.find('#edit-coupon-type').val(coupon_type);
-            modal.find('#edit-discount').val(discount);
-            modal.find('#edit-min-amount').val(min_amount);
-            modal.find('#edit-max-discount').val(max_discount);
-            modal.find('#edit-expire-date').val(expire_date);
-            modal.find('#edit-usage-limit').val(usage_limit);
-            modal.find('#edit-single-use').val(single_use_per_user);
-            modal.find('#editCouponCodeError').text('');
-        });
-
-        // Handle edit coupon form submission via fetch with validation
-        document.querySelector('#editCouponForm').addEventListener('submit', async function (event) {
-            event.preventDefault();
-            const id = document.querySelector('#edit-coupon-id').value;
-            const coupon_code = document.querySelector('#edit-coupon-code').value.trim();
-            const coupon_type = document.querySelector('#edit-coupon-type').value;
-            const discount = parseFloat(document.querySelector('#edit-discount').value);
-            const min_amount = document.querySelector('#edit-min-amount').value ? parseFloat(document.querySelector('#edit-min-amount').value) : 0;
-            const max_discount = document.querySelector('#edit-max-discount').value ? parseFloat(document.querySelector('#edit-max-discount').value) : 0;
-            const expire_date = document.querySelector('#edit-expire-date').value;
-            const usage_limit = document.querySelector('#edit-usage-limit').value ? parseFloat(document.querySelector('#edit-usage-limit').value) : 0;
-            const single_use_per_user = document.querySelector('#edit-single-use').value;
-            
-            if (!coupon_code) {
-                document.getElementById("editCouponCodeError").textContent = "Coupon code is required.";
-                return;
-            }
-            if(discount < 0) {
-                document.getElementById("editCouponCodeError").textContent = "Discount cannot be negative.";
-                return;
-            }
-            if(min_amount < 0) {
-                document.getElementById("editCouponCodeError").textContent = "Minimum amount cannot be negative.";
-                return;
-            }
-            if(max_discount < 0) {
-                document.getElementById("editCouponCodeError").textContent = "Maximum discount cannot be negative.";
-                return;
-            }
-            if(usage_limit < 0) {
-                document.getElementById("editCouponCodeError").textContent = "Usage limit cannot be negative.";
-                return;
-            }
-            const updatedData = {
-                coupon_code,
-                coupon_type,
-                discount,
-                min_amount,
-                max_discount,
-                expire_date,
-                usage_limit,
-                single_use_per_user
+            // Create the coupon object
+            const couponData = {
+                coupon_code: couponCode,
+                coupon_type: couponType,
+                discount: parseFloat(discount),
+                min_amount: parseFloat(minAmount),
+                max_discount: parseFloat(maxDiscount),
+                expire_date: expireDate,
+                usage_limit: parseFloat(usageLimit),
+                single_use_per_user: singleUsePerUser
             };
+            
             try {
-                const response = await fetch(`/admin/dashboard/coupon/edit/${id}`, {
-                    method: 'PUT',
+                const response = await fetch(form.action, {
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(updatedData)
+                    body: JSON.stringify(couponData)
                 });
                 const result = await response.json();
                 if (response.ok) {
                     Swal.fire({
                         icon: 'success',
                         title: 'Success!',
-                        text: 'Coupon updated successfully!',
+                        text: result.message || 'Coupon created successfully!',
                         customClass: {
                             container: 'bg-gray-100 rounded-lg shadow-xl',
                             title: 'text-2xl font-bold text-gray-800',
@@ -452,18 +395,14 @@
                         location.reload();
                     });
                 } else {
-                    if(response.status === 400) {
-                        document.getElementById("editCouponCodeError").textContent = result.message;
-                    } else {
-                        throw new Error(result.message || 'Failed to update coupon');
-                    }
+                    throw new Error(result.message || 'Failed to create coupon');
                 }
             } catch (error) {
-                console.error('Error updating coupon:', error);
+                console.error('Error creating coupon:', error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Oops...',
-                    text: 'Failed to update coupon. Please try again.',
+                    text: error.message || 'Failed to create coupon. Please try again.',
                     customClass: {
                         container: 'bg-gray-100 rounded-lg shadow-xl',
                         title: 'text-2xl font-bold text-gray-800',
@@ -474,7 +413,7 @@
             }
         });
 
-        // Utility function for validation
+        // Coupon Form Validation for Create and Edit Forms
         function validateCouponForm(formData) {
             const errors = {};
             if (!formData.couponCode || formData.couponCode.trim() === '') {
@@ -509,7 +448,6 @@
             return errors;
         }
         
-        // Function to display validation errors
         function displayErrors(errors, formPrefix) {
             document.querySelectorAll(`.${formPrefix}-error`).forEach(el => {
                 el.textContent = '';
@@ -524,151 +462,131 @@
             });
             return Object.keys(errors).length === 0;
         }
-        
-        // Create and Edit Coupon Form Validation: Add error containers and validate on submit
-        document.addEventListener('DOMContentLoaded', function() {
-            const createForm = document.getElementById('createCouponForm');
-            if (createForm) {
-                const fields = ['coupon_code', 'discount', 'min_amount', 'max_discount', 'expire_date', 'usage_limit'];
-                fields.forEach(field => {
-                    const input = createForm.querySelector(`#${field}`);
-                    if (input) {
-                        const errorDiv = document.createElement('div');
-                        errorDiv.id = `create-${field.replace('_', '')}-error`;
-                        errorDiv.className = 'create-error text-red-500 text-sm mt-1 hidden';
-                        input.parentNode.insertBefore(errorDiv, input.nextSibling);
-                    }
-                });
-                createForm.addEventListener('submit', function(event) {
-                    event.preventDefault();
-                    const formData = {
-                        couponCode: createForm.querySelector('#coupon_code').value.trim(),
-                        couponType: createForm.querySelector('#coupon_type').value,
-                        discount: createForm.querySelector('#discount').value,
-                        minAmount: createForm.querySelector('#min_amount').value,
-                        maxDiscount: createForm.querySelector('#max_discount').value,
-                        expireDate: createForm.querySelector('#expire_date').value,
-                        usageLimit: createForm.querySelector('#usage_limit').value,
-                        singleUsePerUser: createForm.querySelector('#single_use_per_user').value
-                    };
-                    const errors = validateCouponForm(formData);
-                    const isValid = displayErrors(errors, 'create');
-                    if (isValid) {
-                        createForm.submit();
-                    }
-                });
-            }
-            const editForm = document.getElementById('editCouponForm');
-            if (editForm) {
-                const fields = ['coupon-code', 'discount', 'min-amount', 'max-discount', 'expire-date', 'usage-limit'];
-                fields.forEach(field => {
-                    const input = editForm.querySelector(`#edit-${field}`);
-                    if (input) {
-                        const errorDiv = document.createElement('div');
-                        errorDiv.id = `edit-${field.replace('-', '')}-error`;
-                        errorDiv.className = 'edit-error text-red-500 text-sm mt-1 hidden';
-                        input.parentNode.insertBefore(errorDiv, input.nextSibling);
-                    }
-                });
-                editForm.addEventListener('submit', async function(event) {
-                    event.preventDefault();
-                    const formData = {
-                        couponCode: editForm.querySelector('#edit-coupon-code').value.trim(),
-                        couponType: editForm.querySelector('#edit-coupon-type').value,
-                        discount: editForm.querySelector('#edit-discount').value,
-                        minAmount: editForm.querySelector('#edit-min-amount').value,
-                        maxDiscount: editForm.querySelector('#edit-max-discount').value,
-                        expireDate: editForm.querySelector('#edit-expire-date').value,
-                        usageLimit: editForm.querySelector('#edit-usage-limit').value,
-                        singleUsePerUser: editForm.querySelector('#edit-single-use').value
-                    };
-                    const errors = validateCouponForm(formData);
-                    const isValid = displayErrors(errors, 'edit');
-                    if (isValid) {
-                        const id = editForm.querySelector('#edit-coupon-id').value;
-                        try {
-                            const response = await fetch(`/admin/dashboard/coupon/edit/${id}`, {
-                                method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    coupon_code: formData.couponCode,
-                                    coupon_type: formData.couponType,
-                                    discount: parseFloat(formData.discount),
-                                    min_amount: formData.minAmount ? parseFloat(formData.minAmount) : 0,
-                                    max_discount: formData.maxDiscount ? parseFloat(formData.maxDiscount) : 0,
-                                    expire_date: formData.expireDate,
-                                    usage_limit: formData.usageLimit ? parseFloat(formData.usageLimit) : 0,
-                                    single_use_per_user: formData.singleUsePerUser
-                                })
-                            });
-                            const result = await response.json();
-                            if (response.ok) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Success!',
-                                    text: 'Coupon updated successfully!',
-                                    customClass: {
-                                        container: 'bg-gray-100 rounded-lg shadow-xl',
-                                        title: 'text-2xl font-bold text-gray-800',
-                                        content: 'text-gray-600',
-                                        confirmButton: 'bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded'
-                                    }
-                                }).then(() => {
-                                    location.reload();
-                                });
-                            } else {
-                                throw new Error(result.message || 'Failed to update coupon');
+
+        // Edit Coupon Modal: Populate with data
+        $('#editCouponModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var id = button.data('id');
+            var coupon_code = button.data('coupon_code');
+            var coupon_type = button.data('coupon_type');
+            var discount = button.data('discount');
+            var min_amount = button.data('min_amount');
+            var max_discount = button.data('max_discount');
+            var expire_date = button.data('expire_date');
+            var usage_limit = button.data('usage_limit');
+            var single_use_per_user = button.data('single_use_per_user');
+            var modal = $(this);
+            modal.find('#edit-coupon-id').val(id);
+            modal.find('#edit-coupon-code').val(coupon_code);
+            modal.find('#edit-coupon-type').val(coupon_type);
+            modal.find('#edit-discount').val(discount);
+            modal.find('#edit-min-amount').val(min_amount);
+            modal.find('#edit-max-discount').val(max_discount);
+            modal.find('#edit-expire-date').val(expire_date);
+            modal.find('#edit-usage-limit').val(usage_limit);
+            modal.find('#edit-single-use').val(single_use_per_user);
+            modal.find('#editCouponCodeError').text('');
+        });
+
+        // Handle edit coupon form submission via fetch with validation
+        document.querySelector('#editCouponForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const formData = {
+                couponCode: document.querySelector('#edit-coupon-code').value.trim(),
+                couponType: document.querySelector('#edit-coupon-type').value,
+                discount: document.querySelector('#edit-discount').value,
+                minAmount: document.querySelector('#edit-min-amount').value,
+                maxDiscount: document.querySelector('#edit-max-discount').value,
+                expireDate: document.querySelector('#edit-expire-date').value,
+                usageLimit: document.querySelector('#edit-usage-limit').value,
+                singleUsePerUser: document.querySelector('#edit-single-use').value
+            };
+            const errors = validateCouponForm(formData);
+            const isValid = displayErrors(errors, 'edit');
+            if (isValid) {
+                const id = document.querySelector('#edit-coupon-id').value;
+                try {
+                    const response = await fetch(`/admin/dashboard/coupon/edit/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            coupon_code: formData.couponCode,
+                            coupon_type: formData.couponType,
+                            discount: parseFloat(formData.discount),
+                            min_amount: formData.minAmount ? parseFloat(formData.minAmount) : 0,
+                            max_discount: formData.maxDiscount ? parseFloat(formData.maxDiscount) : 0,
+                            expire_date: formData.expireDate,
+                            usage_limit: formData.usageLimit ? parseFloat(formData.usageLimit) : 0,
+                            single_use_per_user: formData.singleUsePerUser
+                        })
+                    });
+                    const result = await response.json();
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: 'Coupon updated successfully!',
+                            customClass: {
+                                container: 'bg-gray-100 rounded-lg shadow-xl',
+                                title: 'text-2xl font-bold text-gray-800',
+                                content: 'text-gray-600',
+                                confirmButton: 'bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded'
                             }
-                        } catch (error) {
-                            console.error('Error updating coupon:', error);
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Oops...',
-                                text: error.message || 'Failed to update coupon. Please try again.',
-                                customClass: {
-                                    container: 'bg-gray-100 rounded-lg shadow-xl',
-                                    title: 'text-2xl font-bold text-gray-800',
-                                    content: 'text-gray-600',
-                                    confirmButton: 'bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded'
-                                }
-                            });
-                        }
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        throw new Error(result.message || 'Failed to update coupon');
                     }
-                });
+                } catch (error) {
+                    console.error('Error updating coupon:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: error.message || 'Failed to update coupon. Please try again.',
+                        customClass: {
+                            container: 'bg-gray-100 rounded-lg shadow-xl',
+                            title: 'text-2xl font-bold text-gray-800',
+                            content: 'text-gray-600',
+                            confirmButton: 'bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded'
+                        }
+                    });
+                }
             }
-            // Real-time validation for coupon type and discount
-            const couponTypeInputs = document.querySelectorAll('#coupon_type, #edit-coupon-type');
-            const discountInputs = document.querySelectorAll('#discount, #edit-discount');
-            couponTypeInputs.forEach(typeInput => {
-                typeInput.addEventListener('change', function() {
-                    const formId = this.id.includes('edit') ? 'edit' : 'create';
-                    const discountInput = document.getElementById(`${formId === 'edit' ? 'edit-' : ''}discount`);
-                    if (discountInput && discountInput.value && this.value === 'percentage' && parseFloat(discountInput.value) > 100) {
-                        const errorElement = document.getElementById(`${formId}-discount-error`);
-                        if (errorElement) {
-                            errorElement.textContent = "Percentage discount cannot exceed 100%";
-                            errorElement.classList.remove('hidden');
-                        }
-                    }
-                });
-            });
-            discountInputs.forEach(discountInput => {
-                discountInput.addEventListener('input', function() {
-                    const formId = this.id.includes('edit') ? 'edit' : 'create';
-                    const typeInput = document.getElementById(`${formId === 'edit' ? 'edit-' : ''}coupon_type`);
+        });
+
+        // Real-time validation for coupon type and discount
+        const couponTypeInputs = document.querySelectorAll('#coupon_type, #edit-coupon-type');
+        const discountInputs = document.querySelectorAll('#discount, #edit-discount');
+        couponTypeInputs.forEach(typeInput => {
+            typeInput.addEventListener('change', function() {
+                const formId = this.id.includes('edit') ? 'edit' : 'create';
+                const discountInput = document.getElementById(`${formId === 'edit' ? 'edit-' : ''}discount`);
+                if (discountInput && discountInput.value && this.value === 'percentage' && parseFloat(discountInput.value) > 100) {
                     const errorElement = document.getElementById(`${formId}-discount-error`);
                     if (errorElement) {
-                        errorElement.textContent = '';
-                        errorElement.classList.add('hidden');
-                        if (this.value && parseFloat(this.value) < 0) {
-                            errorElement.textContent = "Discount cannot be negative";
-                            errorElement.classList.remove('hidden');
-                        } else if (typeInput && typeInput.value === 'percentage' && this.value && parseFloat(this.value) > 100) {
-                            errorElement.textContent = "Percentage discount cannot exceed 100%";
-                            errorElement.classList.remove('hidden');
-                        }
+                        errorElement.textContent = "Percentage discount cannot exceed 100%";
+                        errorElement.classList.remove('hidden');
                     }
-                });
+                }
+            });
+        });
+        discountInputs.forEach(discountInput => {
+            discountInput.addEventListener('input', function() {
+                const formId = this.id.includes('edit') ? 'edit' : 'create';
+                const typeInput = document.getElementById(`${formId === 'edit' ? 'edit-' : ''}coupon_type`);
+                const errorElement = document.getElementById(`${formId}-discount-error`);
+                if (errorElement) {
+                    errorElement.textContent = '';
+                    errorElement.classList.add('hidden');
+                    if (this.value && parseFloat(this.value) < 0) {
+                        errorElement.textContent = "Discount cannot be negative";
+                        errorElement.classList.remove('hidden');
+                    } else if (typeInput && typeInput.value === 'percentage' && this.value && parseFloat(this.value) > 100) {
+                        errorElement.textContent = "Percentage discount cannot exceed 100%";
+                        errorElement.classList.remove('hidden');
+                    }
+                }
             });
         });
     </script>

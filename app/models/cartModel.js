@@ -16,11 +16,12 @@ const cartSchema = new mongoose.Schema({
   tax: { type: Number, default: 0 }, // Tax amount on the cart
   shipping_fee: { type: Number, default: 0 }, // Shipping cost
   savings: { type: Number, default: 0},
+  couponApplied: { type: mongoose.Schema.Types.ObjectId, ref: 'Coupon'},
   status: {
     type: String,
     enum: ['active', 'checked_out', 'expired', 'abandoned'],
     default: 'active'
-  }, // Cart status tracking
+  }, 
   expiresAt: { type: Date, default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) } // Auto-clear abandoned carts in 7 days
 }, { timestamps: true });
 

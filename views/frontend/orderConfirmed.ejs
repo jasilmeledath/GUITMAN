@@ -42,7 +42,6 @@
   
   <!-- Include Header Partial -->
   <%- include('partials/header') %>
-  
   <main class="flex-grow container mx-auto px-4 pt-20 pb-12 md:pt-24 md:pb-16">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
       <h1 class="text-3xl font-bold text-gray-900 mb-4 sm:mb-0">Order Details</h1>
@@ -111,18 +110,36 @@
               <p class="text-gray-800 font-semibold"><%= order.shippingMethod %></p>
             </div>
           </div>
+          
+          <!-- Download Invoice Button -->
+          <div class="flex justify-center mt-6">
+            <button id="downloadInvoice" class="flex items-center px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              Download Invoice
+            </button>
+          </div>
         </div>
       </div>
       
       <!-- Order Details -->
       <div class="bg-white rounded-xl shadow-lg p-6 mb-8" data-aos="fade-up" data-aos-delay="200">
-        <div class="flex items-center mb-4">
-          <i class="fas fa-box-open text-primary-600 mr-3"></i>
-          <h2 class="text-xl font-bold text-gray-800">Order Summary</h2>
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center">
+            <i class="fas fa-box-open text-primary-600 mr-3"></i>
+            <h2 class="text-xl font-bold text-gray-800">Order Summary</h2>
+          </div>
+          <div class="flex items-center text-sm text-primary-600 cursor-pointer hover:text-primary-800 transition-colors" id="toggleOrderDetails">
+            <span id="toggleText">Hide Details</span>
+            <svg id="toggleIcon" class="w-4 h-4 ml-1 transform rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
         </div>
         
         <!-- Order Items -->
-        <div class="border-b border-gray-200 pb-4 mb-4">
+        <div id="orderItems" class="border-b border-gray-200 pb-4 mb-4">
           <% order.items.forEach(function(item, index) { %>
             <div class="flex items-center py-4 border-b border-gray-100 last:border-b-0 transition-all hover:bg-gray-50 rounded-lg p-2" data-aos="fade-up" data-aos-delay="<%= 200 + (index * 100) %>">
               <div class="h-20 w-20 rounded-lg bg-gray-100 overflow-hidden mr-4 shadow-sm">
@@ -157,10 +174,10 @@
             <span class="text-gray-600">Shipping</span>
             <span class="text-gray-800 font-medium">&#8377;<%= order.shippingCost.toFixed(2) %></span>
           </div>
-          <% if (order.discount && order.discount > 0) { %>
+          <% if (coupon) { %>
             <div class="flex justify-between text-sm">
               <span class="text-gray-600">Discount</span>
-              <span class="text-green-600 font-medium">-&#8377;<%= order.discount.toFixed(2) %></span>
+              <span class="text-green-600 font-medium">-&#8377;<%= coupon.discount.toFixed(2) %></span>
             </div>
           <% } %>
           <% if (order.tax && order.tax > 0) { %>
@@ -183,7 +200,7 @@
             <i class="fas fa-truck text-primary-600 mr-3"></i>
             <h2 class="text-xl font-bold text-gray-800">Shipping Address</h2>
           </div>
-          <div class="bg-gray-50 rounded-lg p-4">
+          <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-primary-400">
             <address class="not-italic text-gray-600">
               <p class="font-medium text-gray-800 mb-2"><%= order.shipping.name %></p>
               <p><%= order.shipping.address1 %></p>
@@ -204,7 +221,7 @@
             <i class="fas fa-credit-card text-primary-600 mr-3"></i>
             <h2 class="text-xl font-bold text-gray-800">Billing Address</h2>
           </div>
-          <div class="bg-gray-50 rounded-lg p-4">
+          <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-primary-400">
             <address class="not-italic text-gray-600">
               <p class="font-medium text-gray-800 mb-2"><%= order.billing.name %></p>
               <p><%= order.billing.address1 %></p>
@@ -218,6 +235,64 @@
               <% } %>
             </address>
           </div>
+        </div>
+      </div>
+      
+      <!-- Order Tracking -->
+      <div class="bg-white rounded-xl shadow-lg p-6 mb-8" data-aos="fade-up" data-aos-delay="450">
+        <div class="flex items-center mb-6">
+          <i class="fas fa-map-marker-alt text-primary-600 mr-3"></i>
+          <h2 class="text-xl font-bold text-gray-800">Track Your Order</h2>
+        </div>
+        
+        <div class="relative">
+          <!-- Progress Bar -->
+          <div class="hidden sm:block absolute left-0 top-1/2 w-full h-1 bg-gray-200 -translate-y-1/2 z-0"></div>
+          
+          <!-- Progress Steps -->
+          <div class="flex flex-col sm:flex-row justify-between relative z-10">
+            <!-- Step 1: Order Placed -->
+            <div class="flex flex-col items-center mb-6 sm:mb-0">
+              <div class="w-10 h-10 rounded-full bg-primary-600 text-white flex items-center justify-center mb-2 shadow-md">
+                <i class="fas fa-check"></i>
+              </div>
+              <p class="text-sm font-medium text-gray-800">Order Placed</p>
+              <p class="text-xs text-gray-500"><%= order.date %></p>
+            </div>
+            
+            <!-- Step 2: Processing -->
+            <div class="flex flex-col items-center mb-6 sm:mb-0">
+              <div class="w-10 h-10 rounded-full bg-primary-600 text-white flex items-center justify-center mb-2 shadow-md">
+                <i class="fas fa-cog"></i>
+              </div>
+              <p class="text-sm font-medium text-gray-800">Processing</p>
+              <p class="text-xs text-gray-500">In progress</p>
+            </div>
+            
+            <!-- Step 3: Shipped -->
+            <div class="flex flex-col items-center mb-6 sm:mb-0">
+              <div class="w-10 h-10 rounded-full bg-gray-300 text-white flex items-center justify-center mb-2">
+                <i class="fas fa-shipping-fast"></i>
+              </div>
+              <p class="text-sm font-medium text-gray-400">Shipped</p>
+              <p class="text-xs text-gray-400">Pending</p>
+            </div>
+            
+            <!-- Step 4: Delivered -->
+            <div class="flex flex-col items-center">
+              <div class="w-10 h-10 rounded-full bg-gray-300 text-white flex items-center justify-center mb-2">
+                <i class="fas fa-home"></i>
+              </div>
+              <p class="text-sm font-medium text-gray-400">Delivered</p>
+              <p class="text-xs text-gray-400">Pending</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-8 flex justify-center">
+          <button id="trackOrderBtn" class="flex items-center px-6 py-3 bg-primary-50 text-primary-700 font-medium rounded-lg border border-primary-200 hover:bg-primary-100 transition-colors duration-200">
+            <i class="fas fa-search mr-2"></i> Track Order Status
+          </button>
         </div>
       </div>
       
@@ -266,7 +341,7 @@
             </div>
             <div>
               <h3 class="text-md font-medium text-purple-800">Need Help?</h3>
-              <p class="text-sm text-purple-600">Our support team is available 24/7. Contact us at <a href="mailto:support@yourstore.com" class="text-purple-600 font-semibold hover:underline">support@yourstore.com</a> or call <a href="tel:+18001234567" class="text-purple-600 font-semibold hover:underline">1-800-123-4567</a></p>
+              <p class="text-sm text-purple-600">Our support team is available 24/7. Contact us at <a href="/cdn-cgi/l/email-protection#a0d3d5d0d0cfd2d4e0d9cfd5d2d3d4cfd2c58ec3cfcd" class="text-purple-600 font-semibold hover:underline"><span class="__cf_email__" data-cfemail="f1828481819e8385b1889e848382859e8394df929e9c">[email&#160;protected]</span></a> or call <a href="tel:+18001234567" class="text-purple-600 font-semibold hover:underline">1-800-123-4567</a></p>
             </div>
           </div>
         </div>
@@ -288,9 +363,8 @@
   <%- include('partials/footer') %>
   
   <!-- Confetti Effect -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
   <script>
-    // Initialize animations
     document.addEventListener('DOMContentLoaded', function() {
       // Initialize AOS animations
       AOS.init();
@@ -303,24 +377,88 @@
           origin: { y: 0.6 }
         });
       }, 500);
+      
+      // Toggle order details
+      const toggleOrderDetails = document.getElementById('toggleOrderDetails');
+      const orderItems = document.getElementById('orderItems');
+      const toggleText = document.getElementById('toggleText');
+      const toggleIcon = document.getElementById('toggleIcon');
+      
+      if (toggleOrderDetails && orderItems) {
+        toggleOrderDetails.addEventListener('click', function() {
+          if (orderItems.style.display === 'none' || orderItems.style.display === '') {
+            orderItems.style.display = 'block';
+            toggleText.textContent = 'Hide Details';
+            toggleIcon.classList.add('rotate-180');
+            toggleIcon.classList.remove('rotate-0');
+          } else {
+            orderItems.style.display = 'none';
+            toggleText.textContent = 'Show Details';
+            toggleIcon.classList.remove('rotate-180');
+            toggleIcon.classList.add('rotate-0');
+          }
+        });
+      }
+      
+      // Download Invoice functionality using fetch request
+      const downloadInvoiceBtn = document.getElementById('downloadInvoice');
+      if (downloadInvoiceBtn) {
+        downloadInvoiceBtn.addEventListener('click', async function() {
+          const originalContent = this.innerHTML;
+          this.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Generating Invoice...
+          `;
+          this.disabled = true;
+          try {
+            // Use order.number since that's what's displayed and (presumably) stored
+            const response = await fetch(`/cart/download-invoice/<%= order.number %>`, { method: 'GET' });
+            if (response.ok) {
+              const blob = await response.blob();
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `Invoice-<%= order.number %>.pdf`;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              window.URL.revokeObjectURL(url);
+              showToast('Invoice downloaded successfully!');
+            } else {
+              showToast('Failed to generate invoice.', 'error');
+            }
+          } catch (error) {
+            showToast('Network error. Please try again.', 'error');
+          } finally {
+            this.innerHTML = originalContent;
+            this.disabled = false;
+          }
+        });
+      }
+      
+      // Track Order Button functionality
+      const trackOrderBtn = document.getElementById('trackOrderBtn');
+      if (trackOrderBtn) {
+        trackOrderBtn.addEventListener('click', function() {
+          showTrackingModal('<%= order.number %>');
+        });
+      }
     });
-  </script>
-  
-  <!-- Order Tracking Script -->
-  <script>
-    // This is a placeholder for order tracking functionality
-    const trackOrder = () => {
-      console.log('Order tracking initiated');
-      // Add actual tracking implementation here
+    
+    // Function to show tracking modal (redirects to tracking page)
+    function showTrackingModal(orderId) {
+      window.location.href = `/order/track/${orderId}`;
     }
     
-    // Show a toast message
-    const showToast = (message) => {
+    // Function to show toast messages
+    function showToast(message, type = 'success') {
       const toast = document.createElement('div');
       toast.className = 'fixed bottom-4 right-4 bg-primary-600 text-white py-2 px-4 rounded-lg shadow-lg z-50 animate-fade-in-up';
       toast.textContent = message;
       document.body.appendChild(toast);
-      
       setTimeout(() => {
         toast.classList.add('animate-fade-out');
         setTimeout(() => {
@@ -329,11 +467,11 @@
       }, 3000);
     }
     
-    // Show welcome toast
-    setTimeout(() => {
-      showToast('Thank you for your purchase!');
-    }, 2000);
+    // Custom animations for toast messages
+    // (Ensure that .animate-fade-in-up and .animate-fade-out are defined in your CSS)
   </script>
+  
+  
   
   <style>
     /* Custom animations */
@@ -368,6 +506,37 @@
     .hover\:scale-102:hover {
       transform: scale(1.02);
       transition: transform 0.2s ease;
+    }
+    
+    /* Download button pulse effect */
+    @keyframes pulse-border {
+      0% {
+        box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.4);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(2, 132, 199, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(2, 132, 199, 0);
+      }
+    }
+    
+    #downloadInvoice {
+      animation: pulse-border 2s infinite;
+    }
+    
+    /* Order tracking progress bar */
+    .progress-step.active .step-number {
+      background-color: #0284c7;
+    }
+    
+    .progress-step.active .step-label {
+      color: #0284c7;
+      font-weight: 600;
+    }
+    
+    .progress-step.completed .step-number {
+      background-color: #10b981;
     }
   </style>
 </body>

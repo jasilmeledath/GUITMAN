@@ -10,9 +10,9 @@ const couponSchema = new mongoose.Schema(
     expire_date: { type: Date, required: true }, // Expiry date
     is_active: { type: Boolean, default: true }, // Active status
     usage_limit: { type: Number, default: 1 }, // How many times a coupon can be used
-    redemption_count: { type: Number, default: 0 }, // Tracks how many times a coupon has been used
-    applicable_categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }], // Apply to specific categories
-    user_id: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Users who can use the coupon
+    redemption_count: { type: Number, default: 0 },
+    applicable_categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }], 
+    user_id: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], 
     single_use_per_user: { type: Boolean, default: false }, // Ensures a user can use it only once
   },
   { timestamps: true } // Adds createdAt and updatedAt timestamps

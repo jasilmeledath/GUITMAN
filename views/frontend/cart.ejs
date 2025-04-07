@@ -7,12 +7,13 @@
   <title>Shopping Cart - Guitman</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            purple: {
+            primary: {
               50: '#f5f3ff',
               100: '#ede9fe',
               200: '#ddd6fe',
@@ -30,6 +31,8 @@
             'fade-in': 'fadeIn 0.3s ease-in-out',
             'fade-out': 'fadeOut 0.3s ease-in-out',
             'slide-up': 'slideUp 0.3s ease-in-out',
+            'slide-down': 'slideDown 0.3s ease-in-out',
+            'bounce-once': 'bounce 1s ease-in-out 1',
           },
           keyframes: {
             fadeIn: {
@@ -44,7 +47,15 @@
               '0%': { transform: 'translateY(10px)', opacity: '0' },
               '100%': { transform: 'translateY(0)', opacity: '1' },
             },
+            slideDown: {
+              '0%': { transform: 'translateY(-10px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            },
           },
+          boxShadow: {
+            'soft': '0 2px 10px rgba(0, 0, 0, 0.05)',
+            'hover': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05)',
+          }
         }
       }
     }
@@ -52,25 +63,58 @@
   <style>
     body {
       font-family: "Inter", sans-serif;
+      scroll-behavior: smooth;
     }
 
-    .alert-animate-in {
-      animation: fadeIn 0.3s ease-in-out;
+    /* Toast notification styling */
+    .toast-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 50;
+      max-width: 24rem;
+      width: calc(100% - 2rem);
     }
 
-    .alert-animate-out {
-      animation: fadeOut 0.3s ease-in-out;
+    .toast {
+      transform: translateY(100%);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
     }
 
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Cart item styling */
     .cart-item {
       transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
     }
 
     .cart-item:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      box-shadow: var(--tw-shadow-hover);
     }
 
+    .cart-item::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: #7c3aed;
+      transition: width 0.3s ease;
+    }
+
+    .cart-item:hover::after {
+      width: 100%;
+    }
+
+    /* Quantity counter styling */
     .quantity-counter {
       display: flex;
       align-items: center;
@@ -78,25 +122,76 @@
       overflow: hidden;
       border: 1px solid #e5e7eb;
       padding: 0.25rem;
+      background-color: #f9fafb;
+      transition: all 0.2s ease;
+    }
+
+    .quantity-counter:hover {
+      border-color: #c4b5fd;
+      background-color: #f5f3ff;
     }
 
     .quantity-btn {
       transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .quantity-btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(124, 58, 237, 0.1);
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      transition: transform 0.3s ease;
+    }
+
+    .quantity-btn:active::after {
+      transform: translate(-50%, -50%) scale(2);
     }
 
     .quantity-btn:hover:not(:disabled) {
       transform: scale(1.05);
+      background-color: #f5f3ff;
     }
 
+    .quantity-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Product card styling */
     .product-card {
       transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
     }
 
     .product-card:hover {
       transform: translateY(-5px);
     }
 
-    /* Loader styles */
+    .product-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, rgba(124, 58, 237, 0.05), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .product-card:hover::before {
+      opacity: 1;
+    }
+
+    /* Loader styling */
     .loader {
       border: 3px solid rgba(124, 58, 237, 0.1);
       border-radius: 50%;
@@ -132,8 +227,123 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.5; }
     }
+    
     .pulse {
       animation: pulse 0.5s ease-in-out;
+    }
+
+    /* Empty cart animation */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .float-animation {
+      animation: float 3s ease-in-out infinite;
+    }
+
+    /* Scrollbar styling */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #c4b5fd;
+      border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #a78bfa;
+    }
+
+    /* Coupon input styling */
+    .coupon-input {
+      transition: all 0.3s ease;
+    }
+
+    .coupon-input:focus {
+      border-color: #7c3aed;
+      box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+    }
+
+    /* Checkout button hover effect */
+    .checkout-btn {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .checkout-btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.7s ease;
+    }
+
+    .checkout-btn:hover::after {
+      left: 100%;
+    }
+
+    /* Badge animation */
+    @keyframes badgePulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .badge-pulse {
+      animation: badgePulse 1.5s infinite;
+    }
+
+    /* Ripple effect for buttons */
+    .ripple {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ripple::after {
+      content: "";
+      display: block;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+      background-repeat: no-repeat;
+      background-position: 50%;
+      transform: scale(10, 10);
+      opacity: 0;
+      transition: transform .5s, opacity 1s;
+    }
+
+    .ripple:active::after {
+      transform: scale(0, 0);
+      opacity: .3;
+      transition: 0s;
+    }
+
+    /* Mobile-specific styles for People Also Bought section */
+    @media (max-width: 767px) {
+      .cart-content-wrapper {
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .people-also-bought-section {
+        order: 3;
+        margin-top: 2rem;
+      }
     }
   </style>
 </head>
@@ -142,118 +352,137 @@
   <%- include('./partials/loading') %>
   <%- include('./partials/header') %>
 
-  <main class="mx-auto py-12 mt-3 bg-gradient-to-b from-purple-50 to-white">
-    <%- include('./partials/breadcrumbs', { breadcrumbs }) %>
-    <section class="py-8 antialiased md:py-12">
-      <div class="mx-auto max-w-screen-xl px-4 2xl:px-0">
-        <h2 class="text-2xl font-bold text-purple-900 sm:text-3xl mb-2">
-          Your Shopping Cart
-        </h2>
-        <p class="text-gray-600 mb-8">Review your items and proceed to checkout</p>
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
 
-        <div class="mt-6 sm:mt-8 md:gap-8 lg:flex lg:items-start xl:gap-10">
+  <main class="min-h-screen">
+    <!-- Hero Section with Gradient Background -->
+    <div class="bg-gradient-to-b from-primary-50 via-primary-50/50 to-white pt-24 pb-12">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <%- include('./partials/breadcrumbs', { breadcrumbs }) %>
+        
+        <div class="mt-6 flex flex-col items-start">
+          <h1 class="text-3xl font-bold text-primary-900 sm:text-4xl">Your Shopping Cart</h1>
+          <p class="mt-2 text-lg text-gray-600">Review your items and proceed to checkout</p>
+          
+          <% if (cart && cart.items && cart.items.length > 0) { %>
+            <div class="mt-2 inline-flex items-center rounded-full bg-primary-100 px-3 py-1 text-sm font-medium text-primary-800">
+              <span class="mr-1"><%= cart.items.length %></span>
+              <span><%= cart.items.length === 1 ? 'item' : 'items' %> in your cart</span>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <section class="py-8 antialiased">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mt-6 lg:grid lg:grid-cols-12 lg:gap-8 cart-content-wrapper">
           <!-- Cart Items Section -->
-          <div class="mx-auto w-full flex-none lg:max-w-2xl xl:max-w-4xl">
+          <div class="lg:col-span-8">
             <div class="space-y-6">
               <% if (cart && cart.items && cart.items.length > 0) { %>
-              <div id="cart-items-container" class="animate-slide-up">
-                <% cart.items.forEach(function(item) { %>
-                <div class="cart-item rounded-xl border border-purple-100 bg-white p-5 shadow-sm md:p-6"
-                  id="cart-item-<%= item.product && item.product._id ? item.product._id : item.product %>"
-                  data-item-price="<%= item.item_price %>">
-                  <div class="space-y-4 md:flex md:items-center md:justify-between md:gap-6 md:space-y-0">
-                    <!-- Product Image -->
-                    <a href="/product-details/<%= item.product && item.product._id ? item.product._id : item.product %>"
-                      class="shrink-0 md:order-1">
-                      <div class="h-24 w-24 overflow-hidden rounded-lg bg-purple-50 p-2">
-                        <img class="h-full w-full object-contain"
-                          src="/<%= item.product && item.product.images ? item.product.images[0] : 'default-image.png' %>"
-                          alt="<%= item.product && item.product.product_name ? item.product.product_name : 'Product' %>" />
-                      </div>
-                    </a>
-
-                    <!-- Quantity Selector -->
-                    <label
-                      for="counter-input-<%= item.product && item.product._id ? item.product._id : item.product %>"
-                      class="sr-only">Choose quantity:</label>
-                    <div class="flex items-center justify-between md:order-3 md:justify-end">
-                      <div class="flex items-center">
-                        <!-- Quantity Counter Component -->
-                        <div class="quantity-counter bg-purple-50">
-                          <!-- Decrement Button -->
-                          <button type="button" data-action="decrement"
-                            data-item-id="<%= item.product && item.product._id ? item.product._id : item.product %>"
-                            class="quantity-btn decrement-btn inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-purple-200 bg-white hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-300 <%= item.quantity <= 1 ? 'opacity-50 cursor-not-allowed' : '' %>"
-                            <%= item.quantity <= 1 ? 'disabled' : '' %>>
-                            <svg class="h-3 w-3 text-purple-700" aria-hidden="true"
-                              xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
-                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M1 1h16" />
-                            </svg>
-                          </button>
-
-                          <!-- Quantity Input -->
-                          <input type="text"
-                            id="counter-input-<%= item.product && item.product._id ? item.product._id : item.product %>"
-                            class="quantity-input w-10 shrink-0 border-0 bg-transparent text-center text-sm font-medium text-purple-900 focus:outline-none focus:ring-0"
-                            value="<%= item.quantity %>" readonly />
-
-                          <!-- Increment Button -->
-                          <button type="button" data-action="increment"
-                            data-item-id="<%= item.product && item.product._id ? item.product._id : item.product %>"
-                            class="quantity-btn increment-btn inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-purple-200 bg-white hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-300">
-                            <svg class="h-3 w-3 text-purple-700" aria-hidden="true"
-                              xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 1v16M1 9h16" />
-                            </svg>
-                          </button>
+                <div id="cart-items-container" class="animate-slide-up">
+                  <% cart.items.forEach(function(item, index) { %>
+                    <div class="cart-item rounded-xl border border-gray-200 bg-white p-5 shadow-soft md:p-6 relative <%= item.stock === 0 ? 'opacity-70' : '' %>"
+                      id="cart-item-<%= item.product && item.product._id ? item.product._id : item.product %>"
+                      data-item-price="<%= item.item_price %>">
+                      
+                      <% if(item.product.stock === 0){ %>
+                        <div class="absolute -top-1 -right-1 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md z-10">
+                          Out of Stock
+                        </div>
+                      <% } else if(item.product.stock <= 5) { %>
+                        <div class="absolute -top-1 -right-1 bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md z-10 badge-pulse">
+                          Only <%= item.product.stock %> left
+                        </div>
+                      <% } %>
+                      
+                      <div class="flex flex-col md:flex-row md:items-center md:gap-6">
+                        <!-- Product Image with Link -->
+                        <a href="/product-details/<%= item.product && item.product._id ? item.product._id : item.product %>" 
+                           class="group relative mb-4 flex-shrink-0 overflow-hidden rounded-lg md:mb-0 md:w-32 md:h-32">
+                          <div class="absolute inset-0 bg-primary-100 opacity-0 transition-opacity group-hover:opacity-30"></div>
+                          <img class="h-28 w-28 md:h-full md:w-full object-contain p-2 transition-transform duration-300 group-hover:scale-105"
+                            src="/<%= item.product && item.product.images ? item.product.images[0] : 'default-image.png' %>"
+                            alt="<%= item.product && item.product.product_name ? item.product.product_name : 'Product' %>" />
+                        </a>
+                
+                        <!-- Product Details -->
+                        <div class="flex-1 space-y-3">
+                          <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start">
+                            <a href="/product-details/<%= item.product && item.product._id ? item.product._id : item.product %>"
+                              class="text-lg font-semibold text-gray-900 hover:text-primary-700 transition-colors line-clamp-2">
+                              <%= item.product && item.product.product_name ? item.product.product_name : 'Product Name Not Available' %>
+                            </a>
+                            
+                            <div class="mt-2 sm:mt-0 text-right">
+                              <p class="text-lg font-bold text-primary-800 item-price">₹<%= item.item_price.toLocaleString('en-IN') %></p>
+                              <p class="text-xs text-gray-500 item-unit-price">₹<%= item.item_price.toLocaleString('en-IN') %> each</p>
+                            </div>
+                          </div>
+                          
+                          <% if (item.product.description) { %>
+                            <p class="text-sm text-gray-600 line-clamp-2"><%= item.product.description %></p>
+                          <% } %>
+                          
+                          <div class="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-gray-100">
+                            <!-- Quantity Controls -->
+                            <div class="flex items-center">
+                              <label for="counter-input-<%= item.product && item.product._id ? item.product._id : item.product %>" class="mr-3 text-sm font-medium text-gray-700">
+                                Quantity:
+                              </label>
+                              <div class="quantity-counter">
+                                <!-- Decrement Button -->
+                                <button type="button" data-action="decrement"
+                                  data-item-id="<%= item.product && item.product._id ? item.product._id : item.product %>"
+                                  class="quantity-btn decrement-btn inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 bg-white hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-300 ripple <%= item.quantity <= 1 ? 'opacity-50 cursor-not-allowed' : '' %>"
+                                  <%= item.quantity <= 1 ? 'disabled' : '' %>>
+                                  <i class="fas fa-minus text-xs text-primary-700"></i>
+                                </button>
+                
+                                <!-- Quantity Input -->
+                                <input type="text"
+                                  id="counter-input-<%= item.product && item.product._id ? item.product._id : item.product %>"
+                                  class="quantity-input w-12 border-0 bg-transparent text-center text-sm font-medium text-gray-900 focus:outline-none focus:ring-0"
+                                  value="<%= item.quantity %>" readonly />
+                
+                                <!-- Increment Button -->
+                                <button type="button" data-action="increment"
+                                  data-item-id="<%= item.product && item.product._id ? item.product._id : item.product %>"
+                                  class="quantity-btn increment-btn inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 bg-white hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-300 ripple <%= item.quantity >= 15 || item.quantity >= item.product.stock ? 'opacity-50 cursor-not-allowed' : '' %>"
+                                  <%= item.quantity >= 15 || item.quantity >= item.product.stock ? 'disabled' : '' %>>
+                                  <i class="fas fa-plus text-xs text-primary-700"></i>
+                                </button>
+                              </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="flex items-center space-x-4">
+                              <button type="button"
+                                class="inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-800 hover:underline transition-colors">
+                                <i class="far fa-heart mr-1.5"></i>
+                                Save for Later
+                              </button>
+                
+                              <button id="remove-item-btn-<%= item.product && item.product._id ? item.product._id : item.product %>"
+                                data-product-id="<%= item.product && item.product._id ? item.product._id : item.product %>"
+                                type="button"
+                                class="remove-item-btn inline-flex items-center text-sm font-medium text-red-600 hover:text-red-800 hover:underline transition-colors">
+                                <i class="far fa-trash-alt mr-1.5"></i>
+                                Remove
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <div class="text-end md:order-4 md:w-32 ml-4">
-                        <p class="text-base font-bold text-purple-800 item-price">₹<%= item.item_price.toLocaleString('en-IN') %>
-                        </p>
-                        <p class="text-xs text-gray-500 item-unit-price">₹<%= item.item_price.toLocaleString('en-IN') %> each</p>
-                      </div>
+                      
+                      <% if (index < cart.items.length - 1) { %>
+                        <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[95%] h-px bg-gray-100"></div>
+                      <% } %>
                     </div>
-
-                    <!-- Product Details -->
-                    <div class="w-full min-w-0 flex-1 space-y-3 md:order-2 md:max-w-md">
-                      <a href="/product-details/<%= item.product && item.product._id ? item.product._id : item.product %>"
-                        class="text-base font-medium text-purple-900 hover:text-purple-700 hover:underline transition-colors">
-                        <%= item.product && item.product.product_name ? item.product.product_name : 'Product Name Not Available' %>
-                      </a>
-
-                      <div class="flex items-center gap-4">
-                        <button type="button"
-                          class="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-800 hover:underline transition-colors">
-                          <svg class="me-1.5 h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                            width="24" height="24" fill="none" viewBox="0 0 24 24">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12.01 6.001C6.5 1 1 8 5.782 13.001L12.011 20l6.23-7C23 8 17.5 1 12.01 6.002Z" />
-                          </svg>
-                          Add to Bucketlist
-                        </button>
-
-                        <button
-                          id="remove-item-btn-<%= item.product && item.product._id ? item.product._id : item.product %>"
-                          data-product-id="<%= item.product && item.product._id ? item.product._id : item.product %>"
-                          type="button"
-                          class="remove-item-btn inline-flex items-center text-sm font-medium text-red-600 hover:text-red-800 hover:underline transition-colors">
-                          <svg class="me-1.5 h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                            width="24" height="24" fill="none" viewBox="0 0 24 24">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                              stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
-                          </svg>
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <% }); %>
-              </div>
+                  <% }); %>
+                </div>                
 
               <div id="alert-container"></div>
 
@@ -306,6 +535,9 @@
                 // Define updateOrderSummary function for live updates
                 function updateOrderSummary(updatedCart) {
                   const cartSubtotalEl = document.getElementById('cart-subtotal');
+                  const actualPriceEl = document.getElementById('actual-price');
+                  const discountedPriceEl = document.getElementById('discounted-price');
+                  const savingsEl = document.getElementById('savings');
                   const shippingFeeEl = document.getElementById('shipping-fee');
                   const taxEl = document.getElementById('tax');
                   const cartTotalEl = document.getElementById('cart-total');
@@ -315,6 +547,23 @@
                     // Add pulse animation
                     cartSubtotalEl.classList.add('pulse');
                     setTimeout(() => cartSubtotalEl.classList.remove('pulse'), 500);
+                  }
+                  
+                  if (actualPriceEl && updatedCart.items) {
+                    const actualPrice = updatedCart.items.reduce((sum, item) => 
+                      sum + ((item.product.originalPrice || item.item_price) * item.quantity), 0);
+                    actualPriceEl.textContent = '₹' + actualPrice.toLocaleString('en-IN');
+                  }
+                  
+                  if (discountedPriceEl) {
+                    discountedPriceEl.textContent = '₹' + Number(updatedCart.cart_subtotal).toLocaleString('en-IN');
+                  }
+                  
+                  if (savingsEl && updatedCart.items) {
+                    const actualPrice = updatedCart.items.reduce((sum, item) => 
+                      sum + ((item.product.originalPrice || item.item_price) * item.quantity), 0);
+                    const savings = actualPrice - updatedCart.cart_subtotal;
+                    savingsEl.textContent = '₹' + savings.toLocaleString('en-IN');
                   }
                   
                   if (shippingFeeEl) {
@@ -341,6 +590,12 @@
                     const itemCount = updatedCart.items.length;
                     itemCountEl.textContent = `${itemCount} ${itemCount === 1 ? 'item' : 'items'}`;
                   }
+                  
+                  // Update header cart count if it exists
+                  const headerCartCount = document.querySelector('.cart-count');
+                  if (headerCartCount && updatedCart.items) {
+                    headerCartCount.textContent = updatedCart.items.length;
+                  }
                 }
 
                 function showEmptyCartMessage() {
@@ -348,17 +603,13 @@
                   if (cartItemsContainer) {
                     cartItemsContainer.innerHTML = `
                       <div class="flex flex-col items-center justify-center py-12 animate-fade-in">
-                        <svg class="w-20 h-20 text-purple-300 mb-6" xmlns="http://www.w3.org/2000/svg" fill="none"
-                          viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.293 2.293a1 1 0 00.293 1.414l1 1a1 1 0 001.414-.293L9 15m0 0l3-6m0 0l3 6m-6 0h6" />
-                        </svg>
-                        <p class="text-2xl font-semibold text-purple-900">Your cart is empty.</p>
-                        <p class="text-gray-600 mt-2 text-center">Looks like you haven't added any items yet.</p>
-                        <a href="/" class="mt-6 inline-flex items-center px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors">
-                          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                          </svg>
+                        <div class="float-animation mb-6">
+                          <i class="fas fa-shopping-cart text-primary-300 text-8xl"></i>
+                        </div>
+                        <h2 class="text-2xl font-semibold text-gray-900 mb-2">Your cart is empty</h2>
+                        <p class="text-gray-600 mb-8 text-center max-w-md">Looks like you haven't added any items to your cart yet. Browse our collection and find something you'll love!</p>
+                        <a href="/" class="inline-flex items-center px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors shadow-md hover:shadow-lg">
+                          <i class="fas fa-arrow-left mr-2"></i>
                           Continue Shopping
                         </a>
                       </div>
@@ -429,7 +680,7 @@
                   
                   // Enforce the maximum quantity limit on the client side
                   if (currentQuantity + change > 15) {
-                    showAlert('Maximum quantity per user reached (15)', 'error');
+                    showToast('Maximum quantity per item reached (15)', 'error');
                     return;
                   }
                   
@@ -520,17 +771,17 @@
                       }
                       
                       // Show success message
-                      showAlert('Cart updated successfully', 'success');
+                      showToast('Cart updated successfully', 'success');
                     } else {
                       // Restore the original value on error
                       quantityInput.value = originalValue;
-                      showAlert(data.message || 'Failed to update quantity', 'error');
+                      showToast(data.message || 'Failed to update quantity', 'error');
                     }
                   } catch (error) {
                     // Restore the original value on error
                     quantityInput.value = originalValue;
                     console.error('Error updating quantity:', error);
-                    showAlert('Network error. Please try again.', 'error');
+                    showToast('Network error. Please try again.', 'error');
                   } finally {
                     // Re-enable buttons
                     if (decrementBtn) decrementBtn.disabled = false;
@@ -538,48 +789,58 @@
                   }
                 }
 
-                // Function to show alerts
-                function showAlert(message, type = 'success') {
-                  const alertContainer = document.getElementById('alert-container');
-                  if (!alertContainer) return;
+                // Function to show toast notifications
+                function showToast(message, type = 'success') {
+                  const toastContainer = document.getElementById('toast-container');
+                  if (!toastContainer) return;
                   
-                  // Create alert element
-                  const alertElement = document.createElement('div');
-                  alertElement.className = `mb-4 p-4 rounded-lg shadow-lg alert-animate-in ${
+                  // Create toast element
+                  const toast = document.createElement('div');
+                  toast.className = `toast mb-3 p-4 rounded-lg shadow-lg flex items-center ${
                     type === 'success' 
-                      ? 'bg-green-100 border border-green-400 text-green-700' 
-                      : 'bg-red-100 border border-red-400 text-red-700'
+                      ? 'bg-green-50 border-l-4 border-green-500 text-green-800' 
+                      : type === 'error'
+                        ? 'bg-red-50 border-l-4 border-red-500 text-red-800'
+                        : 'bg-blue-50 border-l-4 border-blue-500 text-blue-800'
                   }`;
                   
-                  // Create alert content
-                  alertElement.innerHTML = `
-                    <div class="flex justify-between items-center">
-                      <div class="flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                          ${type === 'success' 
-                            ? '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd">'
-                            : '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd">'
-                          }
-                        </svg>
-                        <span>${message}</span>
-                      </div>
-                      <button class="text-current hover:text-gray-700" onclick="this.parentElement.parentElement.remove()">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                        </svg>
-                      </button>
+                  // Create toast content
+                  toast.innerHTML = `
+                    <div class="flex-shrink-0 mr-3">
+                      <i class="fas ${
+                        type === 'success' 
+                          ? 'fa-check-circle text-green-500' 
+                          : type === 'error'
+                            ? 'fa-exclamation-circle text-red-500'
+                            : 'fa-info-circle text-blue-500'
+                      } text-lg"></i>
                     </div>
+                    <div class="flex-1">
+                      <p class="font-medium">${message}</p>
+                    </div>
+                    <button class="ml-auto text-gray-400 hover:text-gray-600 transition-colors">
+                      <i class="fas fa-times"></i>
+                    </button>
                   `;
                   
-                  // Add alert to container
-                  alertContainer.appendChild(alertElement);
+                  // Add click event to close button
+                  const closeBtn = toast.querySelector('button');
+                  closeBtn.addEventListener('click', () => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                  });
                   
-                  // Remove alert after 3 seconds
+                  // Add toast to container
+                  toastContainer.appendChild(toast);
+                  
+                  // Trigger animation after a small delay
+                  setTimeout(() => toast.classList.add('show'), 10);
+                  
+                  // Auto remove after 5 seconds
                   setTimeout(() => {
-                    alertElement.classList.remove('alert-animate-in');
-                    alertElement.classList.add('alert-animate-out');
-                    setTimeout(() => alertElement.remove(), 300);
-                  }, 3000);
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                  }, 5000);
                 }
 
                 // Initialize cart state when the page loads
@@ -634,22 +895,6 @@
                     // Make the input readonly to prevent direct editing
                     // We're using buttons for better UX and to prevent invalid inputs
                     input.setAttribute('readonly', true);
-                    
-                    // But if we wanted to allow direct editing, we could use this:
-                    /*
-                    input.addEventListener('change', debounce(function() {
-                      const itemId = this.id.replace('counter-input-', '');
-                      const newQuantity = parseInt(this.value, 10) || 1;
-                      updateQuantity(itemId, newQuantity);
-                    }, 500));
-                    
-                    // Prevent non-numeric input
-                    input.addEventListener('keypress', function(e) {
-                      if (!/[0-9]/.test(e.key)) {
-                        e.preventDefault();
-                      }
-                    });
-                    */
                   });
                   
                   // Attach event listeners to all remove buttons
@@ -668,59 +913,18 @@
               </script>
 
               <% } else { %>
-              <div class="flex flex-col items-center justify-center py-12 animate-fade-in">
-                <svg class="w-20 h-20 text-purple-300 mb-6" xmlns="http://www.w3.org/2000/svg" fill="none"
-                  viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.293 2.293a1 1 0 00.293 1.414l1 1a1 1 0 001.414-.293L9 15m0 0l3-6m0 0l3 6m-6 0h6" />
-                </svg>
-                <p class="text-2xl font-semibold text-purple-900">Your cart is empty.</p>
-                <p class="text-gray-600 mt-2 text-center">Looks like you haven't added any items yet.</p>
-                <a href="/" class="mt-6 inline-flex items-center px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors">
-                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                  </svg>
+              <div class="flex flex-col items-center justify-center py-16 animate-fade-in">
+                <div class="float-animation mb-8">
+                  <i class="fas fa-shopping-cart text-primary-300 text-8xl"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-3">Your cart is empty</h2>
+                <p class="text-gray-600 mb-8 text-center max-w-md">Looks like you haven't added any items to your cart yet. Browse our collection and find something you'll love!</p>
+                <a href="/" class="inline-flex items-center px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors shadow-md hover:shadow-lg">
+                  <i class="fas fa-arrow-left mr-2"></i>
                   Continue Shopping
                 </a>
               </div>
               <% } %>
-            </div>
-
-            <!-- People Also Bought Section -->
-            <div class="mt-16 mb-8">
-              <h3 class="text-2xl font-bold text-purple-900 mb-6">
-                People also bought
-              </h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="productsContainer">
-                <% products.forEach(product => { %>
-                <a href="/product-details/<%=product._id%>" class="group">
-                  <div class="product-card bg-white p-6 rounded-xl shadow-sm group-hover:shadow-lg transition-shadow duration-300 flex flex-col h-[27rem] border border-purple-100">
-                    <div class="relative flex-1 overflow-hidden">
-                      <img src="/<%= product.images[0] %>" 
-                          alt="<%= product.product_name %>" 
-                          class="w-full h-64 object-contain mb-4 rounded-lg transition-transform duration-300 group-hover:scale-105">
-                      <button class="absolute top-3 right-3 bg-white p-2 rounded-full shadow-sm hover:bg-purple-50 transition-colors duration-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600 hover:text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                      </button>
-                    </div>
-                    <div class="mt-4">
-                      <h3 class="font-semibold text-lg mb-2 text-gray-800 truncate"><%= product.product_name %></h3>
-                      <div class="flex items-center justify-between mb-3">
-                        <span class="text-2xl font-bold text-purple-700">₹<%= product.price.toLocaleString('en-IN') %></span>
-                        <button class="p-2 bg-purple-100 rounded-full hover:bg-purple-200 transition-colors duration-200 add-to-cart-btn" 
-                                data-product-id="<%= product._id %>">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </a>
-                <% }); %>
-              </div>
             </div>
             <script>
               document.addEventListener("DOMContentLoaded", () => {
@@ -762,7 +966,7 @@
                       button.disabled = false;
           
                       if (response.ok) {
-                        showAlert(result.message, 'success');
+                        showToast(result.message || 'Item added to cart successfully!', 'success');
                         // Update cart items container and order summary if updated data is returned
                         if (result.updatedCartHTML) {
                           document.getElementById('cart-items-container').innerHTML = result.updatedCartHTML;
@@ -781,12 +985,12 @@
                           updateOrderSummary(result.updatedCart);
                         }
                       } else {
-                        showAlert(result.message || "Failed to add item to cart", 'error');
+                        showToast(result.message || "Failed to add item to cart", 'error');
                       }
                     } catch (error) {
                       button.innerHTML = originalButtonContent;
                       button.disabled = false;
-                      showAlert("Network error. Please try again later.", 'error');
+                      showToast("Network error. Please try again later.", 'error');
                     }
                   });
                 });
@@ -796,76 +1000,149 @@
 
           <!-- Order Summary & Voucher Section -->
            <% if(cart && cart.items && cart.items.length > 0){ %>
-          <div class="mx-auto mt-6 max-w-4xl flex-1 space-y-6 lg:mt-0 lg:w-full">
-            <div class="space-y-6 rounded-xl border border-purple-200 bg-white p-6 shadow-sm sm:p-8 animate-slide-up order-summary">
-              <div class="flex items-center justify-between">
-                <p class="text-xl font-bold text-purple-900">
-                  Order Summary
-                </p>
-                <span class="text-sm text-purple-600 bg-purple-50 px-3 py-1 rounded-full order-summary-item-count">
-                  <%= cart.items.length %> <%= cart.items.length === 1 ? 'item' : 'items' %>
-                </span>
-              </div>
-
-              <div class="space-y-4">
-                <div class="space-y-3">
-                  <dl class="flex items-center justify-between gap-4">
-                    <dt class="text-base font-normal text-gray-600">
-                      Original price
-                    </dt>
-                    <dd id="cart-subtotal" class="text-base font-medium text-gray-900">
-                      ₹<%= cart.cart_subtotal.toLocaleString('en-IN') %>
-                    </dd>
-                  </dl>
-
-                  <dl class="flex items-center justify-between gap-4">
-                    <dt class="text-base font-normal text-gray-600">
-                      Shipping Fee
-                    </dt>
-                    <dd id="shipping-fee" class="text-base font-medium text-gray-900">
-                      ₹<%= cart.shipping_fee.toLocaleString('en-IN') %>
-                    </dd>
-                  </dl>
-
-                  <dl class="flex items-center justify-between gap-4">
-                    <dt class="text-base font-normal text-gray-600">
-                      Tax
-                    </dt>
-                    <dd id="tax" class="text-base font-medium text-gray-900">
-                      ₹<%= cart.tax.toLocaleString('en-IN') %>
-                    </dd>
-                  </dl>
+            <div class="lg:col-span-4 mt-8 lg:mt-0">
+              <div class="sticky top-24 space-y-6">
+                <!-- Order Summary Card -->
+                <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-soft order-summary animate-slide-up">
+                  <div class="flex items-center justify-between mb-5">
+                    <h3 class="text-xl font-bold text-gray-900">
+                      Order Summary
+                    </h3>
+                    <span class="inline-flex items-center rounded-full bg-primary-100 px-3 py-1 text-sm font-medium text-primary-800 order-summary-item-count">
+                      <%= cart.items.length %> <%= cart.items.length === 1 ? 'item' : 'items' %>
+                    </span>
+                  </div>
+            
+                  <div class="space-y-4">
+                    <!-- Price Breakdown -->
+                    <div class="space-y-3">
+                      <!-- Original Price -->
+                      <div class="flex items-center justify-between text-gray-600">
+                        <span>Original Price</span>
+                        <span id="actual-price" class="font-medium">
+                          ₹<%= cart.items.reduce((sum, item) => sum + ((item.product.originalPrice || item.item_price) * item.quantity), 0).toLocaleString('en-IN') %>
+                        </span>
+                      </div>
+                      
+                      <!-- Price After Offer -->
+                      <% cart.items.forEach(function(item) { %>
+                        <% if(item.product && item.product.offer) { %>
+                          <div class="flex items-center justify-between text-gray-600">
+                            <span>Price After Offer</span>
+                            <span id="discounted-price" class="font-medium">
+                              ₹<%= cart.cart_total %>
+                            </span>
+                          </div>
+                        <% } %>
+                      <% }); %>
+                      
+                      <!-- Savings -->
+                      <div class="flex items-center justify-between text-green-600">
+                        <span>Your Savings</span>
+                        <span id="savings" class="font-medium">
+                          ₹<%= (cart.items.reduce((sum, item) => sum + ((item.product.price || item.item_price) * item.quantity), 0) - cart.cart_subtotal).toLocaleString('en-IN') %>
+                        </span>
+                      </div>
+                    </div>
+            
+                    <!-- Total -->
+                    <div class="flex items-center justify-between border-t border-gray-200 pt-4">
+                      <span class="text-lg font-bold text-gray-900">Total</span>
+                      <span id="cart-total" class="text-xl font-bold text-primary-700">
+                        ₹<%= cart.cart_total.toLocaleString('en-IN') %>
+                      </span>
+                    </div>
+                  </div>
+                  <!-- Checkout Button -->
+                  <div class="mt-6">
+                    <button 
+                      id="checkout-btn" 
+                      type="button"
+                      class="checkout-btn w-full rounded-lg bg-primary-600 py-3.5 px-6 text-center font-semibold text-white shadow-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center justify-center <%= cart.items.some(item => item.product.stock === 0) ? 'opacity-70 cursor-not-allowed' : '' %>"
+                      <%= cart.items.some(item => item.product.stock === 0) ? 'disabled' : '' %>
+                      onclick="<%= cart.items.some(item => item.product.stock === 0) ? 'event.preventDefault(); showToast(\'Please remove out of stock items before checkout\', \'error\')' : 'location.href=\'/cart/checkout\'' %>">
+                      <span>Proceed to Checkout</span>
+                      <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                    
+                    <% if(cart.items.some(item => item.product.stock === 0)) { %>
+                      <div class="mt-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                        <p class="text-sm text-red-700 flex items-start">
+                          <i class="fas fa-exclamation-circle mt-0.5 mr-2"></i>
+                          <span>Please remove out of stock items before checkout</span>
+                        </p>
+                      </div>
+                    <% } %>
+                  </div>
+                  <!-- Secure Checkout Notice -->
+                  <div class="mt-4 flex items-center justify-center text-sm text-gray-500">
+                    <i class="fas fa-lock mr-2 text-green-600"></i>
+                    <span>Secure checkout</span>
+                  </div>
                 </div>
-
-                <dl class="flex items-center justify-between gap-4 border-t border-purple-100 pt-4">
-                  <dt class="text-lg font-bold text-purple-900">
-                    Total
-                  </dt>
-                  <dd id="cart-total" class="text-lg font-bold text-purple-900">
-                    ₹<%= cart.cart_total.toLocaleString('en-IN') %>
-                  </dd>
-                </dl>
-                <!-- Checkout Button -->
-                <div class="mt-6">
-                  <a href="/cart/checkout" class="w-full inline-block bg-purple-600 hover:bg-purple-700 text-white text-center font-semibold py-4 px-6 rounded-xl shadow-md transition-colors duration-200 flex items-center justify-center">
-                    <span>Proceed to Checkout</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  </a>
+              </div>
+            </div>            
+          <% } %>
+        </div>
+        <!-- People Also Bought Section - Will be repositioned on mobile -->
+        <div class="mt-16 mb-8 people-also-bought-section">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-2xl font-bold text-gray-900">
+              People also bought
+            </h3>
+            <a href="/shop" class="text-primary-600 hover:text-primary-700 font-medium flex items-center">
+              View all
+              <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+          </div>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="productsContainer">
+            <% products.forEach(product => { %>
+            <div class="product-card bg-white rounded-xl shadow-soft border border-gray-100 overflow-hidden h-full flex flex-col transition-all duration-300 hover:shadow-hover">
+              <a href="/product-details/<%=product._id%>" class="group relative flex-1 overflow-hidden p-4">
+                <div class="relative h-48 w-full mb-4 overflow-hidden rounded-lg bg-primary-50/50">
+                  <img src="/<%= product.images[0] %>" 
+                      alt="<%= product.product_name %>" 
+                      class="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110">
+                  
+                  <% if(product.offer) { %>
+                    <div class="absolute top-2 left-2 bg-primary-600 text-white text-xs font-bold px-2 py-1 rounded-md">
+                      <%= product.offerDetails.offer_percentage %>% OFF
+                    </div>
+                  <% } %>
                 </div>
                 
-                <!-- Secure Checkout Notice -->
-                <div class="flex items-center justify-center text-sm text-gray-600 mt-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  Secure checkout
+                <h3 class="font-semibold text-lg mb-1 text-gray-900 group-hover:text-primary-700 transition-colors line-clamp-2">
+                  <%= product.product_name %>
+                </h3>
+                
+                <div class="flex items-center mb-2">
+                  <div class="flex">
+                    <% for(let i = 0; i < 5; i++) { %>
+                      <i class="fas fa-star text-xs <%= i < (product.avgRating || 4) ? 'text-amber-400' : 'text-gray-300' %>"></i>
+                    <% } %>
+                  </div>
+                  <span class="text-xs text-gray-500 ml-1">(<%= product.reviews?.length || Math.floor(Math.random() * 20) %>)</span>
+                </div>
+              </a>
+              
+              <div class="p-4 pt-0 mt-auto border-t border-gray-100">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <span class="text-lg font-bold text-primary-700">₹<%= product.price.toLocaleString('en-IN') %></span>
+                    <% if(product.originalPrice && product.originalPrice > product.price) { %>
+                      <span class="text-sm text-gray-500 line-through ml-2">₹<%= product.originalPrice.toLocaleString('en-IN') %></span>
+                    <% } %>
+                  </div>
+                  <button class="p-2 bg-primary-100 rounded-full hover:bg-primary-200 transition-colors duration-200 add-to-cart-btn ripple" 
+                          data-product-id="<%= product._id %>">
+                    <i class="fas fa-shopping-cart text-primary-700"></i>
+                  </button>
                 </div>
               </div>
             </div>
+            <% }); %>
           </div>
-          <% } %>
         </div>
       </div>
     </section>
@@ -875,13 +1152,23 @@
   
   <!-- Confirmation Modal -->
   <div id="confirmation-modal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
-    <div class="absolute inset-0 bg-black opacity-50"></div>
-    <div class="bg-white rounded-xl shadow-xl p-6 z-10 max-w-md w-full mx-4 animate-fade-in">
-      <h3 class="text-xl font-bold text-purple-900 mb-4">Remove Item</h3>
-      <p class="mb-6 text-gray-600">Are you sure you want to remove this item from your cart?</p>
-      <div class="flex justify-end gap-4">
-        <button id="cancel-remove-btn" class="px-5 py-2.5 rounded-lg bg-gray-200 text-gray-800 font-medium hover:bg-gray-300 transition-colors">Cancel</button>
-        <button id="confirm-remove-btn" class="px-5 py-2.5 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors">Remove</button>
+    <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"></div>
+    <div class="bg-white rounded-xl shadow-xl p-6 z-10 max-w-md w-full mx-4 animate-fade-in transform transition-all">
+      <div class="text-center mb-4">
+        <div class="mx-auto w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
+          <i class="fas fa-trash-alt text-red-600 text-lg"></i>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900">Remove Item</h3>
+        <p class="mt-2 text-gray-600">Are you sure you want to remove this item from your cart?</p>
+      </div>
+      
+      <div class="flex justify-center gap-4 mt-6">
+        <button id="cancel-remove-btn" class="px-5 py-2.5 rounded-lg bg-gray-100 text-gray-800 font-medium hover:bg-gray-200 transition-colors">
+          Cancel
+        </button>
+        <button id="confirm-remove-btn" class="px-5 py-2.5 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors">
+          Remove
+        </button>
       </div>
     </div>
   </div>
@@ -920,7 +1207,7 @@
       .then(response => response.json())
       .then(data => {
           if (data.success) {
-              showAlert('Item removed successfully.', 'success');
+              showToast('Item removed successfully', 'success');
               const cartItemElement = document.getElementById('cart-item-' + productId);
               if (cartItemElement) {
                   cartItemElement.classList.add('animate-fade-out');
@@ -935,7 +1222,7 @@
                   updateOrderSummary(data.updatedCart);
               }
           } else {
-              showAlert('Failed to remove item.', 'error');
+              showToast('Failed to remove item', 'error');
               if (cartItem) {
                   // Restore the cart item if removal failed
                   location.reload();
@@ -943,7 +1230,7 @@
           }
       })
       .catch(error => {
-          showAlert('Error: ' + error, 'error');
+          showToast('Network error. Please try again.', 'error');
           if (cartItem) {
               // Restore the cart item if removal failed
               location.reload();
@@ -952,57 +1239,9 @@
       window.currentProductId = null;
     });
     
-    // Apply coupon button functionality
-    document.addEventListener('DOMContentLoaded', function() {
-      const applyCouponBtn = document.getElementById('apply-coupon');
-      if (applyCouponBtn) {
-        applyCouponBtn.addEventListener('click', function() {
-          const couponCode = document.getElementById('coupon-code').value.trim();
-          if (!couponCode) {
-            showAlert('Please enter a coupon code', 'error');
-            return;
-          }
-          
-          // Show mini loader in button
-          const originalButtonText = applyCouponBtn.innerHTML;
-          applyCouponBtn.innerHTML = '<div class="loader mx-auto" style="width: 18px; height: 18px;"></div>';
-          applyCouponBtn.disabled = true;
-          
-          // Make API call to apply coupon
-          fetch('/cart/apply-coupon', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({ couponCode })
-          })
-          .then(response => response.json())
-          .then(data => {
-            applyCouponBtn.innerHTML = originalButtonText;
-            applyCouponBtn.disabled = false;
-            
-            if (data.success) {
-              showAlert(data.message || 'Coupon applied successfully!', 'success');
-              if (data.updatedCart) {
-                updateOrderSummary(data.updatedCart);
-              }
-            } else {
-              showAlert(data.message || 'Invalid coupon code', 'error');
-            }
-          })
-          .catch(error => {
-            applyCouponBtn.innerHTML = originalButtonText;
-            applyCouponBtn.disabled = false;
-            showAlert('Network error. Please try again.', 'error');
-          });
-        });
-      }
-    });
-    
     // Function to show loader
     function showLoader() {
-      const loaderElement = document.getElementById('page-loader');
+      const loaderElement = document.getElementById('loading');
       if (loaderElement) {
         loaderElement.classList.remove('hidden');
       }
@@ -1010,7 +1249,7 @@
     
     // Function to hide loader
     function hideLoader() {
-      const loaderElement = document.getElementById('page-loader');
+      const loaderElement = document.getElementById('loading');
       if (loaderElement) {
         loaderElement.classList.add('hidden');
       }

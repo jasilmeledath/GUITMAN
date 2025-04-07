@@ -212,6 +212,10 @@ const cartController = {
       const user = await getUser(req, res, next);
       const product = await getProduct(itemId);
       const productStock = product.stock;
+      if(!productStock || productStock===0){
+        return res.status(httpStatus.UNPROCESSABLE_ENTITY)
+        .json({success:false, message:"Product is out of stock!"})
+      }
       let updatedCart;
       if (change === 1) {
         const stockLimit = await Cart.findOne({

@@ -6,9 +6,10 @@ const verifyUser = require("../../middlewares/verifyUser");
 const loadPages = require('../../controllers/user/loadPages');
 const passport = require("../../config/passport");
 const {redirectIfUserLoggedIn} = require("../../middlewares/redirectIfLoggedIn");
-const cartRoutes = require('../user/cartRoutes');
+const cartAndOrderRoutes = require('../user/cartAndOrderRoutes');
 const profileRoutes = require('../../routes/user/profileRoutes');
-const loadProfilePages = require('../../controllers/user/loadProfilePages')
+const loadProfilePages = require('../../controllers/user/loadProfilePages');
+const chatbotContols = require('../../controllers/user/chatBotController');
 
 // Google OAuth routes
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
@@ -33,7 +34,9 @@ router.get('/reset-password', loadPages.resetPassword);
 router.post('/reset-password-send-otp', userAuth.sendOtpToResetPassword);
 router.post('/reset-password-verify-otp', userAuth.verifOtpToResetPassword);
 router.put('/reset-password', userAuth.resetPassword);
-router.get('/contact', loadPages.contact)
+router.get('/contact', loadPages.contact);
+router.get('/tune', loadPages.tuner);
+router.post('/chat', chatbotContols);
 
 // Authentication routes
 router.post('/signup', userAuth.signup);
@@ -50,7 +53,7 @@ router.get('/product-details/:id', loadPages.loadProductDetails);
 router.get('/home', verifyUser, loadPages.home);
 router.use('/profile', verifyUser, profileRoutes);
 router.get('/profile', verifyUser, loadProfilePages.userProfile);
-router.use('/cart', verifyUser, cartRoutes);
+router.use('/cart', verifyUser, cartAndOrderRoutes);
 
 // Logout route
 router.get('/logout', userAuth.logout);

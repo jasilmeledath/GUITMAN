@@ -15,40 +15,175 @@ const loadAdminPage = {
   login: (req, res) => {
     res.status(httpStatus.OK).render("backend/adminLogin");
   },
-/**
-   * Renders the admin dashboard page with sales data and pagination.
-   */
-dashboard: async (req, res, next) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    // Fetch orders for the Sales Report section (sorted by most recent)
-    const orders = await Order.find()
-      .sort({ timestamp: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate('user', 'name');
-
-    const totalOrdersCount = await Order.countDocuments();
-    const totalPages = Math.ceil(totalOrdersCount / limit);
-
-    // Render the dashboard view and pass orders and pagination data to the view.
-    res.status(httpStatus.OK).render("backend/dashboard", {
-      orders,
-      pagination: {
-        page,
-        limit,
-        totalPages,
-        totalOrders: totalOrdersCount
-      }
-    });
-  } catch (err) {
-    next(err);
-  }
-},
-
+  dashboard: async (req, res, next) => {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+  
+      // Fetch paginated orders (populate user details)
+      const orders = await Order.find()
+        .sort({ timestamp: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('user', 'name email');
+  
+      const totalOrdersCount = await Order.countDocuments();
+      const totalPages = Math.ceil(totalOrdersCount / limit);
+  
+      // Dynamic summary data:
+      // Revenue: Sum of total from all orders
+      const revenueAgg = await Order.aggregate([
+        { $group: { _id: null, revenue: { $sum: "$total" } } }
+      ]);
+      const revenue = revenueAgg[0] ? revenueAgg[0].revenue : 0;
+  
+      // Products Count
+      const productsCount = await Product.countDocuments();
+  
+      // Monthly Earning: Sum for current month
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const monthlyAgg = await Order.aggregate([
+        { $match: { timestamp: { $gte: startOfMonth } } },
+        { $group: { _id: null, monthlyEarning: { $sum: "$total" } } }
+      ]);
+      const monthlyEarning = monthlyAgg[0] ? monthlyAgg[0].monthlyEarning : 0;
+  
+      // Compute chart data for Yearly, Monthly and Daily sales
+      const chartDataYearlyAgg = await Order.aggregate([
+        { 
+          $group: { 
+            _id: { $dateToString: { format: "%Y", date: "$timestamp" } },
+            totalSales: { $sum: "$total" }
+          } 
+        },
+        { $sort: { _id: 1 } }
+      ]);
+      const chartDataYearlyLabels = chartDataYearlyAgg.map(item => item._id);
+      const chartDataYearlySales = chartDataYearlyAgg.map(item => item.totalSales);
+  
+      const chartDataMonthlyAgg = await Order.aggregate([
+        { 
+          $group: { 
+            _id: { $dateToString: { format: "%Y-%m", date: "$timestamp" } },
+            totalSales: { $sum: "$total" }
+          } 
+        },
+        { $sort: { _id: 1 } }
+      ]);
+      const chartDataMonthlyLabels = chartDataMonthlyAgg.map(item => item._id);
+      const chartDataMonthlySales = chartDataMonthlyAgg.map(item => item.totalSales);
+  
+      const chartDataDailyAgg = await Order.aggregate([
+        { 
+          $group: { 
+            _id: { $dateToString: { format: "%Y-%m-%d", date: "$timestamp" } },
+            totalSales: { $sum: "$total" }
+          } 
+        },
+        { $sort: { _id: 1 } }
+      ]);
+      const chartDataDailyLabels = chartDataDailyAgg.map(item => item._id);
+      const chartDataDailySales = chartDataDailyAgg.map(item => item.totalSales);
+  
+      // Best Selling Products (Top 10): Aggregate order items by product
+      const bestSellingProductsAgg = await Order.aggregate([
+        { $unwind: "$items" },
+        {
+          $group: {
+            _id: "$items.product",
+            totalQuantity: { $sum: "$items.quantity" }
+          }
+        },
+        { $sort: { totalQuantity: -1 } },
+        { $limit: 10 }
+      ]);
+      const productIds = bestSellingProductsAgg.map(item => item._id);
+      const products = await Product.find({ _id: { $in: productIds } });
+      const bestSellingProducts = bestSellingProductsAgg.map(item => {
+        const product = products.find(p => p._id.toString() === item._id.toString());
+        return { ...product.toObject(), totalQuantity: item.totalQuantity };
+      });
+  
+      // Best Selling Categories (Top 10): Lookup product category from order items
+      const bestSellingCategoriesAgg = await Order.aggregate([
+        { $unwind: "$items" },
+        {
+          $lookup: {
+            from: "products",
+            localField: "items.product",
+            foreignField: "_id",
+            as: "productDetails"
+          }
+        },
+        { $unwind: "$productDetails" },
+        {
+          $group: {
+            _id: "$productDetails.category",
+            totalQuantity: { $sum: "$items.quantity" }
+          }
+        },
+        { $sort: { totalQuantity: -1 } },
+        { $limit: 10 }
+      ]);
+      const categoryIds = bestSellingCategoriesAgg.map(item => item._id);
+      const categories = await Category.find({ _id: { $in: categoryIds } });
+      const bestSellingCategories = bestSellingCategoriesAgg.map(item => {
+        const category = categories.find(c => c._id.toString() === item._id.toString());
+        return { ...category.toObject(), totalQuantity: item.totalQuantity };
+      });
+  
+      // Best Selling Brands (Top 10): Assuming Product model has a "brand" field
+      const bestSellingBrandsAgg = await Order.aggregate([
+        { $unwind: "$items" },
+        {
+          $lookup: {
+            from: "products",
+            localField: "items.product",
+            foreignField: "_id",
+            as: "productDetails"
+          }
+        },
+        { $unwind: "$productDetails" },
+        {
+          $group: {
+            _id: "$productDetails.brand",
+            totalQuantity: { $sum: "$items.quantity" }
+          }
+        },
+        { $sort: { totalQuantity: -1 } },
+        { $limit: 10 }
+      ]);
+      const bestSellingBrands = bestSellingBrandsAgg.filter(item => item._id);
+  
+      // Render the dashboard view with all dynamic data
+      res.status(httpStatus.OK).render("backend/dashboard", {
+        orders,
+        pagination: {
+          page,
+          limit,
+          totalPages,
+          totalOrders: totalOrdersCount
+        },
+        revenue,
+        ordersCount: totalOrdersCount,
+        productsCount,
+        monthlyEarning,
+        chartDataYearlyLabels,
+        chartDataYearlySales,
+        chartDataMonthlyLabels,
+        chartDataMonthlySales,
+        chartDataDailyLabels,
+        chartDataDailySales,
+        bestSellingProducts,
+        bestSellingCategories,
+        bestSellingBrands
+      });
+    } catch (err) {
+      next(err);
+    }
+  },  
   /**
    * Fetches a paginated and filtered list of users.
    * - Supports search queries based on first name, last name, or email.
@@ -346,8 +481,48 @@ getOrders : async (req, res, next) => {
       .skip(skip)
       .limit(limit)
       .lean();
-
     res.render('backend/orders', {
+      orders,
+      currentPage: page,
+      totalPages,
+      searchQuery,
+      statusFilter,
+      limit
+    });
+  } catch (error) {
+    next(error);
+  }
+},
+getReturnReqOrders : async (req, res, next) => {
+  try {
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 20;
+    let searchQuery = req.query.search || '';
+    let statusFilter = req.query.status || '';
+
+    let filter = {};
+
+    if (searchQuery) {
+      // Search order_id using a case-insensitive regex
+      filter.order_id = { $regex: searchQuery, $options: 'i' };
+    }
+
+    if (statusFilter) {
+      // Filter by order_status; assuming stored in lowercase
+      filter.order_status = statusFilter.toLowerCase();
+    }
+
+    const skip = (page - 1) * limit;
+    const totalOrders = await Order.countDocuments(filter);
+    const totalPages = Math.ceil(totalOrders / limit);
+
+    const orders = await Order.find(filter)
+      .populate('user', 'name email')
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+    res.render('backend/returnRequests', {
       orders,
       currentPage: page,
       totalPages,

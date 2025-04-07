@@ -7,7 +7,6 @@ const OfferSchema = new mongoose.Schema({
     enum: ['product', 'category', 'referral', 'other'] 
   },
   offer_percentage: { type: Number },
-  offer_price: { type: Number },
   expiry_date: { type: Date, required: true },
   products: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],

@@ -100,165 +100,218 @@
                     </div>
                 </div>
 
-                <form class="space-y-5" action="/signup" method="post">
+                <!-- Updated Form with Frontend Validation -->
+                <form id="signupForm" class="space-y-5" action="/signup" method="post">
+                    <!-- Name Fields -->
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="first_name" class="block text-sm font-medium text-purple-900 mb-1.5">First Name</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <input
-                                    type="text"
-                                    id="first_name"
-                                    name="first_name"
-                                    class="form-input w-full pl-10 pr-4 py-3 border border-purple-200 rounded-lg focus:outline-none focus:border-purple-500 bg-white text-purple-900 placeholder-purple-300"
-                                    placeholder="First Name"
-                                />
-                            </div>
-                            <div class="text-red-500 text-sm mt-1 error-message"></div>
-                        </div>
-                        <div>
-                            <label for="last_name" class="block text-sm font-medium text-purple-900 mb-1.5">Last Name</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <input
-                                    type="text"
-                                    id="last_name"
-                                    name="last_name"
-                                    class="form-input w-full pl-10 pr-4 py-3 border border-purple-200 rounded-lg focus:outline-none focus:border-purple-500 bg-white text-purple-900 placeholder-purple-300"
-                                    placeholder="Last Name"
-                                />
-                            </div>
-                            <div class="text-red-500 text-sm mt-1 error-message"></div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label for="email" class="block text-sm font-medium text-purple-900 mb-1.5">Email Address</label>
+                      <!-- First Name -->
+                      <div>
+                        <label for="first_name" class="block text-sm font-medium text-purple-900 mb-1.5">First Name</label>
                         <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                                </svg>
-                            </div>
-                            <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                class="form-input w-full pl-10 pr-4 py-3 border border-purple-200 rounded-lg focus:outline-none focus:border-purple-500 bg-white text-purple-900 placeholder-purple-300"
-                                placeholder="Email Address"
-                            />
-                        </div>
-                        <div class="text-red-500 text-sm mt-1 error-message"></div>
-                    </div>
-                    
-                    <div>
-                        <label for="password" class="block text-sm font-medium text-purple-900 mb-1.5">Password</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                            <input
-                                type="password"
-                                id="password"
-                                name="password"
-                                class="form-input w-full pl-10 pr-10 py-3 border border-purple-200 rounded-lg focus:outline-none focus:border-purple-500 bg-white text-purple-900 placeholder-purple-300"
-                                placeholder="Create a password"
-                            />
-                            <button
-                                type="button"
-                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-400 hover:text-purple-700 transition-colors duration-200"
-                                onclick="togglePasswordVisibility('password', this)"
-                                aria-label="Toggle password visibility"
+                          <!-- Icon Container -->
+                          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="h-5 w-5 text-purple-400"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
                             >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    class="h-5 w-5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                    />
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                    />
-                                </svg>
-                            </button>
+                              <path
+                                fill-rule="evenodd"
+                                d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                                clip-rule="evenodd"
+                              />
+                            </svg>
+                          </div>
+                          <input
+                            type="text"
+                            id="first_name"
+                            name="first_name"
+                            class="form-input w-full pl-10 pr-4 py-3 border border-purple-200 rounded-lg focus:outline-none focus:border-purple-500 bg-white text-purple-900 placeholder-purple-300"
+                            placeholder="First Name"
+                          />
                         </div>
-                        <div class="text-red-500 text-sm mt-1 error-message"></div>
-                    </div>
-                    
-                    <div>
-                        <label for="confirm_password" class="block text-sm font-medium text-purple-900 mb-1.5">Confirm Password</label>
+                        <!-- Error Message -->
+                        <div class="text-red-500 text-sm mt-1 error-message" id="first_name_error"></div>
+                      </div>
+                  
+                      <!-- Last Name -->
+                      <div>
+                        <label for="last_name" class="block text-sm font-medium text-purple-900 mb-1.5">Last Name</label>
                         <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                            <input
-                                type="password"
-                                id="confirm_password"
-                                name="confirm_password"
-                                class="form-input w-full pl-10 pr-10 py-3 border border-purple-200 rounded-lg focus:outline-none focus:border-purple-500 bg-white text-purple-900 placeholder-purple-300"
-                                placeholder="Confirm your password"
-                            />
-                            <button
-                                type="button"
-                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-400 hover:text-purple-700 transition-colors duration-200"
-                                onclick="togglePasswordVisibility('confirm_password', this)"
-                                aria-label="Toggle password visibility"
+                          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="h-5 w-5 text-purple-400"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
                             >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    class="h-5 w-5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                    />
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                    />
-                                </svg>
-                            </button>
+                              <path
+                                fill-rule="evenodd"
+                                d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                                clip-rule="evenodd"
+                              />
+                            </svg>
+                          </div>
+                          <input
+                            type="text"
+                            id="last_name"
+                            name="last_name"
+                            class="form-input w-full pl-10 pr-4 py-3 border border-purple-200 rounded-lg focus:outline-none focus:border-purple-500 bg-white text-purple-900 placeholder-purple-300"
+                            placeholder="Last Name"
+                          />
                         </div>
-                        <div class="text-red-500 text-sm mt-1 error-message"></div>
+                        <div class="text-red-500 text-sm mt-1 error-message" id="last_name_error"></div>
+                      </div>
                     </div>
-
+                  
+                    <!-- Email -->
+                    <div>
+                      <label for="email" class="block text-sm font-medium text-purple-900 mb-1.5">Email Address</label>
+                      <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 text-purple-400"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                          </svg>
+                        </div>
+                        <input
+                          type="email"
+                          id="email"
+                          name="email"
+                          class="form-input w-full pl-10 pr-4 py-3 border border-purple-200 rounded-lg focus:outline-none focus:border-purple-500 bg-white text-purple-900 placeholder-purple-300"
+                          placeholder="Email Address"
+                        />
+                      </div>
+                      <div class="text-red-500 text-sm mt-1 error-message" id="email_error"></div>
+                    </div>
+                  
+                    <!-- Password -->
+                    <div>
+                      <label for="password" class="block text-sm font-medium text-purple-900 mb-1.5">Password</label>
+                      <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 text-purple-400"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fill-rule="evenodd"
+                              d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                              clip-rule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                        <input
+                          type="password"
+                          id="password"
+                          name="password"
+                          class="form-input w-full pl-10 pr-10 py-3 border border-purple-200 rounded-lg focus:outline-none focus:border-purple-500 bg-white text-purple-900 placeholder-purple-300"
+                          placeholder="Create a password"
+                        />
+                        <button
+                          type="button"
+                          class="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-400 hover:text-purple-700 transition-colors duration-200"
+                          onclick="togglePasswordVisibility('password', this)"
+                          aria-label="Toggle password visibility"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                      <div class="text-red-500 text-sm mt-1 error-message" id="password_error"></div>
+                    </div>
+                  
+                    <!-- Confirm Password -->
+                    <div>
+                      <label for="confirm_password" class="block text-sm font-medium text-purple-900 mb-1.5">Confirm Password</label>
+                      <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 text-purple-400"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fill-rule="evenodd"
+                              d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                              clip-rule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                        <input
+                          type="password"
+                          id="confirm_password"
+                          name="confirm_password"
+                          class="form-input w-full pl-10 pr-10 py-3 border border-purple-200 rounded-lg focus:outline-none focus:border-purple-500 bg-white text-purple-900 placeholder-purple-300"
+                          placeholder="Confirm your password"
+                        />
+                        <button
+                          type="button"
+                          class="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-400 hover:text-purple-700 transition-colors duration-200"
+                          onclick="togglePasswordVisibility('confirm_password', this)"
+                          aria-label="Toggle password visibility"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                      <div class="text-red-500 text-sm mt-1 error-message" id="confirm_password_error"></div>
+                    </div>
+                  
+                    <!-- Submit -->
                     <button
-                        type="submit"
-                        class="w-full py-3 px-4 mt-4 bg-gradient rounded-lg text-white hover:opacity-90 transition-opacity duration-200 font-semibold shadow-custom"
+                      type="submit"
+                      class="w-full py-3 px-4 mt-4 bg-gradient rounded-lg text-white hover:opacity-90 transition-opacity duration-200 font-semibold shadow-custom"
                     >
-                        Create Account
+                      Create Account
                     </button>
-                </form>
+                  </form>
+                  
                 
                 <p class="text-center text-purple-700 mt-8">
                     Already have an account? 
@@ -369,9 +422,65 @@
             button.querySelector('svg').innerHTML = iconPath;
         }
 
-        // Form validation and OTP handling
+        // Form validation logic for signup
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            // Clear previous error messages
+            document.getElementById('first_name_error').textContent = "";
+            document.getElementById('last_name_error').textContent = "";
+            document.getElementById('email_error').textContent = "";
+            document.getElementById('password_error').textContent = "";
+            document.getElementById('confirm_password_error').textContent = "";
+
+            let hasError = false;
+
+            // Get form field values
+            const firstName = document.getElementById('first_name').value.trim();
+            const lastName = document.getElementById('last_name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+
+            // Validate First Name: non-empty and only alphabets
+            const nameRegex = /^[a-zA-Z]+$/;
+            if (!firstName || !nameRegex.test(firstName)) {
+                document.getElementById('first_name_error').textContent = "First name should only contain alphabets and cannot be empty.";
+                hasError = true;
+            }
+
+            // Validate Last Name: non-empty and only alphabets
+            if (!lastName || !nameRegex.test(lastName)) {
+                document.getElementById('last_name_error').textContent = "Last name should only contain alphabets and cannot be empty.";
+                hasError = true;
+            }
+
+            // Validate Email using a simple regex pattern
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email || !emailRegex.test(email)) {
+                document.getElementById('email_error').textContent = "Please enter a valid email address.";
+                hasError = true;
+            }
+
+            // Validate Password: at least 8 characters, one uppercase letter, one number, one special character
+            const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+            if (!password || !passwordRegex.test(password)) {
+                document.getElementById('password_error').textContent = "Password must be at least 8 characters long and include one uppercase letter, one number, and one special character.";
+                hasError = true;
+            }
+
+            // Validate Confirm Password: must match password
+            if (password !== confirmPassword) {
+                document.getElementById('confirm_password_error').textContent = "Passwords do not match.";
+                hasError = true;
+            }
+
+            // If any error found, prevent form submission
+            if (hasError) {
+                e.preventDefault();
+            }
+        });
+
+        // Auto-focus next OTP input
         document.addEventListener('DOMContentLoaded', function() {
-            // Auto-focus next OTP input
             const otpInputs = document.querySelectorAll('.otp-input');
             otpInputs.forEach((input, index) => {
                 input.addEventListener('input', function() {

@@ -1,180 +1,732 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guitar Tuner - GuitMan</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .tuner-container {
-            background: linear-gradient(145deg, #e6e6e6, #ffffff);
-            box-shadow: 20px 20px 60px #d9d9d9, -20px -20px 60px #ffffff;
-        }
-        .tuning-peg {
-            transition: transform 0.3s ease;
-        }
-        .tuning-peg:hover {
-            transform: scale(1.1);
-        }
-        .string {
-            stroke-dasharray: 5, 5;
-            animation: vibrate 0.5s ease-in-out infinite;
-        }
-        @keyframes vibrate {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(1px); }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guitman | Guitar Tuner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              200: '#ddd6fe',
+              300: '#c4b5fd',
+              400: '#a78bfa',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9',
+              800: '#5b21b6',
+              900: '#4c1d95',
+              950: '#3c096c',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    /* Custom styles */
+    body {
+      background: linear-gradient(135deg, #4b0082 0%, #8a2be2 100%);
+      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .tuner-display {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .tuner-needle {
+      height: 4px;
+      background-color: #fff;
+      transform-origin: center;
+      transition: transform 0.2s ease;
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      width: 80%;
+      border-radius: 2px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+    
+    .tuner-scale {
+      position: relative;
+      height: 120px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .scale-mark {
+      position: absolute;
+      width: 2px;
+      height: 10px;
+      background-color: rgba(255, 255, 255, 0.3);
+      bottom: 0;
+    }
+    
+    .scale-mark.center {
+      height: 20px;
+      width: 3px;
+      background-color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .scale-mark.major {
+      height: 15px;
+      background-color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .string-button {
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    
+    .string-button.active {
+      transform: scale(1.1);
+      z-index: 10;
+    }
+    
+    .string-button.active::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 8px;
+      height: 8px;
+      background-color: #8b5cf6;
+      border-radius: 50%;
+    }
+    
+    .frequency-wave {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 40px;
+      overflow: hidden;
+    }
+    
+    .wave {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 200%;
+      height: 100%;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z' opacity='.25' fill='%238b5cf6'/%3E%3Cpath d='M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z' opacity='.5' fill='%238b5cf6'/%3E%3Cpath d='M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z' fill='%238b5cf6'/%3E%3C/svg%3E");
+      background-size: 1200px 100%;
+      animation: wave 10s linear infinite;
+      opacity: 0.3;
+    }
+    
+    .wave:nth-child(2) {
+      animation-delay: -5s;
+      animation-duration: 15s;
+      opacity: 0.2;
+    }
+    
+    @keyframes wave {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(-50%);
+      }
+    }
+    
+    .action-button {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+      box-shadow: 0 4px 10px rgba(75, 0, 130, 0.5);
+      transition: all 0.3s ease;
+    }
+    
+    .action-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(75, 0, 130, 0.6);
+    }
+    
+    .action-button:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 5px rgba(75, 0, 130, 0.4);
+    }
+    
+    .tuning-status {
+      transition: all 0.3s ease;
+    }
+    
+    .settings-panel {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1rem;
+    }
+    
+    .settings-toggle {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .settings-toggle:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .tuning-preset {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    
+    .tuning-preset:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .tuning-preset.active {
+      background: rgba(139, 92, 246, 0.2);
+      border-color: #8b5cf6;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 ">
+<body class="text-white">
     <%- include('./partials/header') %>
-
-    <main class="container mx-auto px-4 py-12 ">
-        <h1 class="text-4xl font-bold text-center mb-8 text-gray-800">Guitar Tuner</h1>
-
-        <div class="tuner-container max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
-            <div class="relative mb-12">
-                <!-- Guitar Head SVG -->
-                <svg viewBox="0 0 400 200" class="w-full h-auto">
-                    <defs>
-                        <linearGradient id="headGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:#8B4513;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#D2691E;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <path d="M20,20 L380,20 C390,20 395,25 395,35 L395,165 C395,175 390,180 380,180 L20,180 C10,180 5,175 5,165 L5,35 C5,25 10,20 20,20 Z" fill="url(#headGradient)" stroke="#000" stroke-width="2"/>
-                    <rect x="10" y="170" width="380" height="10" fill="#D2691E" stroke="#000" stroke-width="1"/>
-                    
-                    <!-- Strings -->
-                    <line x1="20" y1="40" x2="380" y2="40" class="string" stroke="#silver" stroke-width="1"/>
-                    <line x1="20" y1="65" x2="380" y2="65" class="string" stroke="#silver" stroke-width="1"/>
-                    <line x1="20" y1="90" x2="380" y2="90" class="string" stroke="#silver" stroke-width="1"/>
-                    <line x1="20" y1="115" x2="380" y2="115" class="string" stroke="#silver" stroke-width="1"/>
-                    <line x1="20" y1="140" x2="380" y2="140" class="string" stroke="#silver" stroke-width="1"/>
-                    <line x1="20" y1="165" x2="380" y2="165" class="string" stroke="#silver" stroke-width="1"/>
-                    
-                    <!-- Tuning Pegs -->
-                    <g class="tuning-peg" data-note="E">
-                        <circle cx="50" cy="30" r="15" fill="#FFD700" stroke="#000" stroke-width="2"/>
-                        <text x="50" y="35" text-anchor="middle" font-size="14" fill="#000">E</text>
-                    </g>
-                    <g class="tuning-peg" data-note="A">
-                        <circle cx="50" cy="80" r="15" fill="#FFD700" stroke="#000" stroke-width="2"/>
-                        <text x="50" y="85" text-anchor="middle" font-size="14" fill="#000">A</text>
-                    </g>
-                    <g class="tuning-peg" data-note="D">
-                        <circle cx="50" cy="130" r="15" fill="#FFD700" stroke="#000" stroke-width="2"/>
-                        <text x="50" y="135" text-anchor="middle" font-size="14" fill="#000">D</text>
-                    </g>
-                    <g class="tuning-peg" data-note="G">
-                        <circle cx="350" cy="30" r="15" fill="#FFD700" stroke="#000" stroke-width="2"/>
-                        <text x="350" y="35" text-anchor="middle" font-size="14" fill="#000">G</text>
-                    </g>
-                    <g class="tuning-peg" data-note="B">
-                        <circle cx="350" cy="80" r="15" fill="#FFD700" stroke="#000" stroke-width="2"/>
-                        <text x="350" y="85" text-anchor="middle" font-size="14" fill="#000">B</text>
-                    </g>
-                    <g class="tuning-peg" data-note="e">
-                        <circle cx="350" cy="130" r="15" fill="#FFD700" stroke="#000" stroke-width="2"/>
-                        <text x="350" y="135" text-anchor="middle" font-size="14" fill="#000">e</text>
-                    </g>
-                </svg>
-            </div>
-
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-semibold mb-4">Current String: <span id="currentNote" class="text-indigo-600">-</span></h2>
-                <p class="text-lg text-gray-600">Click on a tuning peg to select a string, then play the string and adjust until it's in tune.</p>
-            </div>
-            
-            <!-- Tuning Meter -->
-            <div class="relative w-full h-24 bg-gray-200 rounded-full overflow-hidden mb-8">
-                <div class="absolute top-0 left-0 w-full h-full flex items-center justify-between px-8 text-sm font-medium">
-                    <span class="text-red-500">♭ Flat</span>
-                    <span class="text-green-500">In Tune</span>
-                    <span class="text-red-500">Sharp ♯</span>
-                </div>
-                <div id="tuningMeter" class="absolute top-1/2 left-1/2 w-4 h-20 bg-indigo-600 rounded-full transition-all duration-300 ease-out transform -translate-x-1/2 -translate-y-1/2"></div>
-            </div>
-
-            <div class="text-center">
-                <button id="startTuning" class="bg-indigo-600 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                    Start Tuning
-                </button>
-            </div>
+  <div class="relative min-h-screen flex flex-col py-12 px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <header class="py-6 px-4">
+        <div class="container mx-auto relative flex items-center justify-center">
+      
+          <!-- Centered Header Text -->
+          <h1 class="text-2xl font-display font-bold text-white">
+            Guitman<span class="text-brand-300">ToneForge</span>
+          </h1>
+      
+          <!-- Right Settings Toggle -->
+          <div id="settingsToggle" class="absolute right-4">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M19.4 15C19.2669 15.3016 19.2272 15.6362 19.286 15.9606C19.3448 16.285 19.4995 16.5843 19.73 16.82L19.79 16.88C19.976 17.0657 20.1235 17.2863 20.2241 17.5291C20.3248 17.7719 20.3766 18.0322 20.3766 18.295C20.3766 18.5578 20.3248 18.8181 20.2241 19.0609C20.1235 19.3037 19.976 19.5243 19.79 19.71C19.6043 19.896 19.3837 20.0435 19.1409 20.1441C18.8981 20.2448 18.6378 20.2966 18.375 20.2966C18.1122 20.2966 17.8519 20.2448 17.6091 20.1441C17.3663 20.0435 17.1457 19.896 16.96 19.71L16.9 19.65C16.6643 19.4195 16.365 19.2648 16.0406 19.206C15.7162 19.1472 15.3816 19.1869 15.08 19.32C14.7842 19.4468 14.532 19.6572 14.3543 19.9255C14.1766 20.1938 14.0813 20.5082 14.08 20.83V21C14.08 21.5304 13.8693 22.0391 13.4942 22.4142C13.1191 22.7893 12.6104 23 12.08 23C11.5496 23 11.0409 22.7893 10.6658 22.4142C10.2907 22.0391 10.08 21.5304 10.08 21V20.91C10.0723 20.579 9.96512 20.258 9.77251 19.9887C9.5799 19.7194 9.31074 19.5143 9 19.4C8.69838 19.2669 8.36381 19.2272 8.03941 19.286C7.71502 19.3448 7.41568 19.4995 7.18 19.73L7.12 19.79C6.93425 19.976 6.71368 20.1235 6.47088 20.2241C6.22808 20.3248 5.96783 20.3766 5.705 20.3766C5.44217 20.3766 5.18192 20.3248 4.93912 20.2241C4.69632 20.1235 4.47575 19.976 4.29 19.79C4.10405 19.6043 3.95653 19.3837 3.85588 19.1409C3.75523 18.8981 3.70343 18.6378 3.70343 18.375C3.70343 18.1122 3.75523 17.8519 3.85588 17.6091C3.95653 17.3663 4.10405 17.1457 4.29 16.96L4.35 16.9C4.58054 16.6643 4.73519 16.365 4.794 16.0406C4.85282 15.7162 4.81312 15.3816 4.68 15.08C4.55324 14.7842 4.34276 14.532 4.07447 14.3543C3.80618 14.1766 3.49179 14.0813 3.17 14.08H3C2.46957 14.08 1.96086 13.8693 1.58579 13.4942C1.21071 13.1191 1 12.6104 1 12.08C1 11.5496 1.21071 11.0409 1.58579 10.6658C1.96086 10.2907 2.46957 10.08 3 10.08H3.09C3.42099 10.0723 3.742 9.96512 4.0113 9.77251C4.28059 9.5799 4.48572 9.31074 4.6 9C4.73312 8.69838 4.77282 8.36381 4.714 8.03941C4.65519 7.71502 4.50054 7.41568 4.27 7.18L4.21 7.12C4.02405 6.93425 3.87653 6.71368 3.77588 6.47088C3.67523 6.22808 3.62343 5.96783 3.62343 5.705C3.62343 5.44217 3.67523 5.18192 3.77588 4.93912C3.87653 4.69632 4.02405 4.47575 4.21 4.29C4.39575 4.10405 4.61632 3.95653 4.85912 3.85588C5.10192 3.75523 5.36217 3.70343 5.625 3.70343C5.88783 3.70343 6.14808 3.75523 6.39088 3.85588C6.63368 3.95653 6.85425 4.10405 7.04 4.29L7.1 4.35C7.33568 4.58054 7.63502 4.73519 7.95941 4.794C8.28381 4.85282 8.61838 4.81312 8.92 4.68H9C9.29577 4.55324 9.54802 4.34276 9.72569 4.07447C9.90337 3.80618 9.99872 3.49179 10 3.17V3C10 2.46957 10.2107 1.96086 10.5858 1.58579C10.9609 1.21071 11.4696 1 12 1C12.5304 1 13.0391 1.21071 13.4142 1.58579C13.7893 1.96086 14 2.46957 14 3V3.09C14.0013 3.41179 14.0966 3.72618 14.2743 3.99447C14.452 4.26276 14.7042 4.47324 15 4.6C15.3016 4.73312 15.6362 4.77282 15.9606 4.714C16.285 4.65519 16.5843 4.50054 16.82 4.27L16.88 4.21C17.0657 4.02405 17.2863 3.87653 17.5291 3.77588C17.7719 3.67523 18.0322 3.62343 18.295 3.62343C18.5578 3.62343 18.8181 3.67523 19.0609 3.77588C19.3037 3.87653 19.5243 4.02405 19.71 4.21C19.896 4.39575 20.0435 4.61632 20.1441 4.85912C20.2448 5.10192 20.2966 5.36217 20.2966 5.625C20.2966 5.88783 20.2448 6.14808 20.1441 6.39088C20.0435 6.63368 19.896 6.85425 19.71 7.04L19.65 7.1C19.4195 7.33568 19.2648 7.63502 19.206 7.95941C19.1472 8.28381 19.1869 8.61838 19.32 8.92V9C19.4468 9.29577 19.6572 9.54802 19.9255 9.72569C20.1938 9.90337 20.5082 9.99872 20.83 10H21C21.5304 10 22.0391 10.2107 22.4142 10.5858C22.7893 10.9609 23 11.4696 23 12C23 12.5304 22.7893 13.0391 22.4142 13.4142C22.0391 13.7893 21.5304 14 21 14H20.91C20.5882 14.0013 20.2738 14.0966 20.0055 14.2743C19.7372 14.452 19.5268 14.7042 19.4 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
         </div>
+      </header>
+      
+
+    <!-- Main Content -->
+    <main class="flex-grow flex flex-col items-center justify-center px-4 py-8">
+      <div class="container mx-auto max-w-3xl">
+        <!-- Tuner Display -->
+        <div class="tuner-display p-8 mb-8 relative overflow-hidden">
+          <!-- Instrument Selection -->
+          <div class="flex justify-center mb-8">
+            <div class="bg-white/10 rounded-full p-1 flex">
+              <button id="guitarBtn" class="px-4 py-2 rounded-full bg-brand-600 text-white font-medium">Guitar</button>
+              <button id="ukuleleBtn" class="px-4 py-2 rounded-full text-white/70 font-medium hover:bg-white/5">Ukulele</button>
+              <button id="bassBtn" class="px-4 py-2 rounded-full text-white/70 font-medium hover:bg-white/5">Bass</button>
+            </div>
+          </div>
+          
+          <!-- String Selection -->
+          <div id="stringButtons" class="flex justify-center space-x-3 mb-8">
+            <!-- Dynamically filled by JS -->
+          </div>
+          
+          <!-- Tuner Scale -->
+          <div class="tuner-scale mb-4">
+            <div id="tunerNeedle" class="tuner-needle"></div>
+            <div id="tunerScale" class="w-full h-full">
+              <!-- Scale marks added by JS -->
+            </div>
+          </div>
+          
+          <!-- Tuning Information -->
+          <div class="text-center mb-8">
+            <div class="flex items-center justify-center mb-2">
+              <h2 id="currentNote" class="text-5xl font-display font-bold text-white">--</h2>
+              <span id="currentOctave" class="text-xl text-white/50 ml-1">0</span>
+            </div>
+            <div class="flex items-center justify-center">
+              <p id="targetFreq" class="text-lg text-white/70">Target: <span>-- Hz</span></p>
+              <span class="mx-2 text-white/30">|</span>
+              <p id="currentFreq" class="text-lg text-white/70">Current: <span>-- Hz</span></p>
+            </div>
+            <p id="tuningStatus" class="tuning-status mt-2 text-lg font-medium">Waiting for audio input...</p>
+          </div>
+          
+          <!-- Action Button -->
+          <div class="flex justify-center mb-5">
+            <button id="startBtn" class="action-button px-8 py-4 rounded-full text-white font-bold text-lg">
+              Start Tuning
+            </button>
+            <button id="nextBtn" class="action-button px-8 py-4 rounded-full text-white font-bold text-lg hidden">
+              Next String
+            </button>
+          </div>
+          
+          <!-- Frequency Wave Animation -->
+          <div class="frequency-wave">
+            <div class="wave"></div>
+            <div class="wave"></div>
+          </div>
+        </div>
+        
+        <!-- Error Message -->
+        <div id="errorMessage" class="mt-4 text-center text-red-400 hidden"></div>
+      </div>
     </main>
+    
+    <!-- Settings Panel (Hidden by default) -->
+    <div id="settingsPanel" class="settings-panel fixed top-0 right-0 h-full w-80 p-6 transform translate-x-full transition-transform duration-300 ease-in-out z-50">
+      <button id="closeSettings" class="absolute top-4 right-4 text-white/70 hover:text-white">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      
+      <h3 class="text-xl font-display font-bold mb-6">Settings</h3>
+      
+      <!-- Tuning Presets -->
+      <div class="mb-6">
+        <h4 class="text-sm font-medium text-white/70 mb-2">Tuning Presets</h4>
+        <div class="space-y-2">
+          <div class="tuning-preset active p-3 rounded border border-transparent">
+            <div class="flex justify-between items-center">
+              <span class="font-medium">Standard (E A D G B E)</span>
+              <svg class="w-5 h-5 text-brand-300" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+          <div class="tuning-preset p-3 rounded border border-transparent">
+            <span class="font-medium">Drop D (D A D G B E)</span>
+          </div>
+          <div class="tuning-preset p-3 rounded border border-transparent">
+            <span class="font-medium">Open G (D G D G B D)</span>
+          </div>
+          <div class="tuning-preset p-3 rounded border border-transparent">
+            <span class="font-medium">Half Step Down (Eb Ab Db Gb Bb Eb)</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Audio Settings -->
+      <div class="mb-6">
+        <h4 class="text-sm font-medium text-white/70 mb-2">Audio Settings</h4>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm mb-1">Microphone Sensitivity</label>
+            <input type="range" min="0" max="100" value="75" class="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer">
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Noise Reduction</label>
+            <input type="range" min="0" max="100" value="50" class="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Display Settings -->
+      <div>
+        <h4 class="text-sm font-medium text-white/70 mb-2">Display Settings</h4>
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-sm">Show Frequency</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" value="" class="sr-only peer" checked>
+              <div class="w-11 h-6 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500"></div>
+            </label>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-sm">Show Cents</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" value="" class="sr-only peer" checked>
+              <div class="w-11 h-6 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500"></div>
+            </label>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-sm">Dark Mode</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" value="" class="sr-only peer" checked>
+              <div class="w-11 h-6 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500"></div>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Footer -->
+  <%- include('./partials/footer') %>
 
-    <%- include('./partials/footer') %>
+  <script>
+    // Tuning configurations
+    const instruments = {
+      guitar: {
+        name: 'Guitar',
+        strings: [
+          { name: 'E', note: 'E', octave: 2, frequency: 82.41 },
+          { name: 'A', note: 'A', octave: 2, frequency: 110.00 },
+          { name: 'D', note: 'D', octave: 3, frequency: 146.83 },
+          { name: 'G', note: 'G', octave: 3, frequency: 196.00 },
+          { name: 'B', note: 'B', octave: 3, frequency: 246.94 },
+          { name: 'E', note: 'E', octave: 4, frequency: 329.63 }
+        ]
+      },
+      ukulele: {
+        name: 'Ukulele',
+        strings: [
+          { name: 'G', note: 'G', octave: 4, frequency: 392.00 },
+          { name: 'C', note: 'C', octave: 4, frequency: 261.63 },
+          { name: 'E', note: 'E', octave: 4, frequency: 329.63 },
+          { name: 'A', note: 'A', octave: 4, frequency: 440.00 }
+        ]
+      },
+      bass: {
+        name: 'Bass',
+        strings: [
+          { name: 'E', note: 'E', octave: 1, frequency: 41.20 },
+          { name: 'A', note: 'A', octave: 1, frequency: 55.00 },
+          { name: 'D', note: 'D', octave: 2, frequency: 73.42 },
+          { name: 'G', note: 'G', octave: 2, frequency: 98.00 }
+        ]
+      }
+    };
 
-    <script>
-        const tuningPegs = document.querySelectorAll('.tuning-peg');
-        const currentNoteDisplay = document.getElementById('currentNote');
-        const tuningMeter = document.getElementById('tuningMeter');
-        const startTuningButton = document.getElementById('startTuning');
-
-        let selectedNote = null;
-        let tuningInterval = null;
-
-        tuningPegs.forEach(peg => {
-            peg.addEventListener('click', () => {
-                const note = peg.getAttribute('data-note');
-                selectNote(note);
-            });
+    // Current state
+    let currentInstrument = 'guitar';
+    let currentStringIndex = 0;
+    let audioContext, analyserNode, mediaStreamSource;
+    let rafID = null;
+    let isTuning = false;
+    const toleranceCents = 5; // Acceptable tuning range in cents
+    
+    // UI Elements
+    const startBtn = document.getElementById('startBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const currentNote = document.getElementById('currentNote');
+    const currentOctave = document.getElementById('currentOctave');
+    const targetFreqElem = document.getElementById('targetFreq').querySelector('span');
+    const currentFreqElem = document.getElementById('currentFreq').querySelector('span');
+    const tuningStatusElem = document.getElementById('tuningStatus');
+    const tunerNeedle = document.getElementById('tunerNeedle');
+    const errorMessage = document.getElementById('errorMessage');
+    const stringButtons = document.getElementById('stringButtons');
+    const settingsToggle = document.getElementById('settingsToggle');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const closeSettings = document.getElementById('closeSettings');
+    const guitarBtn = document.getElementById('guitarBtn');
+    const ukuleleBtn = document.getElementById('ukuleleBtn');
+    const bassBtn = document.getElementById('bassBtn');
+    
+    // Create tuner scale marks
+    function createTunerScale() {
+      const scaleContainer = document.getElementById('tunerScale');
+      scaleContainer.innerHTML = '';
+      
+      // Create 41 marks (-20 to +20 cents)
+      for (let i = -20; i <= 20; i++) {
+        const mark = document.createElement('div');
+        mark.className = 'scale-mark';
+        
+        if (i === 0) {
+          mark.classList.add('center');
+        } else if (i % 5 === 0) {
+          mark.classList.add('major');
+        }
+        
+        // Position marks evenly across the scale
+        mark.style.left = `${((i + 20) / 40) * 100}%`;
+        scaleContainer.appendChild(mark);
+      }
+    }
+    createTunerScale();
+    
+    // Update string buttons based on current instrument
+    function updateStringButtons() {
+      stringButtons.innerHTML = '';
+      
+      instruments[currentInstrument].strings.forEach((string, index) => {
+        const button = document.createElement('div');
+        button.className = `string-button p-3 rounded-full ${index === currentStringIndex ? 'active' : ''} ${index < currentStringIndex ? 'bg-green-500/20 text-green-300' : 'bg-white/10'}`;
+        button.innerHTML = `<span class="text-lg font-bold">${string.name}</span>`;
+        
+        button.addEventListener('click', () => {
+          currentStringIndex = index;
+          updateStringButtons();
+          updateTunerDisplay();
         });
+        
+        stringButtons.appendChild(button);
+      });
+    }
+    
+    // Update tuner display with current string info
+    function updateTunerDisplay() {
+      const currentString = instruments[currentInstrument].strings[currentStringIndex];
+      currentNote.textContent = currentString.note;
+      currentOctave.textContent = currentString.octave;
+      targetFreqElem.textContent = `${currentString.frequency.toFixed(2)} Hz`;
+      
+      // Reset needle position
+      tunerNeedle.style.transform = 'rotate(0deg)';
+    }
+    
+    // Enhanced autocorrelation algorithm with error handling and smoothing
+    function autoCorrelate(buffer, sampleRate) {
+      let SIZE = buffer.length;
+      let rms = Math.sqrt(buffer.reduce((sum, val) => sum + val * val, 0) / SIZE);
+      if (rms < 0.01) return { pitch: -1, clarity: 0 };
 
-        function selectNote(note) {
-            selectedNote = note;
-            currentNoteDisplay.textContent = note;
-            
-            // Reset all pegs
-            tuningPegs.forEach(peg => peg.querySelector('circle').setAttribute('fill', '#FFD700'));
-            
-            // Highlight selected peg
-            const selectedPeg = document.querySelector(`.tuning-peg[data-note="${note}"]`);
-            selectedPeg.querySelector('circle').setAttribute('fill', '#4CAF50');
+      let r1 = 0, r2 = SIZE - 1;
+      for (let i = 0; i < SIZE / 2; i++) {
+        if (Math.abs(buffer[i]) < 0.2) { r1 = i; break; }
+      }
+      for (let i = 1; i < SIZE / 2; i++) {
+        if (Math.abs(buffer[SIZE - i]) < 0.2) { r2 = SIZE - i; break; }
+      }
+      buffer = buffer.slice(r1, r2);
+      SIZE = buffer.length;
+      if (SIZE < 2) return { pitch: -1, clarity: 0 };
+
+      let autocorrelation = new Array(SIZE).fill(0);
+      for (let lag = 0; lag < SIZE; lag++) {
+        for (let i = 0; i < SIZE - lag; i++) {
+          autocorrelation[lag] += buffer[i] * buffer[i + lag];
         }
-
-        startTuningButton.addEventListener('click', () => {
-            if (selectedNote) {
-                if (tuningInterval) {
-                    clearInterval(tuningInterval);
-                }
-                simulateTuning();
-            } else {
-                alert('Please select a string to tune first.');
-            }
-        });
-
-        function simulateTuning() {
-            let progress = 0;
-            tuningInterval = setInterval(() => {
-                progress += Math.random() * 10 - 5; // Random movement
-                progress = Math.max(-50, Math.min(50, progress)); // Clamp between -50 and 50
-                updateMeter(progress);
-                
-                if (Math.abs(progress) < 2) { // Consider "in tune" if within ±2
-                    clearInterval(tuningInterval);
-                }
-            }, 100);
+      }
+      let d = 0;
+      while (d < autocorrelation.length - 1 && autocorrelation[d] > autocorrelation[d+1]) d++;
+      let maxVal = -1, maxPos = -1;
+      for (let i = d; i < SIZE; i++) {
+        if (autocorrelation[i] > maxVal) {
+          maxVal = autocorrelation[i];
+          maxPos = i;
         }
+      }
+      if (maxPos === 0) return { pitch: -1, clarity: 0 };
 
-        function updateMeter(value) {
-            const position = 50 + value; // Convert -50..50 to 0..100
-            tuningMeter.style.left = `${position}%`;
-            
-            // Update color based on how close to being in tune
-            if (Math.abs(value) < 5) {
-                tuningMeter.style.backgroundColor = '#4CAF50'; // Green
-            } else if (Math.abs(value) < 20) {
-                tuningMeter.style.backgroundColor = '#FFC107'; // Yellow
-            } else {
-                tuningMeter.style.backgroundColor = '#F44336'; // Red
-            }
+      // Calculate clarity as ratio between peak and zero-lag value
+      let clarity = maxVal / autocorrelation[0];
+      let pitch = sampleRate / maxPos;
+      return { pitch, clarity };
+    }
+
+    // Map frequency to cents deviation from target frequency
+    function calculateCents(frequency, target) {
+      return Math.floor(1200 * Math.log2(frequency / target));
+    }
+    
+    // Get note name from frequency
+    function getNoteFromFrequency(frequency) {
+      const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+      const a4 = 440;
+      const a4Index = 69; // MIDI note number for A4
+      
+      if (frequency <= 0) return { note: '--', octave: 0 };
+      
+      // Calculate MIDI note number
+      const noteNumber = Math.round(12 * Math.log2(frequency / a4) + a4Index);
+      const octave = Math.floor(noteNumber / 12) - 1;
+      const noteIndex = noteNumber % 12;
+      
+      return { note: noteNames[noteIndex], octave };
+    }
+
+    // Tuner loop: capture audio, process pitch, update UI
+    function detectPitch() {
+      const bufferLength = analyserNode.fftSize;
+      const buffer = new Float32Array(bufferLength);
+      analyserNode.getFloatTimeDomainData(buffer);
+
+      const { pitch, clarity } = autoCorrelate(buffer, audioContext.sampleRate);
+      if (pitch !== -1 && clarity > 0.5) {
+        const targetFreq = instruments[currentInstrument].strings[currentStringIndex].frequency;
+        const cents = calculateCents(pitch, targetFreq);
+        const { note, octave } = getNoteFromFrequency(pitch);
+        
+        // Update UI
+        currentFreqElem.textContent = `${pitch.toFixed(2)} Hz`;
+        currentNote.textContent = note;
+        currentOctave.textContent = octave;
+        
+        // Rotate needle based on cents (-30 to +30 degrees)
+        const needleRotation = Math.max(-30, Math.min(30, cents));
+        tunerNeedle.style.transform = `rotate(${needleRotation}deg)`;
+        
+        // Update tuning status
+        if (Math.abs(cents) <= toleranceCents) {
+          tuningStatusElem.textContent = 'In Tune!';
+          tuningStatusElem.className = 'tuning-status mt-2 text-lg font-medium text-purple-400';
+          nextBtn.classList.remove('hidden');
+          startBtn.classList.add('hidden');
+        } else if (cents < -toleranceCents) {
+          tuningStatusElem.textContent = 'Too Low - Tighten String';
+          tuningStatusElem.className = 'tuning-status mt-2 text-lg font-medium text-purple-300';
+          nextBtn.classList.add('hidden');
+          startBtn.classList.add('hidden');
+        } else {
+          tuningStatusElem.textContent = 'Too High - Loosen String';
+          tuningStatusElem.className = 'tuning-status mt-2 text-lg font-medium text-purple-600';
+          nextBtn.classList.add('hidden');
+          startBtn.classList.add('hidden');
         }
-    </script>
+      } else {
+        currentFreqElem.textContent = '-- Hz';
+        currentNote.textContent = '--';
+        currentOctave.textContent = '0';
+        tuningStatusElem.textContent = 'Listening...';
+        tuningStatusElem.className = 'tuning-status mt-2 text-lg font-medium text-white/70';
+        tunerNeedle.style.transform = 'rotate(0deg)';
+        nextBtn.classList.add('hidden');
+        startBtn.classList.add('hidden');
+      }
+      
+      // Continue updating if tuning is active
+      if (isTuning) rafID = requestAnimationFrame(detectPitch);
+    }
+
+    // Start microphone and tuning process
+    startBtn.addEventListener('click', async () => {
+      errorMessage.textContent = '';
+      errorMessage.classList.add('hidden');
+      
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        errorMessage.textContent = 'Your browser does not support audio capture.';
+        errorMessage.classList.remove('hidden');
+        return;
+      }
+      
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyserNode = audioContext.createAnalyser();
+        analyserNode.fftSize = 2048;
+        mediaStreamSource = audioContext.createMediaStreamSource(stream);
+        mediaStreamSource.connect(analyserNode);
+        
+        isTuning = true;
+        startBtn.classList.add('hidden');
+        
+        // Update display for current string
+        updateTunerDisplay();
+        tuningStatusElem.textContent = 'Listening...';
+        
+        detectPitch();
+      } catch (err) {
+        errorMessage.textContent = 'Error accessing the microphone: ' + err.message;
+        errorMessage.classList.remove('hidden');
+      }
+    });
+
+    // Move to next string if current one is in tune
+    nextBtn.addEventListener('click', () => {
+      cancelAnimationFrame(rafID);
+      nextBtn.classList.add('hidden');
+      
+      currentStringIndex++;
+      if (currentStringIndex >= instruments[currentInstrument].strings.length) {
+        // All strings tuned
+        currentNote.textContent = '✓';
+        currentOctave.textContent = '';
+        tuningStatusElem.textContent = 'All strings tuned!';
+        tuningStatusElem.className = 'tuning-status mt-2 text-lg font-medium text-purple-400';
+        isTuning = false;
+        startBtn.textContent = 'Start Over';
+        startBtn.classList.remove('hidden');
+        currentStringIndex = 0;
+      } else {
+        // Move to next string
+        updateStringButtons();
+        updateTunerDisplay();
+        tuningStatusElem.textContent = 'Listening...';
+        tuningStatusElem.className = 'tuning-status mt-2 text-lg font-medium text-white/70';
+        
+        // Restart pitch detection for the next string
+        detectPitch();
+      }
+    });
+    
+    // Instrument selection
+    guitarBtn.addEventListener('click', () => {
+      currentInstrument = 'guitar';
+      currentStringIndex = 0;
+      updateInstrumentButtons();
+      updateStringButtons();
+      updateTunerDisplay();
+    });
+    
+    ukuleleBtn.addEventListener('click', () => {
+      currentInstrument = 'ukulele';
+      currentStringIndex = 0;
+      updateInstrumentButtons();
+      updateStringButtons();
+      updateTunerDisplay();
+    });
+    
+    bassBtn.addEventListener('click', () => {
+      currentInstrument = 'bass';
+      currentStringIndex = 0;
+      updateInstrumentButtons();
+      updateStringButtons();
+      updateTunerDisplay();
+    });
+    
+    function updateInstrumentButtons() {
+      // Reset all buttons
+      guitarBtn.className = 'px-4 py-2 rounded-full text-white/70 font-medium hover:bg-white/5';
+      ukuleleBtn.className = 'px-4 py-2 rounded-full text-white/70 font-medium hover:bg-white/5';
+      bassBtn.className = 'px-4 py-2 rounded-full text-white/70 font-medium hover:bg-white/5';
+      
+      // Highlight active button
+      if (currentInstrument === 'guitar') {
+        guitarBtn.className = 'px-4 py-2 rounded-full bg-brand-600 text-white font-medium';
+      } else if (currentInstrument === 'ukulele') {
+        ukuleleBtn.className = 'px-4 py-2 rounded-full bg-brand-600 text-white font-medium';
+      } else if (currentInstrument === 'bass') {
+        bassBtn.className = 'px-4 py-2 rounded-full bg-brand-600 text-white font-medium';
+      }
+    }
+    
+    // Settings panel toggle
+    settingsToggle.addEventListener('click', () => {
+      settingsPanel.style.transform = 'translateX(0)';
+    });
+    
+    closeSettings.addEventListener('click', () => {
+      settingsPanel.style.transform = 'translateX(100%)';
+    });
+    
+    // Initialize UI
+    updateStringButtons();
+    updateTunerDisplay();
+    
+    // Clean up audio context if user leaves or stops tuning
+    window.addEventListener('beforeunload', () => {
+      if (audioContext && audioContext.state !== 'closed') {
+        audioContext.close();
+      }
+    });
+  </script>
 </body>
 </html>

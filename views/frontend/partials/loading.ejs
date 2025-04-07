@@ -1,13 +1,16 @@
-<div id="musical-loader" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">   
-  <div class="relative">     
-    <svg width="120" height="120" viewBox="0 0 120 120" class="animate-spin">       
-      <circle cx="60" cy="60" r="54" stroke="#4B5563" stroke-width="8" fill="none" />       
-      <circle cx="60" cy="60" r="54" stroke="#818CF8" stroke-width="8" stroke-dasharray="339.292" stroke-dashoffset="339.292" fill="none">         
-        <animate attributeName="stroke-dashoffset" dur="1.5s" repeatCount="indefinite" from="339.292" to="0" />       
-      </circle>     
+<div id="musical-loader" class="fixed inset-0 z-50 flex items-center justify-center hidden backdrop-blur-md bg-black/40">   
+  <div class="relative p-8 bg-white/10 rounded-xl shadow-2xl backdrop-filter backdrop-blur-sm border border-white/20">     
+    <svg width="140" height="140" viewBox="0 0 140 140" class="animate-spin">       
+      <circle cx="70" cy="70" r="60" stroke="#4B5563" stroke-width="8" fill="none" opacity="0.3" />       
+      <circle cx="70" cy="70" r="60" stroke="#818CF8" stroke-width="8" stroke-dasharray="376.99" stroke-dashoffset="376.99" fill="none">         
+        <animate attributeName="stroke-dashoffset" dur="2s" repeatCount="indefinite" from="376.99" to="0" />       
+      </circle>
+      <circle cx="70" cy="70" r="45" stroke="#A78BFA" stroke-width="4" stroke-dasharray="282.74" stroke-dashoffset="282.74" fill="none">
+        <animate attributeName="stroke-dashoffset" dur="1.6s" repeatCount="indefinite" from="282.74" to="0" />
+      </circle>
     </svg>     
     <div class="absolute inset-0 flex items-center justify-center">       
-      <svg width="60" height="60" viewBox="0 0 24 24" fill="#818CF8">         
+      <svg width="70" height="70" viewBox="0 0 24 24" fill="#818CF8">         
         <path d="M19.8 6.18l-7.22 4.17a2 2 0 0 1-2.12 0L3.24 6.18a1 1 0 0 1 0-1.73l7.22-4.17a2 2 0 0 1 2.12 0l7.22 4.17a1 1 0 0 1 0 1.73z"/>       
       </svg>     
     </div>     
@@ -18,15 +21,28 @@
       <span class="note">♬</span>       
       <span class="note">♭</span>       
       <span class="note">♮</span>     
-    </div>   
+    </div>
+    <div class="loader-text text-center text-white font-medium mt-4 text-lg tracking-wider">Loading <span class="animate-pulse">...</span></div>
   </div> 
 </div>  
 
 <style> 
 @keyframes circulate {   
-  0% { transform: rotate(0deg) translateX(40px) rotate(0deg); }   
-  100% { transform: rotate(360deg) translateX(40px) rotate(-360deg); } 
-}  
+  0% { transform: rotate(0deg) translateX(55px) rotate(0deg) scale(0.8); opacity: 0; }
+  25% { opacity: 1; }   
+  75% { opacity: 1; }
+  100% { transform: rotate(360deg) translateX(55px) rotate(-360deg) scale(1.2); opacity: 0; } 
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.7; }
+}
+
+.backdrop-blur-md {
+  backdrop-filter: blur(5px);
+}
 
 .musical-notes {   
   position: absolute;   
@@ -40,29 +56,39 @@
   position: absolute;   
   top: 50%;   
   left: 50%;   
-  font-size: 24px;   
-  color: #818CF8;   
-  animation: circulate 4s linear infinite; 
+  font-size: 28px;   
+  text-shadow: 0 0 8px rgba(129, 140, 248, 0.8);
+  color: #A78BFA;   
+  animation: circulate 5s linear infinite;
+  filter: drop-shadow(0 0 5px rgba(129, 140, 248, 0.5));
 }  
 
-.musical-notes .note:nth-child(2) { animation-delay: -0.6666s; } 
-.musical-notes .note:nth-child(3) { animation-delay: -1.3333s; } 
-.musical-notes .note:nth-child(4) { animation-delay: -2s; } 
-.musical-notes .note:nth-child(5) { animation-delay: -2.6666s; } 
-.musical-notes .note:nth-child(6) { animation-delay: -3.3333s; } 
+.musical-notes .note:nth-child(1) { animation-delay: -0s; color: #818CF8; } 
+.musical-notes .note:nth-child(2) { animation-delay: -0.8333s; color: #A78BFA; } 
+.musical-notes .note:nth-child(3) { animation-delay: -1.6666s; color: #818CF8; } 
+.musical-notes .note:nth-child(4) { animation-delay: -2.5s; color: #A78BFA; } 
+.musical-notes .note:nth-child(5) { animation-delay: -3.3333s; color: #818CF8; } 
+.musical-notes .note:nth-child(6) { animation-delay: -4.1666s; color: #A78BFA; } 
+
+@media (prefers-reduced-motion) {
+  .animate-spin, .animate-pulse, .note {
+    animation-duration: 10s !important;
+  }
+}
 </style>  
 
 <script>
 let activeRequests = 0;
 let navigationTimeout = null;
 let loaderStartTime = null;
-const MIN_DISPLAY_TIME = 500; // 1.5 seconds in milliseconds
+const MIN_DISPLAY_TIME = 800; // minimum time to display loader in milliseconds
 
 function showLoader() {
   activeRequests++;
   if (activeRequests === 1) {
     loaderStartTime = Date.now();
     document.getElementById('musical-loader').classList.remove('hidden');
+    document.body.classList.add('overflow-hidden'); // Prevent scrolling when loader is active
   }
 }
 
@@ -76,6 +102,7 @@ function hideLoader() {
     setTimeout(() => {
       if (activeRequests === 0) { // Double check in case new requests came in
         document.getElementById('musical-loader').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
         loaderStartTime = null;
       }
     }, remainingTime);
@@ -90,6 +117,7 @@ function forceHideLoader() {
   setTimeout(() => {
     activeRequests = 0;
     document.getElementById('musical-loader').classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
     loaderStartTime = null;
   }, remainingTime);
 }
@@ -124,6 +152,17 @@ function forceHideLoader() {
 
 // Handle page navigation events
 document.addEventListener("DOMContentLoaded", function() {
+  // Create a pulsating effect for the musical notes
+  const addPulseEffect = () => {
+    const notes = document.querySelectorAll('.musical-notes .note');
+    notes.forEach(note => {
+      note.style.animation = `${note.style.animation}, pulse 1.5s ease-in-out infinite`;
+    });
+  };
+  
+  // Run once on page load
+  setTimeout(addPulseEffect, 100);
+  
   // Handle all link clicks
   const links = document.querySelectorAll("a");
   links.forEach(link => {
@@ -140,7 +179,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // Set a new timeout to force hide the loader
         navigationTimeout = setTimeout(() => {
           forceHideLoader();
-        }, 5000); // Fallback timeout after 5 seconds
+        }, 6000); // Fallback timeout after 6 seconds
       }
     });
   });

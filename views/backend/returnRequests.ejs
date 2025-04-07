@@ -17,19 +17,15 @@
         <section class="content-main">
             <div class="content-header">
                 <div>
-                    <h2 class="content-title card-title">Order List</h2>
-                    <p>Lorem ipsum dolor sit amet.</p>
+                    <h2 class="content-title card-title">Return Requested Orders</h2>
+                    <p>Review orders where customers have requested returns.</p>
                 </div>
-                <div class="d-flex flex-column flex-md-row align-items-md-center gap-2">
-                    <form method="GET" action="/admin/dashboard/orders/list" class="d-flex">
+                <div>
+                    <form method="GET" action="/admin/dashboard/orders/return-requests" class="d-flex">
                         <input type="text" name="search" placeholder="Search order ID" class="form-control bg-white" value="<%= searchQuery %>">
                         <select name="status" class="form-select ms-2">
-                            <option value="">Status</option>
-                            <option value="pending" <%= statusFilter === 'pending' ? 'selected' : '' %>>Pending</option>
-                            <option value="processing" <%= statusFilter === 'processing' ? 'selected' : '' %>>Processing</option>
-                            <option value="shipped" <%= statusFilter === 'shipped' ? 'selected' : '' %>>Shipped</option>
-                            <option value="delivered" <%= statusFilter === 'delivered' ? 'selected' : '' %>>Delivered</option>
-                            <option value="cancelled" <%= statusFilter === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                            <!-- You may include additional filters if needed -->
+                            <option value="requested" selected>Return Requested</option>
                         </select>
                         <select name="limit" class="form-select ms-2">
                             <option value="20" <%= limit == 20 ? 'selected' : '' %>>Show 20</option>
@@ -38,13 +34,6 @@
                         </select>
                         <button type="submit" class="btn btn-primary ms-2">Search</button>
                     </form>
-                    <% 
-                      // Compute the number of orders with a return request
-                      let returnRequestCount = orders.filter(order => order.return_details && order.return_details.status === 'requested').length;
-                    %>
-                    <a href="/admin/dashboard/orders/return-requests" class="btn btn-primary ms-md-3">
-                        Return Requested Orders (<%= returnRequestCount %>)
-                    </a>
                 </div>
             </div>
             <div class="card mb-4">
@@ -52,7 +41,7 @@
                     <div class="row gx-3">
                         <!-- Additional search/filter elements can be added here if needed -->
                     </div>
-                </header> <!-- card-header end// -->
+                </header>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-hover">
@@ -61,55 +50,52 @@
                                     <th>#ID</th>
                                     <th scope="col">Email</th>
                                     <th scope="col">Total</th>
-                                    <th scope="col">Status</th>
-                                    <th scope="col">Date</th>
+                                    <th scope="col">Return Status</th>
+                                    <th scope="col">Return Requested Date</th>
                                     <th scope="col" class="text-end">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <% if (orders.length === 0) { %>
+                                <% 
+                                  // If the controller did not filter the orders already,
+                                  // we can filter them here.
+                                  const returnOrders = orders.filter(order => 
+                                    order.return_details && order.return_details.status === 'requested'
+                                  );
+                                %>
+                                <% if (returnOrders.length === 0) { %>
                                     <tr>
-                                        <td colspan="7" class="text-center">No orders found</td>
+                                        <td colspan="7" class="text-center">No return requested orders found</td>
                                     </tr>
                                 <% } else { %>
-                                    <% orders.forEach(function(order) { %>
+                                    <% returnOrders.forEach(function(order) { %>
                                         <tr>
                                             <td><%= order.order_id %></td>
                                             <td><%= order.user ? order.user.email : 'N/A' %></td>
                                             <td>₹<%= order.total.toFixed(2) %></td>
                                             <td>
-                                                <% if(order.order_status === 'pending') { %>
-                                                    <span class="badge rounded-pill alert-warning">Pending</span>
-                                                <% } else if(order.order_status === 'processing') { %>
-                                                    <span class="badge rounded-pill alert-info">Processing</span>
-                                                <% } else if(order.order_status === 'shipped') { %>
-                                                    <span class="badge rounded-pill alert-primary">Shipped</span>
-                                                <% } else if(order.order_status === 'delivered') { %>
-                                                    <span class="badge rounded-pill alert-success">Delivered</span>
-                                                <% } else if(order.order_status === 'cancelled') { %>
-                                                    <span class="badge rounded-pill alert-danger">Canceled</span>
-                                                <% } else { %>
-                                                    <span class="badge rounded-pill alert-secondary"><%= order.order_status %></span>
-                                                <% } %>
+                                                <span class="badge rounded-pill alert-warning">
+                                                    <%= order.return_details.status.charAt(0).toUpperCase() + order.return_details.status.slice(1) %>
+                                                </span>
                                             </td>
-                                            <td><%= new Date(order.timestamp).toLocaleDateString() %></td>
+                                            <td><%= new Date(order.return_details.requested_at).toLocaleDateString() %></td>
                                             <td class="text-end">
-                                                <a href="/admin/dashboard/orders/details/<%= order.order_id %>" class="btn btn-md rounded font-sm">View </a>
+                                                <a href="/admin/dashboard/orders/details/<%= order.order_id %>" class="btn btn-md rounded font-sm">View</a>
                                             </td>
                                         </tr>
                                     <% }); %>
                                 <% } %>
                             </tbody>
                         </table>
-                    </div> <!-- table-responsive //end -->
-                </div> <!-- card-body end// -->
-            </div> <!-- card end// -->
+                    </div>
+                </div>
+            </div>
             <div class="pagination-area mt-15 mb-50">
                 <nav aria-label="Page navigation example">
                     <ul class="pagination justify-content-start">
                         <% if (currentPage > 1) { %>
                             <li class="page-item">
-                                <a class="page-link" href="?page=<%= currentPage - 1 %>&search=<%= searchQuery %>&status=<%= statusFilter %>&limit=<%= limit %>">
+                                <a class="page-link" href="?page=<%= currentPage - 1 %>&search=<%= searchQuery %>&status=requested&limit=<%= limit %>">
                                     <i class="material-icons md-chevron_left"></i>
                                 </a>
                             </li>
@@ -125,13 +111,13 @@
                                 </li>
                             <% } else { %>
                                 <li class="page-item">
-                                    <a class="page-link" href="?page=<%= i %>&search=<%= searchQuery %>&status=<%= statusFilter %>&limit=<%= limit %>"><%= i %></a>
+                                    <a class="page-link" href="?page=<%= i %>&search=<%= searchQuery %>&status=requested&limit=<%= limit %>"><%= i %></a>
                                 </li>
                             <% } %>
                         <% } %>
                         <% if (currentPage < totalPages) { %>
                             <li class="page-item">
-                                <a class="page-link" href="?page=<%= currentPage + 1 %>&search=<%= searchQuery %>&status=<%= statusFilter %>&limit=<%= limit %>">
+                                <a class="page-link" href="?page=<%= currentPage + 1 %>&search=<%= searchQuery %>&status=requested&limit=<%= limit %>">
                                     <i class="material-icons md-chevron_right"></i>
                                 </a>
                             </li>
@@ -143,7 +129,7 @@
                     </ul>
                 </nav>
             </div>
-        </section> <!-- content-main end// -->
+        </section>
         <%- include('./partials/footer') %>
     </main>
     <%- include('./partials/scriptsLinks') %>

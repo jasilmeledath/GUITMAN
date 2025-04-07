@@ -10,6 +10,11 @@ const createTransaction = require('../../helpers/createTransaction');
 const Wallet = require('../../models/walletModel');
 const processRefund = require('../../helpers/processRefund');
 const Coupon = require('../../models/couponModel');
+const { sendEmail } = require("../../services/emailService");
+const {generateOrderConfirmationEmail} = require('../../utils/emailTemplates');
+const PDFDocument = require('pdfkit');
+const { ObjectId } = require('mongodb');
+
 
 const orderControls = {
   applyCoupon: async (req, res, next) => {    
@@ -61,6 +66,7 @@ const orderControls = {
       }
       // Update the cart: set savings and recalculate the total
       cart.savings = discountAmount;
+      cart.couponApplied = coupon._id;
       cart.cart_total = cart.cart_subtotal + cart.shipping_fee + cart.tax - discountAmount;
       await cart.save();
       return res.status(HttpStatus.OK)
@@ -82,6 +88,7 @@ const orderControls = {
       // Remove coupon discount by resetting savings and recalculate total
       cart.savings = 0;
       cart.cart_total = cart.cart_subtotal + cart.shipping_fee + cart.tax;
+      cart.couponApplied = null;
       await cart.save();
       return res.status(HttpStatus.OK)
         .json({ 
@@ -112,7 +119,10 @@ const orderControls = {
           quantity: item.quantity,
           price: item.item_price
         }));
-  
+         if(cart.total>=1001){
+          return res.status(HttpStatus.BAD_REQUEST)
+          .json({success: false, message:"Order amount allowed for cod exceeded!"})
+         }
         // Create the local order record for COD
         const order = new Order({
           items: items,
@@ -124,7 +134,7 @@ const orderControls = {
           total: cart.cart_total,
           user: user._id,
           address: addressId,
-          status: 'placed' // Order confirmed for COD
+          status: 'placed' 
         });
         const newOrder = await order.save();
   
@@ -153,7 +163,23 @@ const orderControls = {
             tax: 0,
             shipping_fee: 0,
             savings: 0,
+            couponApplied: null,
           }
+        );
+        const getExpectedDeliveryDate = () => {
+          const today = new Date();
+          today.setDate(today.getDate() + 5);
+          return today;
+        };
+        
+        const expectedDeliveryDate = getExpectedDeliveryDate();
+        const emailContent = generateOrderConfirmationEmail(user.first_name, newOrder.order_id, newOrder.total, expectedDeliveryDate)
+
+        await sendEmail(
+          user.email,
+          emailContent.subject,
+          emailContent.text,
+          emailContent.html
         );
   
         return res.status(HttpStatus.OK)
@@ -217,6 +243,54 @@ const orderControls = {
       next(err);
     }
   },
+  updateOrderForRetryPayment: async (req, res, next) => {
+    try {
+      console.log('invoked');
+      
+      const { order_id } = req.params;
+      
+      // Find the existing order by order_id (assuming order.order_id is stored)
+      const order = await Order.findOne({ order_id });
+      if (!order) {
+        return res.status(HttpStatus.NOT_FOUND)
+          .json({ success: false, message: "Order not found" });
+      }
+      
+      // Ensure this order is for UPI payment; you can add further checks if necessary.
+      if (order.payment_method !== 'upi') {
+        return res.status(HttpStatus.BAD_REQUEST)
+          .json({ success: false, message: "Retry payment is only available for UPI payments." });
+      }
+      
+      // Create a new Razorpay order with the required amount and currency.
+      // Note: Adjust amount if your createRazorpayOrder service expects rupees (service should convert to paise if needed)
+      const razorpayOrder = await createRazorpayOrder({
+        amount: Number(order.total),  // assuming order.total is in rupees; service converts to paise
+        currency: 'INR',
+        receipt: `receipt#retry-${Date.now()}`
+      });
+      
+      if (!razorpayOrder) {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .json({ success: false, message: "Failed to create Razorpay order for retry." });
+      }
+      
+      // Update the existing order with the new Razorpay order ID and reset its status if necessary.
+      order.razorpay_order_id = razorpayOrder.id;
+      order.status = 'pending';
+      await order.save();
+      
+      // Return the new Razorpay order ID to the client so the frontend can use it.
+      return res.status(HttpStatus.OK)
+        .json({
+          success: true,
+          message: "Order updated for retry payment.",
+          razorpay_order_id: razorpayOrder.id
+        });
+    } catch (error) {
+      next(error);
+    }
+  },
   verifyRazorpayPayment: async (req, res, next) => {
     try {
       const {
@@ -242,9 +316,8 @@ const orderControls = {
           message: 'Invalid payment signature!'
         });
       }
-  
-      // 2) Find the order in DB
-      const order = await Order.findById(order_id);
+      if(!ObjectId.isValid(order_id)){
+        const order = await Order.findOne({order_id});
       if (!order) {
         return res.status(HttpStatus.BAD_REQUEST).json({
           success: false,
@@ -253,7 +326,7 @@ const orderControls = {
       }
   
       // 3) Update order status to 'paid' and store Razorpay details
-      order.status = 'paid';
+      order.payment_status = 'paid';
       order.razorpay_payment_id = razorpay_payment_id;
       await order.save();
   
@@ -282,6 +355,88 @@ const orderControls = {
           savings: 0,
         }
       );
+      // 7) Send Confirmation Email
+
+      const getExpectedDeliveryDate = () => {
+        const today = new Date();
+        today.setDate(today.getDate() + 5);
+        return today;
+      };
+      
+      const expectedDeliveryDate = getExpectedDeliveryDate();
+      const emailContent = generateOrderConfirmationEmail(user.first_name, order.order_id, order.total, expectedDeliveryDate)
+
+      await sendEmail(
+        user.email,
+        emailContent.subject,
+        emailContent.text,
+        emailContent.html
+      );
+  
+      // 6) Return success response
+      return res.json({
+        success: true,
+        message: 'Payment verified successfully!'
+      });
+        
+      }
+  
+      // 2) Find the order in DB
+      const order = await Order.findById(order_id);
+      if (!order) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          success: false,
+          message: 'Order not found!'
+        });
+      }
+  
+      // 3) Update order status to 'paid' and store Razorpay details
+      order.payment_status = 'paid';
+      order.razorpay_payment_id = razorpay_payment_id;
+      await order.save();
+  
+      // 4) Create a transaction record using the separate function
+      const transaction = await createTransaction({
+        user: user._id,
+        transaction_id: razorpay_payment_id, // Using Razorpay payment ID as transaction ID
+        transaction_type: 'payment',
+        amount: order.total,  // Assuming order.total contains the payment amount
+        description: `Payment for order ${order_id} verified successfully via Razorpay.`,
+        date: new Date()
+      });
+  
+      const wallet = await Wallet.findOne({ user: user._id });
+      wallet.history.push(transaction._id);
+      await wallet.save();
+      // 5) Empty the cart after placing the order
+      await Cart.findOneAndUpdate(
+        { _id: cart._id },
+        {
+          items: [],
+          cart_subtotal: 0,
+          cart_total: 0,
+          tax: 0,
+          shipping_fee: 0,
+          savings: 0,
+        }
+      );
+      // 7) Send Confirmation Email
+
+      const getExpectedDeliveryDate = () => {
+        const today = new Date();
+        today.setDate(today.getDate() + 5);
+        return today;
+      };
+      
+      const expectedDeliveryDate = getExpectedDeliveryDate();
+      const emailContent = generateOrderConfirmationEmail(user.first_name, order.order_id, order.total, expectedDeliveryDate)
+
+      await sendEmail(
+        user.email,
+        emailContent.subject,
+        emailContent.text,
+        emailContent.html
+      );
   
       // 6) Return success response
       return res.json({
@@ -289,6 +444,131 @@ const orderControls = {
         message: 'Payment verified successfully!'
       });
   
+    } catch (error) {
+      next(error);
+    }
+  },
+  downloadInvoice:async (req, res, next) => {
+    try {
+      const { orderId } = req.params;
+      // Find the order by its order_id
+      const order = await Order.findOne({ order_id: orderId })
+        .populate('items.product')
+        .lean();
+  
+      if (!order) {
+        return res.status(404).json({ success: false, message: 'Order not found' });
+      }
+  
+      // Create a new PDF document
+      const doc = new PDFDocument({ margin: 50 });
+  
+      // Set response headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=Invoice-${order.order_id}.pdf`);
+  
+      // Pipe the document to the response
+      doc.pipe(res);
+  
+      // ----------------- Header Section -----------------
+      // GuitMan Brand Header
+      doc
+        .font('Helvetica-Bold')
+        .fontSize(26)
+        .fillColor('#0284c7')
+        .text('GuitMan', { align: 'center' })
+        .moveDown(0.3);
+  
+      doc
+        .font('Helvetica')
+        .fontSize(16)
+        .fillColor('#333')
+        .text('Invoice', { align: 'center' })
+        .moveDown();
+  
+      // ----------------- Order Information -----------------
+      const orderDate = new Date(order.timestamp).toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+      doc
+        .fontSize(12)
+        .fillColor('#333')
+        .text(`Order ID: ${order.order_id}`, { align: 'left' })
+        .text(`Order Date: ${orderDate}`, { align: 'left' })
+        .moveDown();
+  
+      // Draw a horizontal line separator
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#ddd').moveDown();
+  
+      // ----------------- Items Table -----------------
+      // Table Header
+      doc
+        .fontSize(12)
+        .fillColor('#333')
+        .text('Item', 50, doc.y, { width: 200, continued: true })
+        .text('Qty', 260, doc.y, { width: 50, continued: true })
+        .text('Price (Rs.)', 320, doc.y, { width: 100, continued: true })
+        .text('Total (Rs.)', 430, doc.y, { width: 100 });
+      doc.moveDown(0.5);
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#ddd').moveDown();
+  
+      // List each order item
+      order.items.forEach(item => {
+        const productName = item.product ? item.product.product_name : 'Unknown Item';
+        const price = item.price;
+        const quantity = item.quantity;
+        const total = price * quantity;
+  
+        doc
+          .fontSize(12)
+          .fillColor('#333')
+          .text(productName, 50, doc.y, { width: 200, continued: true })
+          .text(quantity.toString(), 260, doc.y, { width: 50, continued: true })
+          .text(price.toFixed(2), 320, doc.y, { width: 100, continued: true })
+          .text(total.toFixed(2), 430, doc.y, { width: 100 });
+        doc.moveDown(0.5);
+      });
+  
+      // Draw another horizontal line
+      doc.moveDown();
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#ddd').moveDown();
+  
+      // ----------------- Totals Section -----------------
+      doc
+        .fontSize(12)
+        .fillColor('#333')
+        .text(`Subtotal: Rs.${order.subtotal.toFixed(2)}`, { align: 'right' })
+        .moveDown(0.3);
+      doc
+        .text(`Shipping: Rs.${order.shipping.toFixed(2)}`, { align: 'right' })
+        .moveDown(0.3);
+      doc
+        .text(`Tax: Rs.${order.tax.toFixed(2)}`, { align: 'right' })
+        .moveDown(0.3);
+      if (order.discount && order.discount > 0) {
+        doc.text(`Discount: -Rs.${order.discount.toFixed(2)}`, { align: 'right' }).moveDown(0.3);
+      }
+      doc
+        .font('Helvetica-Bold')
+        .fontSize(14)
+        .fillColor('#0284c7')
+        .text(`Total: Rs.${order.total.toFixed(2)}`, { align: 'right' });
+  
+      // ----------------- Footer Section -----------------
+      doc.moveDown(2);
+      doc
+        .fontSize(10)
+        .fillColor('#777')
+        .text('Thank you for shopping with GuitMan!', { align: 'center' })
+        .moveDown(0.5);
+      doc
+        .fontSize(10)
+        .text('For any queries, please contact support@guitman.com', { align: 'center' });
+  
+      // Finalize the PDF and end the stream
+      doc.end();
     } catch (error) {
       next(error);
     }
@@ -319,7 +599,6 @@ const orderControls = {
       if (order.return_details.status !== 'none') {
         return res.status(HttpStatus.BAD_REQUEST).json({ error: 'Return request has already been submitted.' });
       }
-      console.log('invoked');
       // Update the order with return request details.
       order.return_details = {
         status: 'requested',
@@ -359,7 +638,8 @@ const orderControls = {
   
       // Process the refund:
       // Assuming order.user is the user ID and order.total holds the refund amount.
-      if (order.payment_status === 'paid') {
+      
+      if (order.payment_status === 'paid' && order.payment_method!='cod') {
         await processRefund({
           userId: order.user,
           orderId: order.order_id,
@@ -373,6 +653,25 @@ const orderControls = {
       res.status(HttpStatus.OK).json({ message: "Order cancelled successfully" });
     } catch (err) {
       next(err);
+    }
+  },
+  handleFailedPayment: async(req, res, next) =>{
+    try {      
+      const {order_id} = req.body;
+      if(!ObjectId.isValid(order_id)){
+      const order = await Order.findOne({order_id});
+      order.payment_status = 'failed';
+      order.order_status = 'pending';
+      await order.save();
+      return res.status(HttpStatus.OK).json({success:true, order:order});
+      }
+      const order = await Order.findById(order_id);
+      order.payment_status = 'failed';
+      order.order_status = 'pending';
+      await order.save();
+      res.status(HttpStatus.OK).json({success:true, order:order});
+    } catch (err) {
+      next(err)
     }
   },
   submitReview: async (req, res, next) => {

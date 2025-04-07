@@ -301,5 +301,172 @@ This is an automated message. Please do not reply directly to this email.
   };
 };
 
+const generateOrderConfirmationEmail = (first_name, orderId, orderTotal, deliveryDate) => {
+  const supportEmail = process.env.SUPPORT_EMAIL || 'support@guitman.com';
+  return {
+    subject: "Order Confirmation - GuitMan",
+    text: `Dear ${first_name},
 
-module.exports = { generateSignupEmail, generateUpdatedEmailOtp, generateForgotPasswordEmail };
+Thank you for your order!
+
+Your Order ID: ${orderId}
+Order Total: ₹${orderTotal.toLocaleString('en-IN')}
+Estimated Delivery Date: ${deliveryDate.toDateString()}
+
+If you have any questions, please contact our support team at ${supportEmail}.
+
+Best regards,
+The GuitMan Team
+
+This is an automated message. Please do not reply directly to this email.`,
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmation - GuitMan</title>
+</head>
+<body style="margin:0; padding:0; font-family:'Segoe UI', Arial, sans-serif; background-color:#f9f9f9;">
+  <div style="max-width:600px; margin:0 auto; padding:20px; background-color:#ffffff; border-radius:8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <!-- Header -->
+    <div style="text-align:center; padding:20px 0; border-bottom:2px solid #f0f0f0;">
+      <h1 style="margin:0; color:#2C3E50; font-size:24px;">Order Confirmation</h1>
+      <p style="color:#7F8C8D; margin:10px 0 0;">Thank you for shopping with GuitMan</p>
+    </div>
+    <!-- Main Content -->
+    <div style="padding:30px 0;">
+      <p>Dear ${first_name},</p>
+      <p>Your order has been successfully placed. Here are your order details:</p>
+      <ul style="color:#333333; line-height:1.6;">
+        <li><strong>Order ID:</strong> ${orderId}</li>
+        <li><strong>Order Total:</strong> ₹${orderTotal.toLocaleString('en-IN')}</li>
+        <li><strong>Estimated Delivery:</strong> ${deliveryDate.toDateString()}</li>
+      </ul>
+      <p>If you have any questions, please contact our support team at <a href="mailto:${supportEmail}" style="color:#3498DB; text-decoration:none;">${supportEmail}</a>.</p>
+      <p>We appreciate your business and hope you enjoy your purchase.</p>
+    </div>
+    <!-- Footer -->
+    <div style="text-align:center; padding-top:20px; border-top:2px solid #f0f0f0; color:#999; font-size:12px;">
+      <p>This is an automated message. Please do not reply directly to this email.</p>
+      <p style="margin-top:10px;">&copy; ${new Date().getFullYear()} GuitMan. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+`
+  };
+};
+
+const generateOrderCancellationEmail = (first_name, orderId, cancellationReason) => {
+  const supportEmail = process.env.SUPPORT_EMAIL || 'support@guitman.com';
+  return {
+    subject: "Order Cancellation - GuitMan",
+    text: `Dear ${first_name},
+
+We regret to inform you that your order (ID: ${orderId}) has been cancelled.
+
+Reason for Cancellation:
+${cancellationReason}
+
+If you have any questions or need further assistance, please contact our support team at ${supportEmail}.
+
+Best regards,
+The GuitMan Team
+
+This is an automated message. Please do not reply directly to this email.`,
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Cancellation - GuitMan</title>
+</head>
+<body style="margin:0; padding:0; font-family:'Segoe UI', Arial, sans-serif; background-color:#f9f9f9;">
+  <div style="max-width:600px; margin:0 auto; padding:20px; background-color:#ffffff; border-radius:8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <!-- Header -->
+    <div style="text-align:center; padding:20px 0; border-bottom:2px solid #f0f0f0;">
+      <h1 style="margin:0; color:#2C3E50; font-size:24px;">Order Cancellation</h1>
+      <p style="color:#7F8C8D; margin:10px 0 0;">We're sorry to inform you</p>
+    </div>
+    <!-- Main Content -->
+    <div style="padding:30px 0;">
+      <p>Dear ${first_name},</p>
+      <p>Your order (ID: ${orderId}) has been cancelled.</p>
+      <p><strong>Reason for Cancellation:</strong></p>
+      <p style="color:#333333;">${cancellationReason}</p>
+      <p>If you have any questions, please contact our support team at <a href="mailto:${supportEmail}" style="color:#3498DB; text-decoration:none;">${supportEmail}</a>.</p>
+      <p>Thank you for considering GuitMan.</p>
+    </div>
+    <!-- Footer -->
+    <div style="text-align:center; padding-top:20px; border-top:2px solid #f0f0f0; color:#999; font-size:12px;">
+      <p>This is an automated message. Please do not reply directly to this email.</p>
+      <p style="margin-top:10px;">&copy; ${new Date().getFullYear()} GuitMan. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+`
+  };
+};
+
+const generateOrderReturnEmail = (first_name, orderId, returnStatus, additionalMessage) => {
+  const supportEmail = process.env.SUPPORT_EMAIL || 'support@guitman.com';
+  return {
+    subject: "Order Return Update - GuitMan",
+    text: `Dear ${first_name},
+
+Your return request for order (ID: ${orderId}) has been processed.
+Return Status: ${returnStatus}
+
+${additionalMessage ? additionalMessage + "\n\n" : ""}If you have any questions, please contact our support team at ${supportEmail}.
+
+Best regards,
+The GuitMan Team
+
+This is an automated message. Please do not reply directly to this email.`,
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Return Update - GuitMan</title>
+</head>
+<body style="margin:0; padding:0; font-family:'Segoe UI', Arial, sans-serif; background-color:#f9f9f9;">
+  <div style="max-width:600px; margin:0 auto; padding:20px; background-color:#ffffff; border-radius:8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <!-- Header -->
+    <div style="text-align:center; padding:20px 0; border-bottom:2px solid #f0f0f0;">
+      <h1 style="margin:0; color:#2C3E50; font-size:24px;">Order Return Update</h1>
+      <p style="color:#7F8C8D; margin:10px 0 0;">Your return request status</p>
+    </div>
+    <!-- Main Content -->
+    <div style="padding:30px 0;">
+      <p>Dear ${first_name},</p>
+      <p>Your return request for order (ID: ${orderId}) has been processed.</p>
+      <p><strong>Return Status:</strong> ${returnStatus}</p>
+      ${additionalMessage ? `<p style="color:#333;">${additionalMessage}</p>` : ""}
+      <p>If you have any questions, please contact our support team at <a href="mailto:${supportEmail}" style="color:#3498DB; text-decoration:none;">${supportEmail}</a>.</p>
+      <p>Thank you for shopping with GuitMan.</p>
+    </div>
+    <!-- Footer -->
+    <div style="text-align:center; padding-top:20px; border-top:2px solid #f0f0f0; color:#999; font-size:12px;">
+      <p>This is an automated message. Please do not reply directly to this email.</p>
+      <p style="margin-top:10px;">&copy; ${new Date().getFullYear()} GuitMan. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+`
+  };
+};
+
+
+module.exports = { 
+  generateOrderConfirmationEmail,
+  generateOrderCancellationEmail, 
+  generateOrderReturnEmail, 
+  generateSignupEmail, 
+  generateUpdatedEmailOtp, 
+  generateForgotPasswordEmail };

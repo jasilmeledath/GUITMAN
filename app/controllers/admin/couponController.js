@@ -1,5 +1,6 @@
 const Coupon = require('../../models/couponModel');
 const httpStatus = require('../../utils/httpStatus');
+const User = require('../../models/userModel');
 
 const couponControls = {
   loadCouponPage: async (req, res, next) => {
@@ -22,7 +23,15 @@ const couponControls = {
         usage_limit,
         single_use_per_user,
       } = req.body;
-
+  
+      // Validate expiry date: it must be a future date (or today)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const expiryDate = new Date(expire_date);
+      if (expiryDate < today) {
+        return res.status(400).json({ success: false, message: "Expiry date must be today or in the future." });
+      }
+  
       const newCoupon = new Coupon({
         coupon_code,
         coupon_type,
@@ -33,7 +42,7 @@ const couponControls = {
         usage_limit: usage_limit || 1,
         single_use_per_user: single_use_per_user === 'true',
       });
-
+  
       await newCoupon.save();
       res.status(httpStatus.OK).json({ success: true, message: "Coupon created successfully!" });
     } catch (error) {
@@ -63,6 +72,23 @@ const couponControls = {
       res.status(httpStatus.OK).json({ success: true, message: "Coupon deleted successfully!" });
     } catch (error) {
       next(error);
+    }
+  },
+  addUser: async(req,res,next)=>{
+    try {
+      const {email,username, password} = req.body;
+      if(!email){
+        return res.status(400).json({success: false, message: "email is required"});
+      }
+      const newUser = new User({
+        email: email,
+        username: username,
+        password: password
+      });
+      await newUser.save();
+      res.status(httpStatus.OK).json({success: true, message: "User created succesfully"});
+    } catch (err) {
+      next(err)
     }
   }
 };

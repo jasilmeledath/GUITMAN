@@ -37,19 +37,16 @@
                                     <label for="offer_type" class="form-label">Offer Type</label>
                                     <select name="offer_type" class="form-control" id="offer_type" required>
                                         <option value="">Select Offer Type</option>
-                                        <option value="product">Product</option>
                                         <option value="category">Category</option>
-                                        <option value="referral">Referral</option>
-                                        <option value="other">Other</option>
+                                        <option value="product">Product</option>
+
+                                        <!-- <option value="referral">Referral</option>
+                                        <option value="other">Other</option> -->
                                     </select>
                                 </div>
                                 <div class="mb-4">
                                     <label for="offer_percentage" class="form-label">Offer Percentage</label>
                                     <input type="number" name="offer_percentage" placeholder="Type here" class="form-control" id="offer_percentage" required />
-                                </div>
-                                <div class="mb-4">
-                                    <label for="offer_price" class="form-label">Offer Price</label>
-                                    <input type="number" name="offer_price" placeholder="Type here" class="form-control" id="offer_price" required />
                                 </div>
                                 <div class="mb-4">
                                     <label for="expiry_date" class="form-label">Expiry Date</label>
@@ -213,11 +210,10 @@
                 e.preventDefault();
                 const offerType = document.getElementById('offer_type').value;
                 const offerPercentage = parseFloat(document.getElementById('offer_percentage').value);
-                const offerPrice = parseFloat(document.getElementById('offer_price').value);
                 const expiryDate = document.getElementById('expiry_date').value;
 
                 // Validate for negative values in offer percentage and price
-                if (offerPercentage < 0 || offerPrice < 0) {
+                if (offerPercentage < 0) {
                     Swal.fire('Error', 'Negative values are not allowed for percentage or price.', 'error');
                     return;
                 }
@@ -225,7 +221,6 @@
                 const formData = { 
                     offer_type: offerType, 
                     offer_percentage: offerPercentage, 
-                    offer_price: offerPrice, 
                     expiry_date: expiryDate 
                 };
 

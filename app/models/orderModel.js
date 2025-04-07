@@ -1,17 +1,18 @@
 const mongoose = require('mongoose');
 
-// Custom function to generate a 12-character random string (letters and digits)
-const generateShortOrderId = () => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let orderId = '';
-  for (let i = 0; i < 12; i++) {
-    orderId += chars.charAt(Math.floor(Math.random() * chars.length));
+const generateOrderId = () => {
+  const prefix = 'GUITMAN';
+  const timestamp = Date.now().toString(36).toUpperCase(); // Convert current timestamp to base36 for compact representation
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let randomPart = '';
+  for (let i = 0; i < 6; i++) {
+    randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  return orderId;
+  return `${prefix}-${timestamp}-${randomPart}`;
 };
 
 const orderSchema = new mongoose.Schema({
-  order_id: { type: String, required: true, default: generateShortOrderId },
+  order_id: { type: String, required: true, default: generateOrderId },
   items: [
     {
       product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
