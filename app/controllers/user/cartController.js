@@ -98,7 +98,7 @@ const cartController = {
             return res.status(httpStatus.UNPROCESSABLE_ENTITY)
               .json({ success: false, message: "Quantity limit exceeded!" });
           }
-          cart.items[existingItemIndex].quantity += quantity;
+          return res.status(httpStatus.BAD_REQUEST).json({success: false, message: "Item already added to cart!"})
         } else {
           // If not, add new item
           cart.items.push({

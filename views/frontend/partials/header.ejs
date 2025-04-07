@@ -32,7 +32,7 @@
 
                 <a href="/shop" class="px-4 py-2 text-gray-700 hover:text-purple-800 hover:bg-purple-100/60 rounded-md relative group transition-all duration-200">
                     New Arrivals
-                    <span class="absolute -top-1 -right-1 bg-purple-600 text-white text-xs px-1.5 py-0.5 rounded-full shadow-sm">New</span>
+                    <span class="absolute -top-1 -right-1 bg-purple-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full shadow-sm animate-pulse-once"><%= numOfItemsInCart %></span>
                 </a>
 
                 <a href="/tune" class="px-4 py-2 text-gray-700 hover:text-purple-800 hover:bg-purple-100/60 rounded-md transition-all duration-200">Tune</a>
@@ -221,12 +221,15 @@
     
     /* Smooth scrolling for the header */
     #main-header.scrolled {
-        @apply py-2 shadow-md bg-purple-50/95;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        background-color: rgba(237, 233, 254, 0.95);
     }
     
     /* Mobile menu animation */
     #mobileMenu.open {
-        @apply max-h-96;
+        max-height: 24rem;
     }
 </style>
 
