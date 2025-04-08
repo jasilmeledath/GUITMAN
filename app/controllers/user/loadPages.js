@@ -298,6 +298,34 @@ loadShop: async (req, res, next) => {
   }
 },
 
+quickViewProduct: async(req,res,next)=>{
+  try {
+    const product = await Product.findById(req.params.id)
+      .populate("category", "name")
+      .populate("offer")
+      .lean();
+
+    if (!product) {
+      return res.status(httpStatus.NOT_FOUND).json({
+        success: false,
+        message: "Product Not Found"
+      });
+    }
+
+    // Remove offer if inactive or expired
+    if (product.offer) {
+      const now = new Date();
+      if (!product.offer.isActive || (product.offer.expiry_date && product.offer.expiry_date < now)) {
+        product.offer = null;
+      }
+    }
+
+    res.status(httpStatus.OK).json(product);
+  } catch (error) {
+    next(error);
+  }
+},
+
 
 
 

@@ -13,7 +13,8 @@ const userRoutes = require("./app/routes/user/userRoutes");
 const adminRoutes = require("./app/routes/admin/adminRoutes");
 const connectDatabase = require("./app/config/database");
 const { redirectIfAdminLoggedIn } = require("./app/middlewares/redirectIfLoggedIn");
-const {status} = require("http-status")
+const {status} = require("http-status");
+const {generalLimiter} = require("./app/middlewares/rateLimiter");
 const User = require('./app/models/userModel');
 const Admin = require('./app/models/adminModel');
 
@@ -55,6 +56,8 @@ app.use((req, res, next) => {
 // Custom middleware
 app.use(redirectIfAdminLoggedIn);
 
+// Global Rate Limiter
+app.use(generalLimiter);
 
 // Routes
 app.use("/", userRoutes);

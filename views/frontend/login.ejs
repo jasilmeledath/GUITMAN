@@ -208,7 +208,7 @@
             button.querySelector('svg').innerHTML = iconPath;
         }
 
-        // Form validation
+        // Form validation and submission with error handling to hide loader on wrong password
         document.addEventListener('DOMContentLoaded', function() {
             const loginForm = document.getElementById('loginForm');
             const emailInput = document.getElementById('email');
@@ -242,11 +242,31 @@
                     valid = false;
                 }
                 
-                // If valid, show loader and submit the form
+                // If valid, show loader and submit the form via AJAX
                 if (valid) {
                     showLoader();
-                    // Normally form would submit, but we'll let your existing login.js handle that
-                    // loginForm.submit();
+                    fetch('/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: new URLSearchParams(new FormData(loginForm))
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => { throw err; });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // On successful login, redirect or handle success
+                        window.location.href = data.redirect || '/dashboard';
+                    })
+                    .catch(error => {
+                        hideLoader();
+                        passwordError.textContent = error.message || 'Login failed, please try again.';
+                        passwordError.classList.remove('hidden');
+                    });
                 }
             });
         });

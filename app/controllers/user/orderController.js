@@ -297,7 +297,7 @@ const orderControls = {
         razorpay_payment_id,
         razorpay_order_id,
         razorpay_signature,
-        order_id  // local order ID you sent to the client
+        order_id // local order ID you sent to the client
       } = req.body;
   
       const cart = await getCart(req, res, next);
@@ -316,8 +316,15 @@ const orderControls = {
           message: 'Invalid payment signature!'
         });
       }
-      if(!ObjectId.isValid(order_id)){
-        const order = await Order.findOne({order_id});
+  
+      // 2) Find the order in the DB
+      // Check if order_id is a valid ObjectId. If it is, use findById else use findOne with the order_id field.
+      let order;
+      if (ObjectId.isValid(order_id)) {
+        order = await Order.findById(order_id);
+      } else {
+        order = await Order.findOne({ order_id });
+      }
       if (!order) {
         return res.status(HttpStatus.BAD_REQUEST).json({
           success: false,
@@ -335,80 +342,24 @@ const orderControls = {
         user: user._id,
         transaction_id: razorpay_payment_id, // Using Razorpay payment ID as transaction ID
         transaction_type: 'payment',
-        amount: order.total,  // Assuming order.total contains the payment amount
+        amount: order.total, // Assuming order.total contains the payment amount
         description: `Payment for order ${order_id} verified successfully via Razorpay.`,
         date: new Date()
       });
   
-      const wallet = await Wallet.findOne({ user: user._id });
-      wallet.history.push(transaction._id);
-      await wallet.save();
-      // 5) Empty the cart after placing the order
-      await Cart.findOneAndUpdate(
-        { _id: cart._id },
-        {
-          items: [],
-          cart_subtotal: 0,
-          cart_total: 0,
-          tax: 0,
-          shipping_fee: 0,
-          savings: 0,
-        }
-      );
-      // 7) Send Confirmation Email
-
-      const getExpectedDeliveryDate = () => {
-        const today = new Date();
-        today.setDate(today.getDate() + 5);
-        return today;
-      };
-      
-      const expectedDeliveryDate = getExpectedDeliveryDate();
-      const emailContent = generateOrderConfirmationEmail(user.first_name, order.order_id, order.total, expectedDeliveryDate)
-
-      await sendEmail(
-        user.email,
-        emailContent.subject,
-        emailContent.text,
-        emailContent.html
-      );
-  
-      // 6) Return success response
-      return res.json({
-        success: true,
-        message: 'Payment verified successfully!'
-      });
-        
-      }
-  
-      // 2) Find the order in DB
-      const order = await Order.findById(order_id);
-      if (!order) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
-          success: false,
-          message: 'Order not found!'
+      // 5) Update wallet history:
+      //    Ensure we have a wallet, or else create one before pushing the transaction into history.
+      let wallet = await Wallet.findOne({ user: user._id });
+      if (!wallet) {
+        wallet = new Wallet({
+          user: user._id,
+          history: []
         });
       }
-  
-      // 3) Update order status to 'paid' and store Razorpay details
-      order.payment_status = 'paid';
-      order.razorpay_payment_id = razorpay_payment_id;
-      await order.save();
-  
-      // 4) Create a transaction record using the separate function
-      const transaction = await createTransaction({
-        user: user._id,
-        transaction_id: razorpay_payment_id, // Using Razorpay payment ID as transaction ID
-        transaction_type: 'payment',
-        amount: order.total,  // Assuming order.total contains the payment amount
-        description: `Payment for order ${order_id} verified successfully via Razorpay.`,
-        date: new Date()
-      });
-  
-      const wallet = await Wallet.findOne({ user: user._id });
       wallet.history.push(transaction._id);
       await wallet.save();
-      // 5) Empty the cart after placing the order
+  
+      // 6) Empty the cart after placing the order
       await Cart.findOneAndUpdate(
         { _id: cart._id },
         {
@@ -420,17 +371,22 @@ const orderControls = {
           savings: 0,
         }
       );
+  
       // 7) Send Confirmation Email
-
       const getExpectedDeliveryDate = () => {
         const today = new Date();
         today.setDate(today.getDate() + 5);
         return today;
       };
-      
+  
       const expectedDeliveryDate = getExpectedDeliveryDate();
-      const emailContent = generateOrderConfirmationEmail(user.first_name, order.order_id, order.total, expectedDeliveryDate)
-
+      const emailContent = generateOrderConfirmationEmail(
+        user.first_name,
+        order.order_id,
+        order.total,
+        expectedDeliveryDate
+      );
+  
       await sendEmail(
         user.email,
         emailContent.subject,
@@ -438,7 +394,7 @@ const orderControls = {
         emailContent.html
       );
   
-      // 6) Return success response
+      // 8) Return success response
       return res.json({
         success: true,
         message: 'Payment verified successfully!'
@@ -447,7 +403,7 @@ const orderControls = {
     } catch (error) {
       next(error);
     }
-  },
+  },  
   downloadInvoice:async (req, res, next) => {
     try {
       const { orderId } = req.params;

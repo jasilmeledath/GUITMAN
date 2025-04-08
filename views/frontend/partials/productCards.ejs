@@ -1,217 +1,813 @@
-<div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-    <% 
-      // Calculate date 10 days ago for "New" badge
-      const tenDaysAgo = new Date();
-      tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
-      
-      products.forEach(product => { 
-          // Check if product is new (created within last 10 days)
-          const isNew = product.createdAt && new Date(product.createdAt) > tenDaysAgo;
+<div id="productsList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+  <% 
+    // Calculate date 10 days ago for "New" badge
+    const tenDaysAgo = new Date();
+    tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+    
+    products.forEach(product => { 
+        // Check if product is new (created within last 10 days)
+        const isNew = product.createdAt && new Date(product.createdAt) > tenDaysAgo;
+        
+        // Check if product is in wishlist
+        const isInWishlist = wishlist && wishlist.items && wishlist.items.some(item => 
+            item.product.toString() === product._id.toString()
+        );
+  %>
+      <div class="product-card group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 relative flex flex-col h-full">
+        <!-- Product Image with Badges -->
+        <div class="relative overflow-hidden bg-gray-50 pt-[100%]">
+          <img src="/<%= product.images[0] %>" 
+               alt="<%= product.product_name %>" 
+               class="absolute inset-0 w-full h-full object-contain p-6 transition-transform duration-700 group-hover:scale-110">
           
-          // Check if product is in wishlist
-          const isInWishlist = wishlist && wishlist.items && wishlist.items.some(item => 
-              item.product.toString() === product._id.toString()
-          );
-    %>
-        <div class="product-card group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 relative">
-          <!-- Quick Action Buttons (visible on hover) -->
-          <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex items-center justify-center">
-            <div class="flex gap-3 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-              <!-- Replaced Quick View button with direct "View Product Details" link -->
-              <a href="/product-details/<%= product._id %>"
-                 class="bg-white p-3 rounded-full shadow-md hover:bg-gray-50 transition-colors duration-200 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-                <span class="ml-2 text-sm font-medium text-gray-700 hidden md:inline">View</span>
-              </a>
-              
-              <button class="add-to-cart-btn bg-purple-600 p-3 rounded-full shadow-md hover:bg-purple-700 transition-colors duration-200 flex items-center justify-center" 
-                      data-product-id="<%= product._id %>">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <span class="ml-2 text-sm font-medium text-white hidden md:inline">Add to Cart</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Product Image with Badges -->
-          <a href="/product-details/<%= product._id %>" class="block relative overflow-hidden">
-            <div class="relative pt-[100%] overflow-hidden bg-gray-50">
-              <img src="/<%= product.images[0] %>" 
-                   alt="<%= product.product_name %>" 
-                   class="absolute inset-0 w-full h-full object-contain p-6 transition-transform duration-700 group-hover:scale-110">
-              
-              <!-- Wishlist Button -->
-              <button class="wishlist-btn absolute top-4 right-4 bg-white p-2.5 rounded-full shadow-md hover:bg-gray-50 transition-all duration-200 z-20 transform hover:scale-110"
-                      data-product-id="<%= product._id %>"
-                      data-in-wishlist="<%= isInWishlist ? 'true' : 'false' %>">
-                <svg xmlns="http://www.w3.org/2000/svg" 
-                     class="h-5 w-5 transition-all duration-300 <%= isInWishlist ? 'text-red-500' : 'text-gray-400' %>" 
-                     viewBox="0 0 24 24" 
-                     stroke="currentColor"
-                     stroke-width="<%= isInWishlist ? '0' : '2' %>"
-                     <%= isInWishlist ? 'fill="currentColor"' : 'fill="none"' %>>
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </button>
-              
-              <!-- Badges Container -->
-              <div class="absolute top-4 left-4 flex flex-col gap-2">
-                <% if (isNew) { %>
-                  <div class="new-badge bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    NEW
-                  </div>
-                <% } %>
-                
-                <% if (product.discount > 0) { %>
-                  <div class="discount-badge bg-gradient-to-r from-red-500 to-pink-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
-                    -<%= product.discount %>% OFF
-                  </div>
-                <% } %>
-                
-                <% if (product.offer) { %>
-                  <div class="offer-badge bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
-                    <%= product.offer.offer_percentage %>% OFF
-                  </div>
-                <% } %>
-              </div>
-              
-              <% if (product.stock <= 5 && product.stock > 0) { %>
-                <div class="absolute bottom-4 left-4 bg-amber-100 text-amber-800 text-xs font-medium px-3 py-1.5 rounded-full">
-                  Only <%= product.stock %> left
-                </div>
-              <% } else if (product.stock === 0) { %>
-                <div class="absolute bottom-4 left-4 bg-red-100 text-red-800 text-xs font-medium px-3 py-1.5 rounded-full">
-                  Out of Stock
-                </div>
-              <% } %>
-            </div>
-          </a>
+          <!-- Quick View Button (Desktop) -->
+          <button class="quick-view-btn hidden md:flex absolute inset-0 items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20"
+                  data-product-id="<%= product._id %>">
+            <span class="bg-white text-gray-800 px-4 py-2 rounded-full font-medium shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              Quick View
+            </span>
+          </button>
           
-          <!-- Product Details -->
-          <div class="p-5">
-            <!-- Rating -->
-            <% if (product.rating) { %>
-              <div class="flex items-center mb-2">
-                <div class="flex">
-                  <% for(let i = 1; i <= 5; i++) { %>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 <%= i <= product.rating ? 'text-yellow-400' : 'text-gray-300' %>" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  <% } %>
-                </div>
-                <span class="text-xs text-gray-600 ml-1.5 font-medium">
-                  <%= product.rating %> (<%= product.reviewCount || 0 %> reviews)
-                </span>
+          <!-- Wishlist Button -->
+          <button class="wishlist-btn absolute top-3 right-3 bg-white p-2.5 rounded-full shadow-md hover:bg-gray-50 transition-all duration-200 z-20 transform hover:scale-110"
+                  data-product-id="<%= product._id %>"
+                  data-in-wishlist="<%= isInWishlist ? 'true' : 'false' %>">
+            <svg xmlns="http://www.w3.org/2000/svg" 
+                 class="h-5 w-5 transition-all duration-300 <%= isInWishlist ? 'text-red-500' : 'text-gray-400' %>" 
+                 viewBox="0 0 24 24" 
+                 stroke="currentColor"
+                 stroke-width="<%= isInWishlist ? '0' : '2' %>"
+                 <%= isInWishlist ? 'fill="currentColor"' : 'fill="none"' %>>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </button>
+          
+          <!-- Badges Container -->
+          <div class="absolute top-3 left-3 flex flex-col gap-1.5">
+            <% if (isNew) { %>
+              <div class="new-badge bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                NEW
               </div>
             <% } %>
             
-            <!-- Category -->
-            <div class="mb-1.5">
-              <span class="text-xs font-medium text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full">
-                <%= product.category.name %>
-              </span>
+            <% if (product.discount > 0) { %>
+              <div class="discount-badge bg-gradient-to-r from-red-500 to-pink-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                -<%= product.discount %>% OFF
+              </div>
+            <% } %>
+            
+            <% if (product.offer) { %>
+              <div class="offer-badge bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                <%= product.offer.offer_percentage %>% OFF
+              </div>
+            <% } %>
+          </div>
+          
+          <% if (product.stock <= 5 && product.stock > 0) { %>
+            <div class="absolute bottom-3 left-3 bg-amber-100 text-amber-800 text-xs font-medium px-3 py-1 rounded-full">
+              Only <%= product.stock %> left
             </div>
-            
-            <!-- Product Name -->
-            <a href="/product-details/<%= product._id %>" class="block group-hover:text-purple-700 transition-colors duration-200">
-              <h3 class="font-semibold text-lg text-gray-800 line-clamp-2 h-14"><%= product.product_name %></h3>
-            </a>
-            
-            <!-- Price -->
-            <div class="mt-3 flex items-center justify-between">
-              <div class="flex flex-col">
-                <% if (product.originalPrice && product.originalPrice > product.price) { %>
-                  <span class="text-sm text-gray-500 line-through">₹<%= product.originalPrice.toLocaleString('en-IN') %></span>
-                  <div class="flex items-center">
-                    <span class="text-xl font-bold text-purple-700">₹<%= product.price.toLocaleString('en-IN') %></span>
-                    <span class="ml-2 text-xs font-medium text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
-                      <%= Math.round((1 - product.price / product.originalPrice) * 100) %>% off
-                    </span>
-                  </div>
-                <% } else { %>
-                  <span class="text-xl font-bold text-purple-700">₹<%= product.price.toLocaleString('en-IN') %></span>
+          <% } else if (product.stock === 0) { %>
+            <div class="absolute bottom-3 left-3 bg-red-100 text-red-800 text-xs font-medium px-3 py-1 rounded-full">
+              Out of Stock
+            </div>
+          <% } %>
+        </div>
+        
+        <!-- Product Details -->
+        <div class="p-4 flex-grow flex flex-col">
+          <!-- Category -->
+          <div class="mb-1">
+            <span class="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
+              <%= product.category.name %>
+            </span>
+          </div>
+          
+          <!-- Product Name -->
+          <button class="product-name-btn text-left group-hover:text-purple-700 transition-colors duration-200 mb-1"
+                  data-product-id="<%= product._id %>">
+            <h3 class="font-semibold text-base md:text-lg text-gray-800 line-clamp-2 min-h-[2.5rem] md:min-h-[3rem]"><%= product.product_name %></h3>
+          </button>
+          
+          <!-- Rating -->
+          <% if (product.rating) { %>
+            <div class="flex items-center mt-1 mb-2">
+              <div class="flex">
+                <% for(let i = 1; i <= 5; i++) { %>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 <%= i <= product.rating ? 'text-yellow-400' : 'text-gray-300' %>" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
                 <% } %>
               </div>
-              
-              <!-- Mobile Add to Cart Button (visible on small screens) -->
-              <button class="md:hidden p-2.5 bg-purple-100 rounded-full hover:bg-purple-200 transition-colors duration-200 add-to-cart-btn-mobile" 
-                      data-product-id="<%= product._id %>">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </button>
+              <span class="text-xs text-gray-600 ml-1.5">
+                <%= product.rating %> (<%= product.reviewCount || 0 %>)
+              </span>
             </div>
+          <% } %>
+          
+          <!-- Price -->
+          <div class="mt-auto pt-2 flex items-center justify-between">
+            <div class="flex flex-col">
+              <% if (product.originalPrice && product.originalPrice > product.price) { %>
+                <span class="text-xs text-gray-500 line-through">₹<%= product.originalPrice.toLocaleString('en-IN') %></span>
+                <div class="flex items-center">
+                  <span class="text-lg md:text-xl font-bold text-purple-700">₹<%= product.price.toLocaleString('en-IN') %></span>
+                  <span class="ml-2 text-xs font-medium text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
+                    <%= Math.round((1 - product.price / product.originalPrice) * 100) %>% off
+                  </span>
+                </div>
+              <% } else { %>
+                <span class="text-lg md:text-xl font-bold text-purple-700">₹<%= product.price.toLocaleString('en-IN') %></span>
+              <% } %>
+            </div>
+            
+            <!-- Add to Cart Button -->
+            <button class="add-to-cart-btn p-2.5 bg-purple-100 rounded-full hover:bg-purple-200 transition-colors duration-200" 
+                    data-product-id="<%= product._id %>">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </button>
           </div>
         </div>
-    <% }); %>
+        
+        <!-- Mobile Touch Actions -->
+        <div class="md:hidden absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div class="flex justify-between items-center">
+            <a href="/product-details/<%= product._id %>" class="text-white text-sm font-medium bg-purple-600 px-3 py-1.5 rounded-full shadow-md">
+              View Details
+            </a>
+            <!-- Replaced Quick View with Add to Cart button for mobile users -->
+            <button class="add-to-cart-mobile-btn bg-white text-gray-800 px-3 py-1.5 rounded-full text-sm font-medium shadow-md"
+                    data-product-id="<%= product._id %>">
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      </div>
+  <% }); %>
+</div>
+
+<!-- Quick View Modal -->
+<div id="quickViewModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="modal-backdrop absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+  <div class="modal-content bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl relative transform transition-all duration-300 scale-95 opacity-0">
+    <button class="modal-close absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    
+    <div class="modal-body p-0">
+      <!-- Content will be loaded dynamically -->
+      <div class="flex flex-col md:flex-row">
+        <div class="modal-loading flex items-center justify-center w-full h-64 md:h-auto md:w-1/2">
+          <div class="spinner w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <style>
-  /* Product card hover effect */
+/* Product card hover effect */
+.product-card {
+  transform: translateY(0);
+  transition: all 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Wishlist button animation */
+.wishlist-btn svg {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.wishlist-btn:hover svg {
+  transform: scale(1.2);
+}
+
+.wishlist-btn:active svg {
+  transform: scale(0.9);
+}
+
+/* Badge animations */
+.new-badge, .discount-badge, .offer-badge {
+  animation: fadeInLeft 0.5s ease-out;
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Line clamp for product names */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Modal animations */
+.modal-open {
+  overflow: hidden;
+}
+
+.modal-content.active {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Product image gallery */
+.product-thumbnail {
+  transition: all 0.2s ease;
+  opacity: 0.6;
+  border: 2px solid transparent;
+}
+
+.product-thumbnail:hover {
+  opacity: 0.8;
+}
+
+.product-thumbnail.active {
+  opacity: 1;
+  border-color: #9333ea;
+}
+
+/* Spinner animation */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Toast container */
+.toast-container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
   .product-card {
-    transform: translateY(0);
-    transition: all 0.3s ease;
+    will-change: transform;
   }
   
-  .product-card:hover {
-    transform: translateY(-8px);
+  .product-card:active {
+    transform: scale(0.98);
   }
-  
-  /* Wishlist button animation */
-  .wishlist-btn svg {
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Shimmer loading effect */
+.shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
   }
-  
-  .wishlist-btn:hover svg {
-    transform: scale(1.2);
-  }
-  
-  .wishlist-btn:active svg {
-    transform: scale(0.9);
-  }
-  
-  /* Badge animations */
-  .new-badge, .discount-badge, .offer-badge {
-    animation: fadeInLeft 0.5s ease-out;
-  }
-  
-  @keyframes fadeInLeft {
-    from {
-      opacity: 0;
-      transform: translateX(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-  
-  /* Line clamp for product names */
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
+}
 </style>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Wishlist button functionality
-    const wishlistButtons = document.querySelectorAll('.wishlist-btn');
-    
-    wishlistButtons.forEach(button => {
-      button.addEventListener('click', async function(e) {
-        e.preventDefault();
-        e.stopPropagation();
+document.addEventListener('DOMContentLoaded', function() {
+  // Cache DOM elements
+  const quickViewModal = document.getElementById('quickViewModal');
+  const modalContent = quickViewModal.querySelector('.modal-content');
+  const modalBody = quickViewModal.querySelector('.modal-body');
+  const modalClose = quickViewModal.querySelector('.modal-close');
+  const modalBackdrop = quickViewModal.querySelector('.modal-backdrop');
+  
+  // Wishlist button functionality
+  const wishlistButtons = document.querySelectorAll('.wishlist-btn');
+  
+  wishlistButtons.forEach(button => {
+    button.addEventListener('click', async function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const productId = this.getAttribute('data-product-id');
+      const isInWishlist = this.getAttribute('data-in-wishlist') === 'true';
+      const heartIcon = this.querySelector('svg');
+      
+      // Add click animation
+      heartIcon.classList.add('animate-ping');
+      setTimeout(() => {
+        heartIcon.classList.remove('animate-ping');
+      }, 300);
+      
+      try {
+        const response = await fetch('/profile/wishlist/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId })
+        });
         
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+          // Toggle wishlist state
+          if (isInWishlist) {
+            // Remove from wishlist
+            heartIcon.classList.remove('text-red-500');
+            heartIcon.classList.add('text-gray-400');
+            heartIcon.setAttribute('fill', 'none');
+            heartIcon.setAttribute('stroke-width', '2');
+            this.setAttribute('data-in-wishlist', 'false');
+            
+            // Show toast notification
+            showToast('Removed from wishlist', 'info');
+          } else {
+            // Add to wishlist
+            heartIcon.classList.remove('text-gray-400');
+            heartIcon.classList.add('text-red-500');
+            heartIcon.setAttribute('fill', 'currentColor');
+            heartIcon.setAttribute('stroke-width', '0');
+            this.setAttribute('data-in-wishlist', 'true');
+            
+            // Show toast notification with animation
+            showToast('Added to wishlist', 'success');
+          }
+        } else {
+          showToast(result.message || 'Failed to update wishlist', 'error');
+        }
+      } catch (error) {
+        showToast('Please login to add to wishlist', 'error');
+      }
+    });
+  });
+  
+  // Add to cart functionality (Desktop)
+  const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+  
+  addToCartButtons.forEach(button => {
+    button.addEventListener('click', async function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const productId = this.getAttribute('data-product-id');
+      
+      // Add click animation
+      this.classList.add('scale-95');
+      setTimeout(() => {
+        this.classList.remove('scale-95');
+      }, 100);
+      
+      try {
+        const response = await fetch('/cart/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId, quantity: 1 })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          // Show success animation and notification
+          showAddToCartAnimation(this);
+          showToast(result.message || 'Added to cart', 'success');
+          
+          // Update cart count if available
+          updateCartCount();
+        } else {
+          showToast(result.message || 'Failed to add to cart', 'error');
+        }
+      } catch (error) {
+        showToast('Please login to add to cart', 'error');
+      }
+    });
+  });
+  
+  // Add to cart functionality (Mobile)
+  const addToCartMobileButtons = document.querySelectorAll('.add-to-cart-mobile-btn');
+  
+  addToCartMobileButtons.forEach(button => {
+    button.addEventListener('click', async function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const productId = this.getAttribute('data-product-id');
+      
+      // Add click animation
+      this.classList.add('scale-95');
+      setTimeout(() => {
+        this.classList.remove('scale-95');
+      }, 100);
+      
+      try {
+        const response = await fetch('/cart/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId, quantity: 1 })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          // Show success animation and notification
+          showAddToCartAnimation(this);
+          showToast(result.message || 'Added to cart', 'success');
+          
+          // Update cart count if available
+          updateCartCount();
+        } else {
+          showToast(result.message || 'Failed to add to cart', 'error');
+        }
+      } catch (error) {
+        showToast('Please login to add to cart', 'error');
+      }
+    });
+  });
+  
+  // Quick View functionality (Desktop)
+  const quickViewButtons = document.querySelectorAll('.quick-view-btn');
+  
+  quickViewButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const productId = this.getAttribute('data-product-id');
+      openQuickViewModal(productId);
+    });
+  });
+  
+  // Product Name Click for Details (navigate directly to product details)
+  const productNameButtons = document.querySelectorAll('.product-name-btn');
+  
+  productNameButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const productId = this.getAttribute('data-product-id');
+      window.location.href = `/product-details/${productId}`;
+    });
+  });
+  
+  // Close modal when clicking close button or backdrop
+  modalClose.addEventListener('click', closeQuickViewModal);
+  modalBackdrop.addEventListener('click', closeQuickViewModal);
+  
+  // Close modal with Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !quickViewModal.classList.contains('hidden')) {
+      closeQuickViewModal();
+    }
+  });
+  
+  // Function to open quick view modal
+  function openQuickViewModal(productId) {
+    // Show modal
+    quickViewModal.classList.remove('hidden');
+    document.body.classList.add('modal-open');
+    
+    // Show loading state
+    modalBody.innerHTML = `
+      <div class="flex items-center justify-center w-full h-64">
+        <div class="spinner w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+      </div>
+    `;
+    
+    // Animate modal in
+    setTimeout(() => {
+      modalContent.classList.add('active');
+    }, 10);
+    
+    // Fetch product details from the API endpoint
+    fetch(`/quick-view-products/${productId}`)
+      .then(response => response.json())
+      .then(product => {
+        if (product && product._id) {
+          renderQuickViewContent(product);
+        } else {
+          modalBody.innerHTML = `
+            <div class="p-8 text-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <h3 class="text-xl font-bold text-gray-800 mb-2">Product Not Found</h3>
+              <p class="text-gray-600">Sorry, we couldn't find the product you're looking for.</p>
+            </div>
+          `;
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching product details:', error);
+        modalBody.innerHTML = `
+          <div class="p-8 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-red-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Error Loading Product</h3>
+            <p class="text-gray-600">Please try again later.</p>
+          </div>
+        `;
+      });
+  }
+  
+  // Function to close quick view modal
+  function closeQuickViewModal() {
+    modalContent.classList.remove('active');
+    
+    setTimeout(() => {
+      quickViewModal.classList.add('hidden');
+      document.body.classList.remove('modal-open');
+    }, 300);
+  }
+  
+  // Function to render quick view content
+  function renderQuickViewContent(product) {
+    // Format price with commas
+    const formattedPrice = product.price.toLocaleString('en-IN');
+    const formattedOriginalPrice = product.originalPrice ? product.originalPrice.toLocaleString('en-IN') : null;
+    
+    // Calculate discount percentage if original price exists
+    const discountPercentage = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0;
+    
+    // Check if product is new (created within last 10 days)
+    const tenDaysAgo = new Date();
+    tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+    const isNew = product.createdAt && new Date(product.createdAt) > tenDaysAgo;
+    
+    // Prepare HTML for quick view
+    const quickViewHTML = `
+      <div class="flex flex-col md:flex-row">
+        <!-- Product Images -->
+        <div class="w-full md:w-1/2 p-4 md:p-6">
+          <div class="relative rounded-xl overflow-hidden bg-gray-50 mb-4">
+            <img id="mainProductImage" src="/${product.images[0]}" alt="${product.product_name}" class="w-full h-auto object-contain aspect-square">
+            
+            <!-- Badges -->
+            <div class="absolute top-4 left-4 flex flex-col gap-2">
+              ${isNew ? `
+                <div class="new-badge bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  NEW
+                </div>
+              ` : ''}
+              
+              ${product.discount > 0 ? `
+                <div class="discount-badge bg-gradient-to-r from-red-500 to-pink-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
+                  -${product.discount}% OFF
+                </div>
+              ` : ''}
+              
+              ${product.offer ? `
+                <div class="offer-badge bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
+                  ${product.offer.offer_percentage}% OFF
+                </div>
+              ` : ''}
+            </div>
+            
+            ${product.stock <= 5 && product.stock > 0 ? `
+              <div class="absolute bottom-4 left-4 bg-amber-100 text-amber-800 text-xs font-medium px-3 py-1.5 rounded-full">
+                Only ${product.stock} left
+              </div>
+            ` : product.stock === 0 ? `
+              <div class="absolute bottom-4 left-4 bg-red-100 text-red-800 text-xs font-medium px-3 py-1.5 rounded-full">
+                Out of Stock
+              </div>
+            ` : ''}
+          </div>
+          
+          <!-- Thumbnail Gallery -->
+          ${product.images.length > 1 ? `
+            <div class="flex gap-2 overflow-x-auto pb-2 thumbnail-gallery">
+              ${product.images.map((image, index) => `
+                <button class="product-thumbnail rounded-lg overflow-hidden flex-shrink-0 w-16 h-16 border-2 ${index === 0 ? 'border-purple-600 active' : 'border-transparent'}" data-image-index="${index}" data-image-src="/${image}">
+                  <img src="/${image}" alt="${product.product_name} image ${index + 1}" class="w-full h-full object-contain">
+                </button>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+        
+        <!-- Product Details -->
+        <div class="w-full md:w-1/2 p-4 md:p-6 flex flex-col">
+          <div class="mb-2">
+            <span class="text-sm font-medium text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full">
+              ${product.category.name}
+            </span>
+          </div>
+          
+          <h2 class="text-2xl font-bold text-gray-800 mb-2">${product.product_name}</h2>
+          
+          <!-- Rating -->
+          ${product.rating ? `
+            <div class="flex items-center mb-4">
+              <div class="flex">
+                ${Array.from({length: 5}, (_, i) => `
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ${i < product.rating ? 'text-yellow-400' : 'text-gray-300'}" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                `).join('')}
+              </div>
+              <span class="text-sm text-gray-600 ml-2 font-medium">
+                ${product.rating} (${product.reviewCount || 0} reviews)
+              </span>
+            </div>
+          ` : ''}
+          
+          <!-- Price -->
+          <div class="mb-4">
+            ${formattedOriginalPrice ? `
+              <span class="text-sm text-gray-500 line-through">₹${formattedOriginalPrice}</span>
+              <div class="flex items-center">
+                <span class="text-2xl font-bold text-purple-700">₹${formattedPrice}</span>
+                <span class="ml-2 text-sm font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                  ${discountPercentage}% off
+                </span>
+              </div>
+            ` : `
+              <span class="text-2xl font-bold text-purple-700">₹${formattedPrice}</span>
+            `}
+            
+            <p class="text-sm text-gray-600 mt-1">
+              ${product.stock > 0 ? 'In Stock' : 'Out of Stock'}
+            </p>
+          </div>
+          
+          <!-- Short Description -->
+          <div class="mb-6">
+            <p class="text-gray-700">${product.description.substring(0, 150)}${product.description.length > 150 ? '...' : ''}</p>
+          </div>
+          
+          <!-- Actions -->
+          <div class="flex flex-col gap-3 mt-auto">
+            <div class="flex gap-3">
+              <button class="modal-add-to-cart flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center ${product.stock === 0 ? 'opacity-50 cursor-not-allowed' : ''}" 
+                      data-product-id="${product._id}" 
+                      ${product.stock === 0 ? 'disabled' : ''}>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Add to Cart
+              </button>
+              
+              <a href="/product-details/${product._id}" class="bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 px-6 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                View Details
+              </a>
+            </div>
+            
+            <button class="modal-wishlist-btn flex items-center justify-center gap-2 text-gray-700 hover:text-purple-600 transition-colors duration-200 py-2"
+                    data-product-id="${product._id}"
+                    data-in-wishlist="${product.isInWishlist ? 'true' : 'false'}">
+              <svg xmlns="http://www.w3.org/2000/svg" 
+                   class="h-5 w-5 transition-all duration-300 ${product.isInWishlist ? 'text-red-500' : 'text-gray-400'}" 
+                   viewBox="0 0 24 24" 
+                   stroke="currentColor"
+                   stroke-width="${product.isInWishlist ? '0' : '2'}"
+                   ${product.isInWishlist ? 'fill="currentColor"' : 'fill="none"'}>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              <span>${product.isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Update modal content
+    modalBody.innerHTML = quickViewHTML;
+    
+    // Attach event listeners to new elements
+    attachQuickViewEventListeners(product);
+  }
+  
+  // Function to attach event listeners to quick view elements
+  function attachQuickViewEventListeners(product) {
+    // Thumbnail gallery
+    const thumbnails = document.querySelectorAll('.product-thumbnail');
+    const mainProductImage = document.getElementById('mainProductImage');
+    
+    thumbnails.forEach(thumbnail => {
+      thumbnail.addEventListener('click', function() {
+        // Update active state
+        thumbnails.forEach(t => t.classList.remove('active', 'border-purple-600'));
+        this.classList.add('active', 'border-purple-600');
+        
+        // Update main image
+        const imageSrc = this.getAttribute('data-image-src');
+        mainProductImage.src = imageSrc;
+      });
+    });
+    
+    // Quantity buttons
+    const quantityInput = document.getElementById('quickViewQuantity');
+    const minusBtn = document.querySelector('.minus-btn');
+    const plusBtn = document.querySelector('.plus-btn');
+    
+    if (minusBtn && plusBtn && quantityInput) {
+      minusBtn.addEventListener('click', function() {
+        const currentValue = parseInt(quantityInput.value);
+        if (currentValue > 1) {
+          quantityInput.value = currentValue - 1;
+        }
+      });
+      
+      plusBtn.addEventListener('click', function() {
+        const currentValue = parseInt(quantityInput.value);
+        const maxValue = parseInt(quantityInput.getAttribute('max'));
+        if (currentValue < maxValue) {
+          quantityInput.value = currentValue + 1;
+        }
+      });
+      
+      quantityInput.addEventListener('change', function() {
+        const currentValue = parseInt(this.value);
+        const maxValue = parseInt(this.getAttribute('max'));
+        
+        if (isNaN(currentValue) || currentValue < 1) {
+          this.value = 1;
+        } else if (currentValue > maxValue) {
+          this.value = maxValue;
+        }
+      });
+    }
+    
+    // Add to cart button in quick view
+    const modalAddToCartBtn = document.querySelector('.modal-add-to-cart');
+    
+    if (modalAddToCartBtn) {
+      modalAddToCartBtn.addEventListener('click', async function() {
+        if (product.stock === 0) return;
+        
+        const productId = this.getAttribute('data-product-id');
+        const quantity = parseInt(document.getElementById('quickViewQuantity').value);
+        
+        // Add click animation
+        this.classList.add('scale-95');
+        setTimeout(() => {
+          this.classList.remove('scale-95');
+        }, 100);
+        
+        try {
+          const response = await fetch('/cart/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId, quantity })
+          });
+          
+          const result = await response.json();
+          
+          if (response.ok) {
+            // Show success animation and notification
+            showAddToCartAnimation(this);
+            showToast(result.message || 'Added to cart', 'success');
+            
+            // Update cart count if available
+            updateCartCount();
+            
+            // Close modal after short delay
+            setTimeout(() => {
+              closeQuickViewModal();
+            }, 1000);
+          } else {
+            showToast(result.message || 'Failed to add to cart', 'error');
+          }
+        } catch (error) {
+          showToast('Please login to add to cart', 'error');
+        }
+      });
+    }
+    
+    // Wishlist button in quick view
+    const modalWishlistBtn = document.querySelector('.modal-wishlist-btn');
+    
+    if (modalWishlistBtn) {
+      modalWishlistBtn.addEventListener('click', async function() {
         const productId = this.getAttribute('data-product-id');
         const isInWishlist = this.getAttribute('data-in-wishlist') === 'true';
         const heartIcon = this.querySelector('svg');
@@ -240,6 +836,10 @@
               heartIcon.setAttribute('fill', 'none');
               heartIcon.setAttribute('stroke-width', '2');
               this.setAttribute('data-in-wishlist', 'false');
+              this.querySelector('span').textContent = 'Add to Wishlist';
+              
+              // Update all wishlist buttons for this product
+              updateWishlistButtons(productId, false);
               
               // Show toast notification
               showToast('Removed from wishlist', 'info');
@@ -250,6 +850,10 @@
               heartIcon.setAttribute('fill', 'currentColor');
               heartIcon.setAttribute('stroke-width', '0');
               this.setAttribute('data-in-wishlist', 'true');
+              this.querySelector('span').textContent = 'Remove from Wishlist';
+              
+              // Update all wishlist buttons for this product
+              updateWishlistButtons(productId, true);
               
               // Show toast notification with animation
               showToast('Added to wishlist', 'success');
@@ -261,153 +865,156 @@
           showToast('Please login to add to wishlist', 'error');
         }
       });
-    });
-    
-    // Add to cart functionality
-    const addToCartButtons = document.querySelectorAll('.add-to-cart-btn, .add-to-cart-btn-mobile');
-    
-    addToCartButtons.forEach(button => {
-      button.addEventListener('click', async function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const productId = this.getAttribute('data-product-id');
-        
-        // Add click animation
-        this.classList.add('scale-95');
-        setTimeout(() => {
-          this.classList.remove('scale-95');
-        }, 100);
-        
-        try {
-          const response = await fetch('/cart/add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId, quantity: 1 })
-          });
-          
-          const result = await response.json();
-          
-          if (response.ok) {
-            // Show success animation and notification
-            showAddToCartAnimation(this);
-            showToast(result.message || 'Added to cart', 'success');
-          } else {
-            showToast(result.message || 'Failed to add to cart', 'error');
-          }
-        } catch (error) {
-          showToast('Please login to add to cart', 'error');
-        }
-      });
-    });
-    
-    // Function to show add to cart animation
-    function showAddToCartAnimation(button) {
-      // Create a flying element from the button to the cart icon
-      const buttonRect = button.getBoundingClientRect();
-      const cartIcon = document.querySelector('.cart-icon') || document.querySelector('header');
-      
-      if (!cartIcon) return;
-      
-      const cartRect = cartIcon.getBoundingClientRect();
-      
-      const flyingItem = document.createElement('div');
-      flyingItem.className = 'fixed z-50 bg-purple-600 rounded-full flex items-center justify-center w-8 h-8 text-white';
-      flyingItem.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>';
-      
-      // Set initial position
-      flyingItem.style.top = `${buttonRect.top + buttonRect.height / 2 - 16}px`;
-      flyingItem.style.left = `${buttonRect.left + buttonRect.width / 2 - 16}px`;
-      
-      document.body.appendChild(flyingItem);
-      
-      // Animate to cart
-      setTimeout(() => {
-        flyingItem.style.transition = 'all 0.8s cubic-bezier(0.19, 1, 0.22, 1)';
-        flyingItem.style.top = `${cartRect.top + cartRect.height / 2 - 8}px`;
-        flyingItem.style.left = `${cartRect.left + cartRect.width / 2 - 8}px`;
-        flyingItem.style.opacity = '0';
-        flyingItem.style.transform = 'scale(0.2)';
-        
-        setTimeout(() => {
-          document.body.removeChild(flyingItem);
-          
-          // Animate cart icon
-          cartIcon.classList.add('animate-bounce');
-          setTimeout(() => {
-            cartIcon.classList.remove('animate-bounce');
-          }, 500);
-        }, 800);
-      }, 10);
     }
+  }
+  
+  // Function to update all wishlist buttons for a product
+  function updateWishlistButtons(productId, isInWishlist) {
+    const wishlistButtons = document.querySelectorAll(`.wishlist-btn[data-product-id="${productId}"]`);
     
-    // Function to show toast notifications
-    function showToast(message, type = 'success') {
-      // Check if toast container exists, if not create it
-      let toastContainer = document.querySelector('.toast-container');
+    wishlistButtons.forEach(button => {
+      const heartIcon = button.querySelector('svg');
       
-      if (!toastContainer) {
-        toastContainer = document.createElement('div');
-        toastContainer.className = 'toast-container fixed top-4 right-4 z-50 flex flex-col gap-2';
-        document.body.appendChild(toastContainer);
+      if (isInWishlist) {
+        heartIcon.classList.remove('text-gray-400');
+        heartIcon.classList.add('text-red-500');
+        heartIcon.setAttribute('fill', 'currentColor');
+        heartIcon.setAttribute('stroke-width', '0');
+        button.setAttribute('data-in-wishlist', 'true');
+      } else {
+        heartIcon.classList.remove('text-red-500');
+        heartIcon.classList.add('text-gray-400');
+        heartIcon.setAttribute('fill', 'none');
+        heartIcon.setAttribute('stroke-width', '2');
+        button.setAttribute('data-in-wishlist', 'false');
       }
+    });
+  }
+  
+  // Function to update cart count
+  function updateCartCount() {
+    const cartCountElement = document.querySelector('.cart-count');
+    if (cartCountElement) {
+      const currentCount = parseInt(cartCountElement.textContent);
+      if (!isNaN(currentCount)) {
+        cartCountElement.textContent = currentCount + 1;
+        
+        // Add animation
+        cartCountElement.classList.add('animate-pulse');
+        setTimeout(() => {
+          cartCountElement.classList.remove('animate-pulse');
+        }, 1000);
+      }
+    }
+  }
+  
+  // Function to show add to cart animation
+  function showAddToCartAnimation(button) {
+    // Create a flying element from the button to the cart icon
+    const buttonRect = button.getBoundingClientRect();
+    const cartIcon = document.querySelector('.cart-icon') || document.querySelector('header');
+    
+    if (!cartIcon) return;
+    
+    const cartRect = cartIcon.getBoundingClientRect();
+    
+    const flyingItem = document.createElement('div');
+    flyingItem.className = 'fixed z-50 bg-purple-600 rounded-full flex items-center justify-center w-8 h-8 text-white';
+    flyingItem.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>';
+    
+    // Set initial position
+    flyingItem.style.top = `${buttonRect.top + buttonRect.height / 2 - 16}px`;
+    flyingItem.style.left = `${buttonRect.left + buttonRect.width / 2 - 16}px`;
+    
+    document.body.appendChild(flyingItem);
+    
+    // Animate to cart
+    setTimeout(() => {
+      flyingItem.style.transition = 'all 0.8s cubic-bezier(0.19, 1, 0.22, 1)';
+      flyingItem.style.top = `${cartRect.top + cartRect.height / 2 - 8}px`;
+      flyingItem.style.left = `${cartRect.left + cartRect.width / 2 - 8}px`;
+      flyingItem.style.opacity = '0';
+      flyingItem.style.transform = 'scale(0.2)';
       
-      // Create toast element
-      const toast = document.createElement('div');
-      toast.className = `p-3 rounded-lg shadow-lg flex items-center min-w-[280px] transform translate-x-full transition-transform duration-300 ${
-        type === 'success' ? 'bg-green-100 text-green-800 border-l-4 border-green-500' :
-        type === 'error' ? 'bg-red-100 text-red-800 border-l-4 border-red-500' :
-        'bg-blue-100 text-blue-800 border-l-4 border-blue-500'
-      }`;
-      
-      // Set icon based on type
-      const icon = type === 'success' ? 
-        '<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>' :
-        type === 'error' ?
-        '<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>' :
-        '<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"></path></svg>';
-      
-      // Set toast content
-      toast.innerHTML = `
-        <div class="flex items-center">
-          ${icon}
-          <span class="text-sm font-medium">${message}</span>
-        </div>
-        <button class="ml-auto text-gray-600 hover:text-gray-800">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      `;
-      
-      // Add toast to container
-      toastContainer.appendChild(toast);
-      
-      // Animate toast in
       setTimeout(() => {
-        toast.classList.remove('translate-x-full');
-      }, 10);
-      
-      // Add click listener to close button
-      const closeButton = toast.querySelector('button');
-      closeButton.addEventListener('click', () => {
-        removeToast(toast);
-      });
-      
-      // Auto remove after 3 seconds
-      setTimeout(() => {
-        removeToast(toast);
-      }, 3000);
+        document.body.removeChild(flyingItem);
+        
+        // Animate cart icon
+        cartIcon.classList.add('animate-bounce');
+        setTimeout(() => {
+          cartIcon.classList.remove('animate-bounce');
+        }, 500);
+      }, 800);
+    }, 10);
+  }
+  
+  // Function to show toast notifications
+  function showToast(message, type = 'success') {
+    // Check if toast container exists, if not create it
+    let toastContainer = document.querySelector('.toast-container');
+    
+    if (!toastContainer) {
+      toastContainer = document.createElement('div');
+      toastContainer.className = 'toast-container fixed top-4 right-4 z-50 flex flex-col gap-2';
+      document.body.appendChild(toastContainer);
     }
     
-    // Function to remove toast with animation
-    function removeToast(toast) {
-      toast.classList.add('translate-x-full');
-      setTimeout(() => {
-        if (toast.parentNode) {
-          toast.parentNode.removeChild(toast);
-        }
-      }, 300);
-    }
-  });
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `p-3 rounded-lg shadow-lg flex items-center justify-between min-w-[280px] transform translate-x-full transition-transform duration-300 ${
+      type === 'success' ? 'bg-green-100 text-green-800 border-l-4 border-green-500' :
+      type === 'error' ? 'bg-red-100 text-red-800 border-l-4 border-red-500' :
+      'bg-blue-100 text-blue-800 border-l-4 border-blue-500'
+    }`;
+    
+    // Set icon based on type
+    const icon = type === 'success' ? 
+      '<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>' :
+      type === 'error' ?
+      '<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>' :
+      '<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"></path></svg>';
+    
+    // Set toast content
+    toast.innerHTML = `
+      <div class="flex items-center">
+        ${icon}
+        <span class="text-sm font-medium">${message}</span>
+      </div>
+      <button class="ml-auto text-gray-600 hover:text-gray-800">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    `;
+    
+    // Add toast to container
+    toastContainer.appendChild(toast);
+    
+    // Animate toast in
+    setTimeout(() => {
+      toast.classList.remove('translate-x-full');
+    }, 10);
+    
+    // Add click listener to close button
+    const closeButton = toast.querySelector('button');
+    closeButton.addEventListener('click', () => {
+      removeToast(toast);
+    });
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+      removeToast(toast);
+    }, 3000);
+  }
+  
+  // Function to remove toast with animation
+  function removeToast(toast) {
+    toast.classList.add('translate-x-full');
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+    }, 300);
+  }
+});
 </script>

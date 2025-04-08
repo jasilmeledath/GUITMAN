@@ -10,6 +10,7 @@ const cartAndOrderRoutes = require('../user/cartAndOrderRoutes');
 const profileRoutes = require('../../routes/user/profileRoutes');
 const loadProfilePages = require('../../controllers/user/loadProfilePages');
 const chatbotContols = require('../../controllers/user/chatBotController');
+const {loginLimiter} = require('../../middlewares/rateLimiter');
 
 // Google OAuth routes
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
@@ -28,7 +29,7 @@ router.use(redirectIfUserLoggedIn);
 router.get('/', loadPages.landing);
 
 // Public routes (no authentication required)
-router.get('/login', loadPages.login);
+router.get('/login',  loadPages.login);
 router.get('/signup', loadPages.signup);
 router.get('/reset-password', loadPages.resetPassword);
 router.post('/reset-password-send-otp', userAuth.sendOtpToResetPassword);
@@ -42,12 +43,13 @@ router.post('/chat', chatbotContols);
 router.post('/signup', userAuth.signup);
 router.post('/verify-otp', userAuth.verifyOtp);
 router.post('/resend-otp', userAuth.resendOtp);
-router.post('/login', validateLoginForm, userAuth.login);
+router.post('/login',loginLimiter, validateLoginForm, userAuth.login);
 
 // Routes that require user information but not strict authentication
 // router.get('/tune', loadPages.tuner);
 router.get('/shop', loadPages.loadShop);
 router.get('/product-details/:id', loadPages.loadProductDetails);
+router.get('/quick-view-products/:id', loadPages.quickViewProduct);
 
 // Protected routes (require authentication)
 router.get('/home', verifyUser, loadPages.home);
