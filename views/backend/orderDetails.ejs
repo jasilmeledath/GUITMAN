@@ -297,14 +297,21 @@
                                     <img src="/assets/imgs/card-brands/2.png" class="h-6 border rounded" alt="Card">
                                     <span class="text-gray-700">Master Card **** **** 4768</span>
                                 </div>
-                                <% } else { %>
+                                <% } else if (order.payment_method==='upi'){ %>
                                 <div class="flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z" />
                                     </svg>
-                                    <span class="text-gray-700">Cash on Delivery</span>
+                                    <span class="text-gray-700">Razorpay</span>
                                 </div>
-                                <% } %>
+                                <% }else { %>
+                                    <div class="flex items-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                        </svg>
+                                        <span class="text-gray-700">Cash on delivery</span>
+                                    </div>
+                                    <% } %>
                             </div>
                             
                             <div class="flex items-center gap-2">
@@ -321,6 +328,7 @@
                     </div>
                     
                     <!-- Order Status Update Card -->
+                     <% if(order.payment_status != 'failed'){ %>
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6 hover-scale">
                         <div class="flex items-center gap-3 mb-4">
                             <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
@@ -351,6 +359,7 @@
                             </div>
                         </div>
                     </div>
+                    <% } %>
                     
                     <!-- Return Request Section (if applicable) -->
                     <% if(order.return_details && order.return_details.status && order.return_details.status !== 'none') { %>
@@ -609,75 +618,73 @@
             const statusSelect = document.getElementById('orderStatus');
             
             saveStatusBtn.addEventListener('click', function() {
-                const newStatus = statusSelect.value;
-                if (!newStatus) {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'Please select a status',
-                        icon: 'error',
-                        confirmButtonText: 'OK',
-                        confirmButtonColor: '#3b82f6'
-                    });
-                    return;
-                }
-                
-                Swal.fire({
-                    title: 'Updating Status',
-                    html: 'Please wait while we update the order status',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                
-                fetch(`/admin/dashboard/orders/<%= order.order_id %>/status`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ order_status: newStatus })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to update order status');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Update UI
-                    document.getElementById('currentStatus').innerHTML = `
-                        <span class="status-badge ${
-                            newStatus === 'pending' ? 'status-pending' : 
-                            newStatus === 'confirmed' ? 'status-confirmed' : 
-                            newStatus === 'shipped' ? 'status-shipped' : 
-                            newStatus === 'delivered' ? 'status-delivered' : 
-                            'status-cancelled'
-                        }">
-                            ${newStatus}
-                        </span>
-                    `;
-                    
-                    Swal.fire({
-                        title: 'Success!',
-                        text: 'Order status updated successfully',
-                        icon: 'success',
-                        confirmButtonText: 'OK',
-                        confirmButtonColor: '#3b82f6'
-                    }).then(() => {
-                        location.reload();
-                    });
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    Swal.fire({
-                        title: 'Error!',
-                        text: `Failed to update order status: ${error.message}`,
-                        icon: 'error',
-                        confirmButtonText: 'OK',
-                        confirmButtonColor: '#3b82f6'
-                    });
-                });
-            });
+  const newStatus = statusSelect.value;
+  if (!newStatus) {
+    Swal.fire({
+      title: 'Error!',
+      text: 'Please select a status',
+      icon: 'error',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#3b82f6'
+    });
+    return;
+  }
+  
+  Swal.fire({
+    title: 'Updating Status',
+    html: 'Please wait while we update the order status',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+  
+  fetch(`/admin/dashboard/orders/<%= order.order_id %>/status`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ order_status: newStatus })
+  })
+  .then(response => response.json())
+  .then(data => {
+    // Check if the update was successful based on the JSON response
+    if (!data.success) {
+      throw new Error(data.message);
+    }
+    // Update UI (for instance, update the current status badge)
+    document.getElementById('currentStatus').innerHTML = `
+      <span class="status-badge ${
+        newStatus === 'pending' ? 'status-pending' : 
+        newStatus === 'confirmed' ? 'status-confirmed' : 
+        newStatus === 'shipped' ? 'status-shipped' : 
+        newStatus === 'delivered' ? 'status-delivered' : 
+        'status-cancelled'
+      }">
+        ${newStatus}
+      </span>
+    `;
+    Swal.fire({
+      title: 'Success!',
+      text: data.message, // Uses the message from the JSON response
+      icon: 'success',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#3b82f6'
+    }).then(() => {
+      location.reload();
+    });
+  })
+  .catch(error => {
+    Swal.fire({
+      title: 'Error!',
+      text: `Failed to update order status: ${error.message}`,
+      icon: 'error',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#3b82f6'
+    });
+  });
+});
+
             
             // Return Request Approve Button
             const approveReturnBtn = document.getElementById('approveReturnBtn');

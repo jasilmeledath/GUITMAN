@@ -245,8 +245,6 @@ const orderControls = {
   },
   updateOrderForRetryPayment: async (req, res, next) => {
     try {
-      console.log('invoked');
-      
       const { order_id } = req.params;
       
       // Find the existing order by order_id (assuming order.order_id is stored)
@@ -318,7 +316,6 @@ const orderControls = {
       }
   
       // 2) Find the order in the DB
-      // Check if order_id is a valid ObjectId. If it is, use findById else use findOne with the order_id field.
       let order;
       if (ObjectId.isValid(order_id)) {
         order = await Order.findById(order_id);
@@ -348,7 +345,6 @@ const orderControls = {
       });
   
       // 5) Update wallet history:
-      //    Ensure we have a wallet, or else create one before pushing the transaction into history.
       let wallet = await Wallet.findOne({ user: user._id });
       if (!wallet) {
         wallet = new Wallet({
@@ -359,7 +355,21 @@ const orderControls = {
       wallet.history.push(transaction._id);
       await wallet.save();
   
-      // 6) Empty the cart after placing the order
+      // 6) Reduce the product stock based on the items in the cart.
+      // Assuming each cart item has `product` (id) and `quantity`
+      if (cart && cart.items && cart.items.length) {
+        await Promise.all(
+          cart.items.map(item =>
+            Product.findByIdAndUpdate(
+              item.product,
+              { $inc: { stock: -item.quantity } },
+              { new: true }
+            )
+          )
+        );
+      }
+  
+      // 7) Empty the cart after placing the order
       await Cart.findOneAndUpdate(
         { _id: cart._id },
         {
@@ -372,7 +382,7 @@ const orderControls = {
         }
       );
   
-      // 7) Send Confirmation Email
+      // 8) Send Confirmation Email
       const getExpectedDeliveryDate = () => {
         const today = new Date();
         today.setDate(today.getDate() + 5);
@@ -394,7 +404,6 @@ const orderControls = {
         emailContent.html
       );
   
-      // 8) Return success response
       return res.json({
         success: true,
         message: 'Payment verified successfully!'
@@ -403,7 +412,8 @@ const orderControls = {
     } catch (error) {
       next(error);
     }
-  },  
+  },
+    
   downloadInvoice:async (req, res, next) => {
     try {
       const { orderId } = req.params;

@@ -32,7 +32,7 @@
           },
           animation: {
             'fade-in': 'fadeIn 0.3s ease-in-out',
-            'fade-out': 'fadeOut 0.3s ease-in-out',
+            'fade-out': 'fadeOut 0.3s ease-out',
             'slide-up': 'slideUp 0.3s ease-in-out',
             'slide-down': 'slideDown 0.3s ease-in-out',
             'pulse-slow': 'pulse 3s infinite',
@@ -292,16 +292,17 @@
               </div>
               
               <div class="flex flex-wrap gap-3">
+                <% if(order.payment_status != 'failed' && order.order_status != 'delivered') { %>
                 <button id="downloadInvoiceBtn" class="inline-flex items-center px-4 py-2 bg-primary-50 text-primary-700 hover:bg-primary-100 rounded-lg border border-primary-200 transition-colors text-sm font-medium">
                   <i class="fas fa-file-invoice mr-2"></i> Download Invoice
                 </button>
-                
+                <% } %>
                 <% if(order.return_details && order.return_details.status !== 'none') { %>
                   <div class="inline-flex items-center px-4 py-2 bg-amber-50 text-amber-700 rounded-lg border border-amber-200 text-sm font-medium">
                     <i class="fas fa-undo-alt mr-2"></i>
                     Return <%= order.return_details.status.charAt(0).toUpperCase() + order.return_details.status.slice(1) %>
                   </div>
-                <% } else if(order.order_status === 'pending' || order.order_status === 'processing') { %>
+                <% } else if(order.payment_status != 'failed' && order.order_status === 'pending' || order.order_status === 'processing') { %>
                   <button id="cancelOrderBtn" class="inline-flex items-center px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg border border-red-200 transition-colors text-sm font-medium">
                     <i class="fas fa-times mr-2"></i> Cancel Order
                   </button>
@@ -1310,40 +1311,41 @@
         }
       });
       
-      // Download Invoice functionality
+      // Download Invoice functionality using fetch request
       const downloadInvoiceBtn = document.getElementById('downloadInvoiceBtn');
       if (downloadInvoiceBtn) {
-        downloadInvoiceBtn.addEventListener('click', function() {
-          const invoiceContent = document.getElementById('invoice-content');
-          const options = {
-            margin: 10,
-            filename: 'invoice-<%= order.order_id %>.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-          };
-          
-          // Show loading state
-          downloadInvoiceBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Generating...';
-          downloadInvoiceBtn.disabled = true;
-          
-          // Generate PDF
-          html2pdf().from(invoiceContent).set(options).save().then(() => {
-            // Reset button state
-            downloadInvoiceBtn.innerHTML = '<i class="fas fa-file-invoice mr-2"></i> Download Invoice';
-            downloadInvoiceBtn.disabled = false;
-            
-            // Show success message
-            showToast('Invoice downloaded successfully!', 'success');
-          }).catch(error => {
-            // Reset button state
-            downloadInvoiceBtn.innerHTML = '<i class="fas fa-file-invoice mr-2"></i> Download Invoice';
-            downloadInvoiceBtn.disabled = false;
-            
-            // Show error message
-            showToast('Failed to download invoice. Please try again.', 'error');
-            console.error('Error generating PDF:', error);
-          });
+        downloadInvoiceBtn.addEventListener('click', async function() {
+          const originalContent = this.innerHTML;
+          this.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Generating Invoice...
+          `;
+          this.disabled = true;
+          try {
+            const response = await fetch(`/cart/download-invoice/<%= order.order_id %>`, { method: 'GET' });
+            if (response.ok) {
+              const blob = await response.blob();
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `Invoice-<%= order.order_id %>.pdf`;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              window.URL.revokeObjectURL(url);
+              showToast('Invoice downloaded successfully!', 'success');
+            } else {
+              showToast('Failed to generate invoice.', 'error');
+            }
+          } catch (error) {
+            showToast('Network error. Please try again.', 'error');
+          } finally {
+            this.innerHTML = originalContent;
+            this.disabled = false;
+          }
         });
       }
       
@@ -1404,10 +1406,7 @@
                   });
                   const verifyResult = await verifyResponse.json();
                   if (verifyResult.success) {
-                    showToast("Payment successful! Your order is now being processed.", "success");
-                    setTimeout(() => {
-                      window.location.reload();
-                    }, 1500);
+                    window.location.href = `/cart/order-confirmation/<%= order.order_id %>`;
                   } else {
                     throw new Error(verifyResult.message || 'Payment verification failed');
                   }
@@ -1438,4 +1437,3 @@
   </script>
 </body>
 </html>
-

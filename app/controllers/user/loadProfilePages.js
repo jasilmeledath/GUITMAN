@@ -338,7 +338,6 @@ profileOrders: async (req, res, next) => {
       if (!order) {
         return res.status(httpStatus.NOT_FOUND).send('Order not found');
       }
-
       res.status(httpStatus.OK)
         .render('frontend/orderDetails', { order, currentRoute: req.path, user, numOfItemsInCart });
     } catch (err) {

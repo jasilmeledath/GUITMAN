@@ -584,18 +584,25 @@ loadProductDetails: async (req, res, next) => {
     try {
       const user = await getUser(req, res, next);
       const { orderId } = req.params;
-      if(!ObjectId.isValid(orderId)){
-
-        const order = await Order.findOne({order_id:orderId})
-        .populate('items.product')
-        .populate('address');
-
+  
+      let order;
+      if (!ObjectId.isValid(orderId)) {
+        order = await Order.findOne({ order_id: orderId })
+          .populate('items.product')
+          .populate('address');
+      } else {
+        order = await Order.findById(orderId)
+          .populate('items.product')
+          .populate('address');
+      }
+  
       if (!order) {
-        return res.status(httpStatus.NOT_FOUND).json({success:false, message:'Order not found'});
+        return res
+          .status(httpStatus.NOT_FOUND)
+          .json({ success: false, message: 'Order not found' });
       }
 
-
-      const orderData = {
+      const buildOrderData = (order) => ({
         number: order.order_id,
         date: new Date(order.timestamp).toLocaleDateString(),
         paymentMethod: order.payment_method,
@@ -613,7 +620,6 @@ loadProductDetails: async (req, res, next) => {
         discount: order.discount,
         tax: order.tax,
         total: order.total,
-
         shipping: {
           name: order.address.full_name,
           address1: order.address.address,
@@ -635,68 +641,11 @@ loadProductDetails: async (req, res, next) => {
           phone: order.address.contact_number
         },
         email: order.address.email
-      };
-      const appliedCoupon = await Coupon.findById(order?.coupon_id);
-      return res.status(httpStatus.OK).render('frontend/orderConfirmed', {
-        order: orderData,
-        coupon: appliedCoupon || null, 
-        breadcrumbs: null,
-        currentRoute: req.path,
-        user: user,
-        numOfItemsInCart: 0,
       });
-      }
-      const order = await Order.findById(orderId)
-        .populate('items.product')
-        .populate('address');
-
-      if (!order) {
-        return res.status(httpStatus.NOT_FOUND).json({success:false, message:'Order not found'});
-      }
-
-
-      const orderData = {
-        number: order.order_id,
-        date: new Date(order.timestamp).toLocaleDateString(),
-        paymentMethod: order.payment_method,
-        shippingMethod: 'Standard Shipping', 
-        items: order.items.map(item => ({
-          image: item.product.images[0] || '/path/to/default-image.jpg',
-          name: item.product.product_name,
-          variant: item.product.variant || '',
-          size: item.product.size || '',
-          quantity: item.quantity,
-          price: item.price
-        })),
-        subtotal: order.subtotal,
-        shippingCost: order.shipping, 
-        discount: order.discount,
-        tax: order.tax,
-        total: order.total,
-
-        shipping: {
-          name: order.address.full_name,
-          address1: order.address.address,
-          address2: order.address.landmark || '',
-          city: order.address.state,
-          state: order.address.state,
-          zip: order.address.pincode,
-          country: order.address.country,
-          phone: order.address.contact_number
-        },
-        billing: {
-          name: order.address.full_name,
-          address1: order.address.address,
-          address2: order.address.landmark || '',
-          city: order.address.state,
-          state: order.address.state,
-          zip: order.address.pincode,
-          country: order.address.country,
-          phone: order.address.contact_number
-        },
-        email: order.address.email
-      };
+  
+      const orderData = buildOrderData(order);
       const appliedCoupon = await Coupon.findById(order?.coupon_id);
+  
       res.status(httpStatus.OK).render('frontend/orderConfirmed', {
         order: orderData,
         coupon: appliedCoupon || null, 
@@ -709,6 +658,7 @@ loadProductDetails: async (req, res, next) => {
       next(err);
     }
   }
+  
 };
 
 module.exports = loadPages;

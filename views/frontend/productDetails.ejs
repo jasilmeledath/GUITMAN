@@ -1344,13 +1344,19 @@
             })
             .then(response => {
                 if (!response.ok) {
+                    console.log('response', response);
+                    
                     throw new Error('Failed to add item to cart');
                 }
                 return response.json();
             })
             .then(data => {
                 // Show success toast
-                showToast('Item added to cart successfully!');
+                if(data.success){
+                    showToast(data.message, type==='success');
+                }else{
+                    showToast(data.message, type==='error');
+                }
                 
                 // Update cart count in header if available
                 const cartCountElement = document.querySelector('.cart-count');
@@ -1401,7 +1407,7 @@
             })
             .then(data => {
                 // Show success toast
-                if (data.added) {
+                if (data.success) {
                     showToast('Added to your wishlist!');
                 } else {
                     showToast('Removed from your wishlist');

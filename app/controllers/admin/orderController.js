@@ -6,6 +6,16 @@ const orderControls = {
         try {
             const { orderId } = req.params;
             const { order_status } = req.body;
+
+            const currentOrderStatusDoc = await Order.findOne(
+              { order_id: orderId },
+              { order_status: 1, _id: 0 }
+            ).lean();
+            const currentOrderStatus = currentOrderStatusDoc ? currentOrderStatusDoc.order_status : null;
+
+            if(currentOrderStatus === 'delivered'){
+              return res.status(400).json({success: false, message: "Order status should not be reversed!"})
+            }
         
             if (!order_status) {
               return res.status(400).json({ success: false, message: 'Order status is required' });
