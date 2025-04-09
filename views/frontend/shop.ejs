@@ -30,7 +30,6 @@
                         'fade-in': 'fadeIn 0.3s ease-in-out',
                         'fade-out': 'fadeOut 0.3s ease-out',
                         'slide-in': 'slideIn 0.3s ease-out',
-                        'slide-in-bottom': 'slideInBottom 0.3s ease-out',
                     },
                     keyframes: {
                         fadeIn: {
@@ -43,10 +42,6 @@
                         },
                         slideIn: {
                             '0%': { transform: 'translateY(-10px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        },
-                        slideInBottom: {
-                            '0%': { transform: 'translateY(10px)', opacity: '0' },
                             '100%': { transform: 'translateY(0)', opacity: '1' },
                         },
                     },
@@ -148,136 +143,6 @@
             fill: none;
             color: #6b7280;
         }
-        /* Mobile filter drawer */
-        .filter-drawer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: white;
-            border-top-left-radius: 1rem;
-            border-top-right-radius: 1rem;
-            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06);
-            z-index: 50;
-            transform: translateY(100%);
-            transition: transform 0.3s ease-in-out;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        .filter-drawer.open {
-            transform: translateY(0);
-        }
-        .drawer-backdrop {
-            position: fixed;
-            inset: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 40;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease-in-out;
-        }
-        .drawer-backdrop.open {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        /* Custom styles for the noUiSlider */
-        #priceRange .noUi-connect,
-        #mobilepriceRange .noUi-connect {
-            background: linear-gradient(to right, #9333ea, #3b82f6);
-        }
-        
-        #priceRange .noUi-handle,
-        #mobilepriceRange .noUi-handle {
-            background: linear-gradient(to right, #9333ea, #3b82f6);
-            border: none;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        
-        #priceRange .noUi-handle::before,
-        #priceRange .noUi-handle::after,
-        #mobilepriceRange .noUi-handle::before,
-        #mobilepriceRange .noUi-handle::after {
-            background: white;
-        }
-        
-        #priceRange .noUi-target,
-        #mobilepriceRange .noUi-target {
-            border: 1px solid #9333ea;
-            box-shadow: none;
-        }
-        
-        #priceRange .noUi-horizontal .noUi-handle,
-        #mobilepriceRange .noUi-horizontal .noUi-handle {
-            width: 24px;
-            height: 24px;
-            right: -12px;
-            top: -9px;
-            border-radius: 50%;
-        }
-        
-        #priceRange .noUi-horizontal,
-        #mobilepriceRange .noUi-horizontal {
-            height: 8px;
-        }
-        /* Active category button styles */
-        .category-btn.active-category span {
-            background-color: transparent !important;
-            color: white !important;
-        }
-        .category-btn.active-category {
-            color: white !important;
-        }
-        /* Floating filter button for mobile */
-        .floating-filter-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 30;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        /* Improved pagination for mobile */
-        .pagination-container {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none; /* Firefox */
-        }
-        .pagination-container::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, Edge */
-        }
-        /* Sticky search bar for mobile */
-        .sticky-search {
-            position: sticky;
-            top: 0;
-            z-index: 20;
-            background-color: white;
-            padding: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            transition: all 0.3s ease;
-        }
-        .sticky-search.hidden {
-            transform: translateY(-100%);
-        }
-        /* Chip styles for active filters */
-        .filter-chip {
-            display: inline-flex;
-            align-items: center;
-            background-color: #f3f4f6;
-            border-radius: 9999px;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.875rem;
-            color: #4b5563;
-            margin-right: 0.5rem;
-            margin-bottom: 0.5rem;
-            transition: all 0.2s ease;
-        }
-        .filter-chip:hover {
-            background-color: #e5e7eb;
-        }
-        .filter-chip .close-icon {
-            margin-left: 0.25rem;
-            width: 1rem;
-            height: 1rem;
-        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -286,24 +151,24 @@
     <%- include('./partials/header', {currentRoute: '/shop'}, {user: user}) %>
     
     <!-- Hero Banner -->
-    <div class="relative bg-cover bg-center text-white py-16 md:py-24 overflow-hidden" style="background-image: url('/ui/guitbg.jpg')">
+    <div class="relative bg-cover bg-center text-white py-24 overflow-hidden" style="background-image: url('/ui/guitbg.jpg')">
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
         
         <div class="relative container mx-auto px-4 sm:px-6 lg:px-8 z-10">
-          <div class="max-w-4xl mx-auto text-center space-y-4 md:space-y-6">
-            <h1 class="mt-6 md:mt-10 text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight text-white drop-shadow-lg">
+          <div class="max-w-4xl mx-auto text-center space-y-6">
+            <h1 class="mt-10 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight text-white drop-shadow-lg">
               Elevate Your Musical Journey
             </h1>
             
-            <p class="text-base md:text-xl lg:text-2xl font-medium text-white/90 max-w-3xl mx-auto drop-shadow-md">
+            <p class="text-lg md:text-xl lg:text-2xl font-medium text-white/90 max-w-3xl mx-auto drop-shadow-md">
               Discover world-class instruments and premium accessories that transform your passion into art
             </p>
             
-            <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 mt-4">
-              <a href="#products" class="w-full sm:w-auto px-8 py-3 md:px-10 md:py-4 bg-white text-black rounded-full font-bold text-base md:text-lg hover:bg-gray-200 transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105 shadow-2xl">
+            <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+              <a href="#products" class="px-10 py-4 bg-white text-black rounded-full font-bold text-lg hover:bg-gray-200 transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105 shadow-2xl">
                 Explore Collection
               </a>
-              <a href="#about" class="w-full sm:w-auto px-8 py-3 md:px-10 md:py-4 border-2 border-white/30 text-white rounded-full font-bold text-base md:text-lg hover:bg-white/20 transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105 backdrop-blur-sm">
+              <a href="#about" class="px-10 py-4 border-2 border-white/30 text-white rounded-full font-bold text-lg hover:bg-white/20 transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105 backdrop-blur-sm">
                 Learn More
               </a>
             </div>
@@ -311,76 +176,19 @@
         </div>
       
         <div class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
-    </div>
+      </div>
   
+
     <!-- Products Section -->
-    <section id="products" class="py-6 md:py-12 px-4 sm:px-6 lg:px-8">
+    <section id="products" class="py-8 md:py-16 px-4 sm:px-6 lg:px-8">
         <div id="alert-container" class="fixed top-4 right-4 z-[1000] w-80"></div>
         <%- include('./partials/breadcrumbs', { breadcrumbs }) %>
         <div class="container mx-auto">
             <h2 class="text-2xl md:text-3xl font-bold mb-2 text-gray-800">Our Collection</h2>
-            <p class="text-gray-600 mb-4 md:mb-6">Find the perfect instrument to match your style and sound</p>
+            <p class="text-gray-600 mb-6 md:mb-8">Find the perfect instrument to match your style and sound</p>
             
-            <!-- Mobile Search Bar (Sticky on Scroll) -->
-            <div class="md:hidden sticky-search top-0 z-20 bg-white rounded-xl shadow-md mb-4">
-                <form id="mobileSearchForm" action="/shop" method="GET" class="flex">
-                    <input type="text" 
-                        id="mobileSearchInput"
-                        name="search"
-                        value="<%= search %>"
-                        placeholder="Search products..."
-                        class="w-full pl-4 pr-4 py-3 rounded-l-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                    <button type="submit" 
-                            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-r-xl transition-colors duration-200 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </button>
-                </form>
-            </div>
-            
-            <!-- Active Filters Display (Mobile & Desktop) -->
-            <div id="activeFilters" class="mb-4 flex flex-wrap items-center">
-                <% if (search || category !== 'all' || minPrice > 0 || maxPrice < 100000) { %>
-                    <span class="text-sm font-medium text-gray-700 mr-2">Active filters:</span>
-                    <% if (search) { %>
-                        <div class="filter-chip">
-                            <span>Search: <%= search %></span>
-                            <button type="button" class="close-icon ml-1" data-filter="search">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
-                    <% } %>
-                    <% if (category !== 'all') { %>
-                        <div class="filter-chip">
-                            <span>Category: <%= category %></span>
-                            <button type="button" class="close-icon ml-1" data-filter="category">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
-                    <% } %>
-                    <% if (minPrice > 0 || maxPrice < 100000) { %>
-                        <div class="filter-chip">
-                            <span>Price: ₹<%= minPrice %> - ₹<%= maxPrice %></span>
-                            <button type="button" class="close-icon ml-1" data-filter="price">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
-                    <% } %>
-                    <button id="clearAllFilters" class="text-sm font-medium text-purple-600 hover:text-purple-800 ml-2">
-                        Clear all
-                    </button>
-                <% } %>
-            </div>
-            
-            <!-- Desktop Advanced Search Panel -->
-            <div class="hidden md:block bg-white rounded-2xl shadow-md p-6 mb-8 overflow-hidden">
+            <!-- Advanced Search Panel -->
+            <div class="bg-white rounded-2xl shadow-md p-4 md:p-6 mb-6 md:mb-8 overflow-hidden">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-gray-800">Advanced Search</h3>
                     <button id="toggleFilters" class="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center">
@@ -461,6 +269,40 @@
                             
                             <!-- Price Range Filter -->
                             <div>
+                                <style>
+                                    /* Custom styles for the noUiSlider */
+                                    #priceRange .noUi-connect {
+                                        background: linear-gradient(to right, #9333ea, #3b82f6);
+                                    }
+                                
+                                    #priceRange .noUi-handle {
+                                        background: linear-gradient(to right, #9333ea, #3b82f6);
+                                        border: none;
+                                        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                                    }
+                                
+                                    #priceRange .noUi-handle::before,
+                                    #priceRange .noUi-handle::after {
+                                        background: white;
+                                    }
+                                
+                                    #priceRange .noUi-target {
+                                        border: 1px solid #9333ea;
+                                        box-shadow: none;
+                                    }
+                                
+                                    #priceRange .noUi-horizontal .noUi-handle {
+                                        width: 18px;
+                                        height: 18px;
+                                        right: -9px;
+                                        top: -6px;
+                                        border-radius: 50%;
+                                    }
+                                
+                                    #priceRange .noUi-horizontal {
+                                        height: 8px;
+                                    }
+                                </style>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
                                 <div class="px-2">
                                     <div class="mb-4 flex justify-between text-sm font-medium text-gray-700">
@@ -491,35 +333,20 @@
                 </div>
             </div>
 
-            <!-- Mobile Sort Bar -->
-            <div class="md:hidden flex justify-between items-center mb-4 bg-white rounded-xl p-3 shadow-sm">
-                <div class="relative w-full">
-                    <select id="mobileSortSelect" 
-                            class="w-full appearance-none pl-10 pr-4 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                        <option value="popularity_desc" <%= (sort + '_' + order) === 'popularity_desc' ? 'selected' : '' %>>Sort by: Popularity</option>
-                        <option value="price_asc" <%= (sort + '_' + order) === 'price_asc' ? 'selected' : '' %>>Sort by: Price: Low to High</option>
-                        <option value="price_desc" <%= (sort + '_' + order) === 'price_desc' ? 'selected' : '' %>>Sort by: Price: High to Low</option>
-                        <option value="isTopModel_desc" <%= (sort + '_' + order) === 'isTopModel_desc' ? 'selected' : '' %>>Sort by: Featured</option>
-                        <option value="product_name_asc" <%= (sort + '_' + order) === 'product_name_asc' ? 'selected' : '' %>>Sort by: A-Z</option>
-                        <option value="product_name_desc" <%= (sort + '_' + order) === 'product_name_desc' ? 'selected' : '' %>>Sort by: Z-A</option>
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                        </svg>
-                    </div>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
+            <style>
+                .category-btn.active-category span {
+                    background-color: transparent !important;
+                    color: white !important;
+                }
+                .category-btn.active-category {
+                    color: white !important;
+                }
+            </style>
 
             <!-- Results Summary and Loading Indicator -->
-            <div class="flex flex-col md:flex-row justify-between items-center mb-4 md:mb-6">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6">
                 <div class="flex items-center mb-4 md:mb-0">
-                    <p class="text-gray-600 text-sm md:text-base">
+                    <p class="text-gray-600">
                         Showing <span class="font-semibold"><%= (currentPage - 1) * itemsPerPage + 1 %></span> - 
                         <span class="font-semibold"><%= Math.min(currentPage * itemsPerPage, totalItems) %></span> of 
                         <span class="font-semibold"><%= totalItems %></span> products
@@ -529,7 +356,7 @@
                     </div>
                 </div>
                 
-                <div class="hidden md:flex items-center space-x-2">
+                <div class="flex items-center space-x-2">
                     <label for="viewMode" class="text-sm text-gray-600">View:</label>
                     <div class="flex border border-purple-300 rounded-lg overflow-hidden">
                         <button type="button" id="gridView" class="view-mode-btn px-3 py-1.5 bg-purple-600 text-white hover:bg-purple-700 transition-colors duration-200">
@@ -543,6 +370,43 @@
                             </svg>
                         </button>
                     </div>
+                    
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const gridViewBtn = document.getElementById('gridView');
+                        const listViewBtn = document.getElementById('listView');
+                        const productsList = document.getElementById('productsList');
+                    
+                        function updateViewMode(mode) {
+                            // Remove active state from all buttons
+                            document.querySelectorAll('.view-mode-btn').forEach(btn => {
+                                btn.classList.remove('bg-purple-600', 'text-white');
+                                btn.classList.add('bg-white', 'text-purple-600', 'hover:bg-purple-100');
+                            });
+                    
+                            // Add active state to clicked button
+                            if (mode === 'grid') {
+                                gridViewBtn.classList.remove('bg-white', 'text-purple-600', 'hover:bg-purple-100');
+                                gridViewBtn.classList.add('bg-purple-600', 'text-white');
+                                productsList.classList.remove('space-y-4');
+                                productsList.classList.add('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'gap-4');
+                            } else {
+                                listViewBtn.classList.remove('bg-white', 'text-purple-600', 'hover:bg-purple-100');
+                                listViewBtn.classList.add('bg-purple-600', 'text-white');
+                                gridViewBtn.classList.add('bg-white', 'text-purple-600', 'hover:bg-purple-100');
+                                gridViewBtn.classList.remove('bg-purple-600', 'text-white');
+                                productsList.classList.remove('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'gap-4');
+                                productsList.classList.add('space-y-4');
+                            }
+                        }
+                    
+                        gridViewBtn.addEventListener('click', () => updateViewMode('grid'));
+                        listViewBtn.addEventListener('click', () => updateViewMode('list'));
+                    
+                        // Default to grid view
+                        updateViewMode('grid');
+                    });
+                    </script>
                 </div>
             </div>
 
@@ -567,137 +431,58 @@
             </div>
 
             <!-- Enhanced Pagination -->
-            <div id="paginationContainer" class="mt-6 md:mt-10 flex justify-center">
-                <div class="pagination-container flex flex-wrap items-center gap-1 md:gap-2 bg-white p-2 md:p-3 rounded-xl shadow-sm">
-                    <% if (totalPages > 1) { %>
-                        <% if (currentPage > 1) { %>
-                        <button type="button" class="pagination-btn pagination-item flex items-center px-3 py-2 md:px-4 md:py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors duration-200 shadow-sm text-sm md:text-base" data-page="<%= currentPage - 1 %>">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                            </svg>
-                            <span class="hidden sm:inline">Previous</span>
-                        </button>
-                        <% } %>
-                        
-                        <% 
-                        let startPage = Math.max(1, currentPage - 1);
-                        let endPage = Math.min(totalPages, startPage + 2);
-                        
-                        if (endPage - startPage < 2) {
-                            startPage = Math.max(1, endPage - 2);
-                        }
-                        
-                        if (startPage > 1) { %>
-                        <button type="button" class="pagination-btn pagination-item w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors duration-200 shadow-sm text-sm md:text-base" data-page="1">
-                            1
-                        </button>
-                        <% if (startPage > 2) { %>
-                        <span class="px-1 md:px-2 py-1 text-gray-500">...</span>
-                        <% } %>
-                        <% } %>
-                        
-                        <% for(let i = startPage; i <= endPage; i++) { %>
-                        <button type="button" class="pagination-btn pagination-item w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-lg <%= i === currentPage ? 'bg-purple-600 text-white shadow-md' : 'bg-white border border-gray-300 hover:bg-gray-50' %> transition-colors duration-200 shadow-sm text-sm md:text-base" data-page="<%= i %>">
-                            <%= i %>
-                        </button>
-                        <% } %>
-                        
-                        <% if (endPage < totalPages) { %>
-                        <% if (endPage < totalPages - 1) { %>
-                        <span class="px-1 md:px-2 py-1 text-gray-500">...</span>
-                        <% } %>
-                        <button type="button" class="pagination-btn pagination-item w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors duration-200 shadow-sm text-sm md:text-base" data-page="<%= totalPages %>">
-                            <%= totalPages %>
-                        </button>
-                        <% } %>
-                        
-                        <% if (currentPage < totalPages) { %>
-                        <button type="button" class="pagination-btn pagination-item flex items-center px-3 py-2 md:px-4 md:py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors duration-200 shadow-sm text-sm md:text-base" data-page="<%= currentPage + 1 %>">
-                            <span class="hidden sm:inline">Next</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                            </svg>
-                        </button>
-                        <% } %>
+            <div id="paginationContainer" class="mt-8 md:mt-12 flex flex-wrap justify-center items-center gap-2">
+                <% if (totalPages > 1) { %>
+                    <% if (currentPage > 1) { %>
+                    <button type="button" class="pagination-btn pagination-item flex items-center px-4 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors duration-200 shadow-sm" data-page="<%= currentPage - 1 %>">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Previous
+                    </button>
                     <% } %>
-                </div>
-            </div>
-            
-            <!-- Mobile Filter Button -->
-            <button id="mobileFilterBtn" class="md:hidden floating-filter-btn flex items-center justify-center w-14 h-14 bg-purple-600 text-white rounded-full shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-            </button>
-            
-            <!-- Mobile Filter Drawer -->
-            <div id="filterDrawerBackdrop" class="drawer-backdrop md:hidden"></div>
-            <div id="filterDrawer" class="filter-drawer md:hidden">
-                <div class="p-4 border-b border-gray-200">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-semibold text-gray-800">Filters</h3>
-                        <button id="closeFilterDrawer" class="text-gray-500 hover:text-gray-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="p-4">
-                    <form id="mobileFilterForm" action="/shop" method="GET" class="space-y-6">
-                        <!-- Categories -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Categories</label>
-                            <div class="flex flex-wrap gap-2 mobile-category-filters">
-                                <button type="button" data-category="all"
-                                    class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 mobile-category-btn <%= category === 'all' ? 'active-category' : '' %>">
-                                    <span class="relative px-4 py-2 transition-all ease-in duration-75 bg-white rounded-md group-hover:bg-transparent <%= category === 'all' ? 'bg-transparent text-white' : '' %>">
-                                        All
-                                    </span>
-                                </button>
-                                <% categories.forEach(cat => { %>
-                                    <button type="button" data-category="<%= cat.name.toLowerCase() %>"
-                                        class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 mobile-category-btn <%= category === cat.name.toLowerCase() ? 'active-category' : '' %>">
-                                        <span class="relative px-4 py-2 transition-all ease-in duration-75 bg-white rounded-md group-hover:bg-transparent <%= category === cat.name.toLowerCase() ? 'bg-transparent text-white' : '' %>">
-                                            <%= cat.name %>
-                                        </span>
-                                    </button>
-                                <% }); %>
-                            </div>
-                        </div>
-                        
-                        <!-- Price Range -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
-                            <div class="px-2">
-                                <div class="mb-4 flex justify-between text-sm font-medium text-gray-700">
-                                    <span>₹<span id="mobilePriceMinValue"><%= minPrice %></span></span>
-                                    <span>₹<span id="mobilePriceMaxValue"><%= maxPrice %></span></span>
-                                </div>
-                                <div id="mobilepriceRange" class="range-slider mb-4"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- Hidden inputs -->
-                        <input type="hidden" id="mobileCategoryInput" name="category" value="<%= category %>">
-                        <input type="hidden" id="mobileMinPriceInput" name="minPrice" value="<%= minPrice %>">
-                        <input type="hidden" id="mobileMaxPriceInput" name="maxPrice" value="<%= maxPrice %>">
-                        <input type="hidden" id="mobilePageInput" name="page" value="1">
-                        <input type="hidden" id="mobileOrderInput" name="order" value="<%= order %>">
-                        <input type="hidden" id="mobileSearchHidden" name="search" value="<%= search %>">
-                        
-                        <!-- Action Buttons -->
-                        <div class="flex justify-between pt-4 border-t border-gray-200">
-                            <button type="button" id="mobileResetFilters" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200">
-                                Reset
-                            </button>
-                            <button type="submit" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 shadow-md">
-                                Apply Filters
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    
+                    <% 
+                    let startPage = Math.max(1, currentPage - 2);
+                    let endPage = Math.min(totalPages, startPage + 4);
+                    
+                    if (endPage - startPage < 4) {
+                        startPage = Math.max(1, endPage - 4);
+                    }
+                    
+                    if (startPage > 1) { %>
+                    <button type="button" class="pagination-btn pagination-item px-4 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors duration-200 shadow-sm" data-page="1">
+                        1
+                    </button>
+                    <% if (startPage > 2) { %>
+                    <span class="px-2 py-1 text-gray-500">...</span>
+                    <% } %>
+                    <% } %>
+                    
+                    <% for(let i = startPage; i <= endPage; i++) { %>
+                    <button type="button" class="pagination-btn pagination-item px-4 py-2 rounded-lg <%= i === currentPage ? 'bg-primary-600 text-white shadow-md' : 'bg-white border border-gray-300 hover:bg-gray-50' %> transition-colors duration-200 shadow-sm" data-page="<%= i %>">
+                        <%= i %>
+                    </button>
+                    <% } %>
+                    
+                    <% if (endPage < totalPages) { %>
+                    <% if (endPage < totalPages - 1) { %>
+                    <span class="px-2 py-1 text-gray-500">...</span>
+                    <% } %>
+                    <button type="button" class="pagination-btn pagination-item px-4 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors duration-200 shadow-sm" data-page="<%= totalPages %>">
+                        <%= totalPages %>
+                    </button>
+                    <% } %>
+                    
+                    <% if (currentPage < totalPages) { %>
+                    <button type="button" class="pagination-btn pagination-item flex items-center px-4 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors duration-200 shadow-sm" data-page="<%= currentPage + 1 %>">
+                        Next
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                    <% } %>
+                <% } %>
             </div>
         </div>
     </section>
@@ -710,40 +495,20 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Cache DOM elements
             const searchInput = document.getElementById('searchInput');
-            const mobileSearchInput = document.getElementById('mobileSearchInput');
             const sortSelect = document.getElementById('sortSelect');
-            const mobileSortSelect = document.getElementById('mobileSortSelect');
             const categoryButtons = document.querySelectorAll('.category-btn');
-            const mobileCategoryButtons = document.querySelectorAll('.mobile-category-btn');
             const categoryInput = document.getElementById('categoryInput');
-            const mobileCategoryInput = document.getElementById('mobileCategoryInput');
             const minPriceInput = document.getElementById('minPriceInput');
             const maxPriceInput = document.getElementById('maxPriceInput');
-            const mobileMinPriceInput = document.getElementById('mobileMinPriceInput');
-            const mobileMaxPriceInput = document.getElementById('mobileMaxPriceInput');
             const pageInput = document.getElementById('pageInput');
-            const mobilePageInput = document.getElementById('mobilePageInput');
             const orderInput = document.getElementById('orderInput');
-            const mobileOrderInput = document.getElementById('mobileOrderInput');
-            const mobileSearchHidden = document.getElementById('mobileSearchHidden');
             const resetFilters = document.getElementById('resetFilters');
-            const mobileResetFilters = document.getElementById('mobileResetFilters');
             const clearFilters = document.getElementById('clearFilters');
-            const clearAllFilters = document.getElementById('clearAllFilters');
             const loadingIndicator = document.getElementById('loadingIndicator');
             const productsContainer = document.getElementById('productsContainer');
             const searchForm = document.getElementById('searchForm');
-            const mobileFilterForm = document.getElementById('mobileFilterForm');
-            const mobileSearchForm = document.getElementById('mobileSearchForm');
-            const filterChips = document.querySelectorAll('.filter-chip button');
             
-            // Mobile filter drawer elements
-            const mobileFilterBtn = document.getElementById('mobileFilterBtn');
-            const filterDrawer = document.getElementById('filterDrawer');
-            const filterDrawerBackdrop = document.getElementById('filterDrawerBackdrop');
-            const closeFilterDrawer = document.getElementById('closeFilterDrawer');
-            
-            // Toggle Filter Panel with smooth animation (Desktop)
+            // Toggle Filter Panel with smooth animation
             const toggleFilters = document.getElementById('toggleFilters');
             const filterContent = document.getElementById('filterContent');
             const filterText = document.getElementById('filterText');
@@ -752,7 +517,7 @@
             // Initialize panel state from localStorage or default to open
             const isPanelOpen = localStorage.getItem('filterPanelOpen') !== 'false';
             
-            // Set initial state for desktop filter panel
+            // Set initial state
             if (!isPanelOpen) {
                 filterContent.style.maxHeight = '0';
                 filterContent.style.opacity = '0';
@@ -765,7 +530,6 @@
                 filterContent.style.overflow = 'visible';
             }
             
-            // Toggle desktop filter panel
             toggleFilters.addEventListener('click', function() {
                 const isOpen = filterContent.style.maxHeight !== '0px';
                 
@@ -790,103 +554,36 @@
                 }
             });
             
-            // Mobile filter drawer functionality
-            mobileFilterBtn.addEventListener('click', function() {
-                filterDrawer.classList.add('open');
-                filterDrawerBackdrop.classList.add('open');
-                document.body.style.overflow = 'hidden'; // Prevent scrolling
-            });
-            
-            function closeDrawer() {
-                filterDrawer.classList.remove('open');
-                filterDrawerBackdrop.classList.remove('open');
-                document.body.style.overflow = ''; // Re-enable scrolling
-            }
-            
-            closeFilterDrawer.addEventListener('click', closeDrawer);
-            filterDrawerBackdrop.addEventListener('click', closeDrawer);
-            
-            // Sync mobile and desktop inputs
-            function syncInputs(fromMobile = false) {
-                if (fromMobile) {
-                    // Sync from mobile to desktop
-                    categoryInput.value = mobileCategoryInput.value;
-                    minPriceInput.value = mobileMinPriceInput.value;
-                    maxPriceInput.value = mobileMaxPriceInput.value;
-                    pageInput.value = mobilePageInput.value;
-                    orderInput.value = mobileOrderInput.value;
-                    searchInput.value = mobileSearchInput.value;
-                } else {
-                    // Sync from desktop to mobile
-                    mobileCategoryInput.value = categoryInput.value;
-                    mobileMinPriceInput.value = minPriceInput.value;
-                    mobileMaxPriceInput.value = maxPriceInput.value;
-                    mobilePageInput.value = pageInput.value;
-                    mobileOrderInput.value = orderInput.value;
-                    mobileSearchHidden.value = searchInput.value;
-                }
-            }
-            
-            // Submit event for the search forms
+            // Submit event for the search form to trigger AJAX filtering
             searchForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 pageInput.value = 1;
-                syncInputs();
                 fetchFilteredResults();
             });
             
-            mobileFilterForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                mobilePageInput.value = 1;
-                syncInputs(true);
-                fetchFilteredResults();
-                closeDrawer();
-            });
-            
-            mobileSearchForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                mobilePageInput.value = 1;
-                mobileSearchHidden.value = mobileSearchInput.value;
-                syncInputs(true);
-                fetchFilteredResults();
-            });
-            
-            // Handle Enter key in search inputs
+            // Use "keydown" instead of "keypress" for proper Enter key detection
             searchInput.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     pageInput.value = 1;
-                    syncInputs();
                     fetchFilteredResults();
                 }
             });
             
-            mobileSearchInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    mobilePageInput.value = 1;
-                    mobileSearchHidden.value = mobileSearchInput.value;
-                    syncInputs(true);
-                    fetchFilteredResults();
-                }
-            });
+            // Attach input event for search field with debounce
+            searchInput.addEventListener('input', debounce(function() {
+                pageInput.value = 1; // Reset to first page when searching
+                fetchFilteredResults();
+            }, 500));
             
-            // Sort dropdown change events
+            // Sort dropdown change event
             sortSelect.addEventListener('change', function() {
                 const [sortField, order] = this.value.split('_');
                 orderInput.value = order;
-                syncInputs();
                 fetchFilteredResults();
             });
             
-            mobileSortSelect.addEventListener('change', function() {
-                const [sortField, order] = this.value.split('_');
-                mobileOrderInput.value = order;
-                syncInputs(true);
-                fetchFilteredResults();
-            });
-            
-            // Category button click handlers (Desktop)
+            // Category button click handlers
             categoryButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const category = this.getAttribute('data-category');
@@ -906,83 +603,10 @@
                     span.classList.remove('bg-white');
                     
                     pageInput.value = 1; // Reset to first page when changing category
-                    syncInputs();
+                    
                     fetchFilteredResults();
                 });
             });
-            
-            // Category button click handlers (Mobile)
-            mobileCategoryButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const category = this.getAttribute('data-category');
-                    mobileCategoryInput.value = category;
-                    
-                    // Update visual state
-                    mobileCategoryButtons.forEach(btn => {
-                        btn.classList.remove('active-category');
-                        const span = btn.querySelector('span');
-                        span.classList.remove('bg-transparent', 'text-white');
-                        span.classList.add('bg-white');
-                    });
-                    
-                    this.classList.add('active-category');
-                    const span = this.querySelector('span');
-                    span.classList.add('bg-transparent', 'text-white');
-                    span.classList.remove('bg-white');
-                });
-            });
-            
-            // Filter chip click handlers
-            filterChips.forEach(chip => {
-                chip.addEventListener('click', function() {
-                    const filterType = this.getAttribute('data-filter');
-                    
-                    if (filterType === 'search') {
-                        searchInput.value = '';
-                        mobileSearchInput.value = '';
-                        mobileSearchHidden.value = '';
-                    } else if (filterType === 'category') {
-                        categoryInput.value = 'all';
-                        mobileCategoryInput.value = 'all';
-                        
-                        // Reset category buttons
-                        document.querySelectorAll('.category-btn, .mobile-category-btn').forEach(btn => {
-                            btn.classList.remove('active-category');
-                            const span = btn.querySelector('span');
-                            span.classList.remove('bg-transparent', 'text-white');
-                            span.classList.add('bg-white');
-                        });
-                        
-                        // Set "All" category as active
-                        document.querySelectorAll('[data-category="all"]').forEach(btn => {
-                            btn.classList.add('active-category');
-                            const span = btn.querySelector('span');
-                            span.classList.add('bg-transparent', 'text-white');
-                            span.classList.remove('bg-white');
-                        });
-                    } else if (filterType === 'price') {
-                        // Reset price sliders
-                        if (priceSlider && priceSlider.noUiSlider) {
-                            priceSlider.noUiSlider.set([0, 100000]);
-                        }
-                        if (mobilePriceSlider && mobilePriceSlider.noUiSlider) {
-                            mobilePriceSlider.noUiSlider.set([0, 100000]);
-                        }
-                    }
-                    
-                    pageInput.value = 1;
-                    mobilePageInput.value = 1;
-                    fetchFilteredResults();
-                });
-            });
-            
-            // Clear all filters button
-            if (clearAllFilters) {
-                clearAllFilters.addEventListener('click', function() {
-                    resetAllFilters();
-                    fetchFilteredResults();
-                });
-            }
             
             // Function to fetch filtered results via AJAX
             function fetchFilteredResults() {
@@ -998,8 +622,9 @@
                 params.append('maxPrice', maxPriceInput.value);
                 params.append('page', pageInput.value);
                 
-                // Get sort and order
+                // Get sort and order from sortSelect
                 const [sortField, order] = sortSelect.value.split('_');
+                orderInput.value = order;
                 params.append('sort', sortField);
                 params.append('order', order);
                 
@@ -1035,14 +660,6 @@
                         attachPaginationListeners();
                     }
                     
-                    // Update active filters display
-                    const newActiveFilters = doc.getElementById('activeFilters');
-                    if (newActiveFilters) {
-                        document.getElementById('activeFilters').innerHTML = newActiveFilters.innerHTML;
-                        // Reattach event listeners to filter chips
-                        attachFilterChipListeners();
-                    }
-                    
                     // Reattach event listeners to new elements
                     attachProductEventListeners();
                     
@@ -1069,60 +686,6 @@
                 });
             }
             
-            // Function to attach filter chip listeners
-            function attachFilterChipListeners() {
-                const filterChips = document.querySelectorAll('.filter-chip button');
-                filterChips.forEach(chip => {
-                    chip.addEventListener('click', function() {
-                        const filterType = this.getAttribute('data-filter');
-                        
-                        if (filterType === 'search') {
-                            searchInput.value = '';
-                            mobileSearchInput.value = '';
-                            mobileSearchHidden.value = '';
-                        } else if (filterType === 'category') {
-                            categoryInput.value = 'all';
-                            mobileCategoryInput.value = 'all';
-                            
-                            // Reset category buttons
-                            document.querySelectorAll('.category-btn, .mobile-category-btn').forEach(btn => {
-                                btn.classList.remove('active-category');
-                                const span = btn.querySelector('span');
-                                span.classList.remove('bg-transparent', 'text-white');
-                                span.classList.add('bg-white');
-                            });
-                            
-                            // Set "All" category as active
-                            document.querySelectorAll('[data-category="all"]').forEach(btn => {
-                                btn.classList.add('active-category');
-                                const span = btn.querySelector('span');
-                                span.classList.add('bg-transparent', 'text-white');
-                                span.classList.remove('bg-white');
-                            });
-                        } else if (filterType === 'price') {
-                            // Reset price sliders
-                            if (priceSlider && priceSlider.noUiSlider) {
-                                priceSlider.noUiSlider.set([0, 100000]);
-                            }
-                            if (mobilePriceSlider && mobilePriceSlider.noUiSlider) {
-                                mobilePriceSlider.noUiSlider.set([0, 100000]);
-                            }
-                        }
-                        
-                        pageInput.value = 1;
-                        mobilePageInput.value = 1;
-                        fetchFilteredResults();
-                    });
-                });
-                
-                if (clearAllFilters) {
-                    clearAllFilters.addEventListener('click', function() {
-                        resetAllFilters();
-                        fetchFilteredResults();
-                    });
-                }
-            }
-            
             // Attach event listeners to pagination buttons
             function attachPaginationListeners() {
                 const paginationButtons = document.querySelectorAll('.pagination-btn');
@@ -1130,7 +693,6 @@
                     button.addEventListener('click', function() {
                         const page = this.getAttribute('data-page');
                         pageInput.value = page;
-                        mobilePageInput.value = page;
                         fetchFilteredResults();
                         
                         // Scroll to products section with offset for header
@@ -1148,13 +710,10 @@
             // Initialize pagination listeners
             attachPaginationListeners();
             
-            // Initialize filter chip listeners
-            attachFilterChipListeners();
-            
             // Initialize product event listeners
             attachProductEventListeners();
             
-            // Initialize price slider if it exists (Desktop)
+            // Initialize price slider if it exists
             const priceSlider = document.getElementById('priceRange');
             if (priceSlider && window.noUiSlider) {
                 if (!priceSlider.noUiSlider) {
@@ -1184,103 +743,9 @@
                     // Add change handler for AJAX approach
                     priceSlider.noUiSlider.on('change', () => {
                         pageInput.value = 1; // Reset to first page when changing price
-                        syncInputs();
                         fetchFilteredResults();
                     });
                 }
-            }
-            
-            // Initialize price slider for mobile
-            const mobilePriceSlider = document.getElementById('mobilepriceRange');
-            if (mobilePriceSlider && window.noUiSlider) {
-                if (!mobilePriceSlider.noUiSlider) {
-                    noUiSlider.create(mobilePriceSlider, {
-                        start: [`<%= minPrice %>`, `<%= maxPrice %>`],
-                        connect: true,
-                        range: {
-                            'min': 0,
-                            'max': 100000
-                        },
-                        step: 100,
-                        format: {
-                            to: value => Math.round(value),
-                            from: value => value
-                        }
-                    });
-                    
-                    // Update hidden inputs and display values
-                    mobilePriceSlider.noUiSlider.on('update', (values, handle) => {
-                        const [min, max] = values.map(Number);
-                        document.getElementById('mobilePriceMinValue').textContent = min;
-                        document.getElementById('mobilePriceMaxValue').textContent = max;
-                        document.getElementById('mobileMinPriceInput').value = min;
-                        document.getElementById('mobileMaxPriceInput').value = max;
-                    });
-                }
-            }
-            
-            // Function to reset all filters
-            function resetAllFilters() {
-                // Reset search inputs
-                searchInput.value = '';
-                mobileSearchInput.value = '';
-                mobileSearchHidden.value = '';
-                
-                // Reset category
-                categoryInput.value = 'all';
-                mobileCategoryInput.value = 'all';
-                
-                // Reset category buttons
-                document.querySelectorAll('.category-btn, .mobile-category-btn').forEach(btn => {
-                    btn.classList.remove('active-category');
-                    const span = btn.querySelector('span');
-                    span.classList.remove('bg-transparent', 'text-white');
-                    span.classList.add('bg-white');
-                });
-                
-                // Set "All" category as active
-                document.querySelectorAll('[data-category="all"]').forEach(btn => {
-                    btn.classList.add('active-category');
-                    const span = btn.querySelector('span');
-                    span.classList.add('bg-transparent', 'text-white');
-                    span.classList.remove('bg-white');
-                });
-                
-                // Reset price sliders
-                if (priceSlider && priceSlider.noUiSlider) {
-                    priceSlider.noUiSlider.set([0, 100000]);
-                }
-                if (mobilePriceSlider && mobilePriceSlider.noUiSlider) {
-                    mobilePriceSlider.noUiSlider.set([0, 100000]);
-                }
-                
-                // Reset sort
-                sortSelect.value = 'popularity_desc';
-                mobileSortSelect.value = 'popularity_desc';
-                orderInput.value = 'desc';
-                mobileOrderInput.value = 'desc';
-                
-                // Reset page
-                pageInput.value = 1;
-                mobilePageInput.value = 1;
-            }
-            
-            // Reset filters buttons
-            resetFilters.addEventListener('click', function() {
-                resetAllFilters();
-                syncInputs();
-                fetchFilteredResults();
-            });
-            
-            mobileResetFilters.addEventListener('click', function() {
-                resetAllFilters();
-                syncInputs(true);
-            });
-            
-            if (clearFilters) {
-                clearFilters.addEventListener('click', function() {
-                    window.location.href = '/shop';
-                });
             }
             
             // Debounce function to limit how often a function is called
@@ -1300,64 +765,6 @@
             function attachProductEventListeners() {
                 // Add any event listeners needed for product cards here
             }
-            
-            // View mode toggle (grid/list)
-            const gridViewBtn = document.getElementById('gridView');
-            const listViewBtn = document.getElementById('listView');
-            const productsList = document.getElementById('productsList');
-            
-            if (gridViewBtn && listViewBtn && productsList) {
-                function updateViewMode(mode) {
-                    // Remove active state from all buttons
-                    document.querySelectorAll('.view-mode-btn').forEach(btn => {
-                        btn.classList.remove('bg-purple-600', 'text-white');
-                        btn.classList.add('bg-white', 'text-purple-600', 'hover:bg-purple-100');
-                    });
-                    
-                    // Add active state to clicked button
-                    if (mode === 'grid') {
-                        gridViewBtn.classList.remove('bg-white', 'text-purple-600', 'hover:bg-purple-100');
-                        gridViewBtn.classList.add('bg-purple-600', 'text-white');
-                        productsList.classList.remove('space-y-4');
-                        productsList.classList.add('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'gap-4');
-                    } else {
-                        listViewBtn.classList.remove('bg-white', 'text-purple-600', 'hover:bg-purple-100');
-                        listViewBtn.classList.add('bg-purple-600', 'text-white');
-                        gridViewBtn.classList.add('bg-white', 'text-purple-600', 'hover:bg-purple-100');
-                        gridViewBtn.classList.remove('bg-purple-600', 'text-white');
-                        productsList.classList.remove('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'gap-4');
-                        productsList.classList.add('space-y-4');
-                    }
-                    
-                    // Save preference
-                    localStorage.setItem('viewMode', mode);
-                }
-                
-                gridViewBtn.addEventListener('click', () => updateViewMode('grid'));
-                listViewBtn.addEventListener('click', () => updateViewMode('list'));
-                
-                // Apply saved view mode or default to grid
-                const savedViewMode = localStorage.getItem('viewMode') || 'grid';
-                updateViewMode(savedViewMode);
-            }
-            
-            // Sticky search bar behavior for mobile
-            const stickySearch = document.querySelector('.sticky-search');
-            let lastScrollTop = 0;
-            
-            window.addEventListener('scroll', function() {
-                const st = window.pageYOffset || document.documentElement.scrollTop;
-                
-                if (st > lastScrollTop && st > 200) {
-                    // Scrolling down & past threshold - hide the search bar
-                    stickySearch?.classList.add('hidden');
-                } else if (st < lastScrollTop || st < 100) {
-                    // Scrolling up or near top - show the search bar
-                    stickySearch?.classList.remove('hidden');
-                }
-                
-                lastScrollTop = st <= 0 ? 0 : st;
-            }, false);
             
             // Alert System
             window.showAlert = function(message, type = 'success') {
@@ -1401,6 +808,47 @@
                     setTimeout(() => alertElement.remove(), 300);
                 }, 3000);
             };
+            
+            // Reset filters
+            resetFilters.addEventListener('click', function() {
+                searchInput.value = '';
+                categoryInput.value = 'all';
+                
+                // Reset category buttons
+                categoryButtons.forEach(btn => {
+                    btn.classList.remove('active-category');
+                    const span = btn.querySelector('span');
+                    span.classList.remove('bg-transparent', 'text-white');
+                    span.classList.add('bg-white');
+                });
+                
+                // Set "All" category as active
+                const allCategoryBtn = document.querySelector('[data-category="all"]');
+                allCategoryBtn.classList.add('active-category');
+                const span = allCategoryBtn.querySelector('span');
+                span.classList.add('bg-transparent', 'text-white');
+                span.classList.remove('bg-white');
+                
+                // Reset price slider
+                if (priceSlider && priceSlider.noUiSlider) {
+                    priceSlider.noUiSlider.set([0, 100000]);
+                }
+                
+                // Reset sort
+                if (sortSelect) {
+                    sortSelect.value = 'popularity_desc';
+                }
+                
+                // Submit the form via AJAX
+                pageInput.value = 1;
+                fetchFilteredResults();
+            });
+            
+            if (clearFilters) {
+                clearFilters.addEventListener('click', function() {
+                    window.location.href = '/shop';
+                });
+            }
         });
     </script>
 </body>
