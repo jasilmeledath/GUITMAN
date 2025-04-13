@@ -7,9 +7,9 @@
 
 const Product = require('../../models/productModel');
 const Cart = require('../../models/cartModel');
-const User = require('../../models/userModel');
 const httpStatus = require('../../utils/httpStatus');
 const jwt = require('jsonwebtoken');
+const Wishlist = require('../../models/wishlistModel');
 const getUser = require('../../helpers/getUser');
 const getProduct = require('../../helpers/getProduct');
 
@@ -25,14 +25,8 @@ const cartController = {
     try {
       const user = await getUser(req, res, next);
       const { productId, quantity } = req.body;
-      const token = req.cookies.authToken;
 
-      if (!token) {
-        return res.status(httpStatus.UNAUTHORIZED).redirect('/login');
-      }
-
-      const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-      const userId = decodedToken.id;
+      const userId = user._id;
 
       if (!userId) {
         return res.status(httpStatus.UNAUTHORIZED).json({
@@ -144,6 +138,20 @@ const cartController = {
 
       await cart.save();
 
+      const wishlist = await Wishlist.findOne({user: userId});
+      
+      if(wishlist){
+        for(const item of wishlist.items){
+          if(item.product.toString()===productId.toString()){
+            await Wishlist.findOneAndUpdate(
+              {_id: wishlist._id},
+              {$pull: {items: {product: productId}}}
+            );
+            break;
+          }
+        }
+      }
+
       return res.status(httpStatus.OK).json({
         success: true,
         message: "Product added successfully!",
@@ -151,7 +159,6 @@ const cartController = {
       });
 
     } catch (err) {
-      console.error("Error in addToCart:", err);
       next(err);
     }
   },

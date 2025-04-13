@@ -828,6 +828,11 @@
                 
                 // Update cart count if available
                 updateCartCount(1);
+
+                setTimeout(()=>{
+                  window.location.reload();
+                },1000)
+                
               } else {
                 showToast(result.message || 'Failed to add to cart', 'error');
               }

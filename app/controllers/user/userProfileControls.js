@@ -1,5 +1,6 @@
 const User = require('../../models/userModel');
 const getUser = require('../../helpers/getUser');
+const getCart = require('../../helpers/getCart');
 const httpStatus = require('../../utils/httpStatus');
 const { hashPassword, verifyPassword } = require('../../services/authService');
 const { createOtp } = require('../../services/otpService');
@@ -488,7 +489,6 @@ const profileControls = {
           updatedWishlist
         });
       }
-
       wishlist.items.push({ product: productId });
       await wishlist.save();
 

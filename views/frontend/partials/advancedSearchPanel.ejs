@@ -13,23 +13,23 @@
         <form id="searchForm" action="/shop" method="GET" class="space-y-6">
             <div class="flex flex-col md:flex-row gap-4">
                 <!-- Search Input with Button -->
-                <div class="relative flex-grow">
-                    <div class="flex">
-                        <input type="text" 
-                            id="searchInput"
-                            name="search"
-                            value="<%= search %>"
-                            placeholder="Search products..."
-                            class="w-full pl-4 pr-4 py-2 text-sm md:text-base rounded-l-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                        <button type="submit" 
-                                class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 md:px-4 md:py-2.5 rounded-r-lg transition-colors duration-200 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            <span class="ml-1 hidden sm:inline text-xs md:text-sm">Search</span>
-                        </button>
-                    </div>
-                </div>
+                <div class="flex">
+                    <input type="text" 
+                           id="searchInput"
+                           name="search"
+                           value="<%= typeof search !== 'undefined' ? search : '' %>"
+                           placeholder="Search products..."
+                           class="w-full pl-4 pr-4 py-2 text-sm md:text-base rounded-l-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                    <button type="submit" 
+                            id="searchButton"
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 md:px-4 md:py-2.5 rounded-r-lg transition-colors duration-200 flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      <span class="ml-1 hidden sm:inline text-xs md:text-sm">Search</span>
+                    </button>
+                  </div>
 
                 <!-- Sort Dropdown -->
                 <div class="w-full md:w-64">  
@@ -129,6 +129,7 @@
             <!-- Hidden Fields for State Preservation -->
             <input type="hidden" id="pageInput" name="page" value="1">
             <input type="hidden" id="orderInput" name="order" value="<%= order %>">
+            <input type="hidden" id="searchValueHidden" name="searchValue" value="">
             
             <!-- Action Buttons -->
             <div class="flex justify-between pt-4 border-t border-gray-200">
@@ -146,6 +147,8 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Cache DOM elements
         const searchInput = document.getElementById('searchInput');
+        const searchValueHidden = document.getElementById('searchValueHidden');
+        const searchButton = document.getElementById('searchButton');
         const sortSelect = document.getElementById('sortSelect');
         const categoryButtons = document.querySelectorAll('.category-btn');
         const categoryInput = document.getElementById('categoryInput');
@@ -204,33 +207,47 @@
                 localStorage.setItem('filterPanelOpen', 'true');
             }
         });
+
+        // Update hidden search value before form submission
+        function updateSearchValue() {
+            if (searchValueHidden) {
+                searchValueHidden.value = searchInput.value.trim();
+            }
+        }
         
         // Submit event for the search form to trigger AJAX filtering
         searchForm.addEventListener('submit', function(e) {
             e.preventDefault();
             pageInput.value = 1;
+            updateSearchValue();
             fetchFilteredResults();
         });
+        
+        // Search button click event
+        if (searchButton) {
+            searchButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                pageInput.value = 1;
+                updateSearchValue();
+                fetchFilteredResults();
+            });
+        }
         
         // Use "keydown" instead of "keypress" for proper Enter key detection
         searchInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 pageInput.value = 1;
+                updateSearchValue();
                 fetchFilteredResults();
             }
         });
-        
-        // Attach input event for search field with debounce
-        searchInput.addEventListener('input', debounce(function() {
-            pageInput.value = 1; // Reset to first page when searching
-            fetchFilteredResults();
-        }, 500));
         
         // Sort dropdown change event
         sortSelect.addEventListener('change', function() {
             const [sortField, order] = this.value.split('_');
             orderInput.value = order;
+            updateSearchValue();
             fetchFilteredResults();
         });
         
@@ -254,40 +271,62 @@
                 span.classList.remove('bg-white');
                 
                 pageInput.value = 1; // Reset to first page when changing category
-                
+                updateSearchValue();
                 fetchFilteredResults();
             });
         });
         
         // Function to fetch filtered results via AJAX
         function fetchFilteredResults() {
-            // Show loading indicator
-            loadingIndicator.classList.remove('hidden');
-            productsContainer.classList.add('fade-out');
+            // Show loading indicator if it exists
+            if (loadingIndicator) {
+                loadingIndicator.classList.remove('hidden');
+            }
+            
+            if (productsContainer) {
+                productsContainer.classList.add('fade-out');
+            }
+            
+            // Make sure to get the current value directly from the input element
+            const searchValue = searchInput.value.trim();
+            
+            // Debug: Log the search value before sending the request
+            console.log('Sending search value:', searchValue);
             
             // Build query string from form inputs
             const params = new URLSearchParams();
-            params.append('search', searchInput.value);
-            params.append('category', categoryInput.value);
-            params.append('minPrice', minPriceInput.value);
-            params.append('maxPrice', maxPriceInput.value);
-            params.append('page', pageInput.value);
+            
+            // Explicitly set the search parameter
+            params.set('search', searchValue);
+            
+            // Set other parameters
+            params.set('category', categoryInput.value);
+            params.set('minPrice', minPriceInput.value);
+            params.set('maxPrice', maxPriceInput.value);
+            params.set('page', pageInput.value);
             
             // Get sort and order from sortSelect
             const [sortField, order] = sortSelect.value.split('_');
             orderInput.value = order;
-            params.append('sort', sortField);
-            params.append('order', order);
+            params.set('sort', sortField);
+            params.set('order', order);
+            
+            // Log the full params string for debugging
+            console.log('Full query params:', params.toString());
             
             // Fetch filtered results with GET method and no-cache
             fetch(`/shop?${params.toString()}`, {
                 method: 'GET',
                 cache: 'no-cache',
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 }
             })
-            .then(response => response.text())
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.text();
+            })
             .then(html => {
                 // Update URL without page reload
                 const newUrl = `${window.location.pathname}?${params.toString()}`;
@@ -299,14 +338,15 @@
                 
                 // Update products container
                 const newProductsContainer = doc.getElementById('productsContainer');
-                if (newProductsContainer) {
+                if (newProductsContainer && productsContainer) {
                     productsContainer.innerHTML = newProductsContainer.innerHTML;
                 }
                 
                 // Update pagination
                 const newPaginationContainer = doc.getElementById('paginationContainer');
-                if (newPaginationContainer) {
-                    document.getElementById('paginationContainer').innerHTML = newPaginationContainer.innerHTML;
+                const paginationContainer = document.getElementById('paginationContainer');
+                if (newPaginationContainer && paginationContainer) {
+                    paginationContainer.innerHTML = newPaginationContainer.innerHTML;
                     // Reattach event listeners to new pagination buttons
                     attachPaginationListeners();
                 }
@@ -315,9 +355,14 @@
                 attachProductEventListeners();
                 
                 // Hide loading indicator and show products
-                loadingIndicator.classList.add('hidden');
-                productsContainer.classList.remove('fade-out');
-                productsContainer.classList.add('fade-in');
+                if (loadingIndicator) {
+                    loadingIndicator.classList.add('hidden');
+                }
+                
+                if (productsContainer) {
+                    productsContainer.classList.remove('fade-out');
+                    productsContainer.classList.add('fade-in');
+                }
                 
                 // Apply saved view mode
                 const currentViewMode = localStorage.getItem('viewMode') || 'grid';
@@ -332,7 +377,9 @@
             })
             .catch(error => {
                 console.error('Error fetching filtered results:', error);
-                loadingIndicator.classList.add('hidden');
+                if (loadingIndicator) {
+                    loadingIndicator.classList.add('hidden');
+                }
                 showAlert('An error occurred while filtering products. Please try again.', 'error');
             });
         }
@@ -344,16 +391,19 @@
                 button.addEventListener('click', function() {
                     const page = this.getAttribute('data-page');
                     pageInput.value = page;
+                    updateSearchValue();
                     fetchFilteredResults();
                     
                     // Scroll to products section with offset for header
                     const productsSection = document.getElementById('products');
-                    const headerHeight = 80; // Approximate header height
-                    const scrollPosition = productsSection.getBoundingClientRect().top + window.pageYOffset - headerHeight;
-                    window.scrollTo({
-                        top: scrollPosition,
-                        behavior: 'smooth'
-                    });
+                    if (productsSection) {
+                        const headerHeight = 80; // Approximate header height
+                        const scrollPosition = productsSection.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+                        window.scrollTo({
+                            top: scrollPosition,
+                            behavior: 'smooth'
+                        });
+                    }
                 });
             });
         }
@@ -394,6 +444,7 @@
                 // Add change handler for AJAX approach
                 priceSlider.noUiSlider.on('change', () => {
                     pageInput.value = 1; // Reset to first page when changing price
+                    updateSearchValue();
                     fetchFilteredResults();
                 });
             }
@@ -420,6 +471,7 @@
         // Alert System
         window.showAlert = function(message, type = 'success') {
             const alertContainer = document.getElementById('alert-container');
+            if (!alertContainer) return;
             
             // Create alert element
             const alertElement = document.createElement('div');
@@ -463,6 +515,9 @@
         // Reset filters
         resetFilters.addEventListener('click', function() {
             searchInput.value = '';
+            if (searchValueHidden) {
+                searchValueHidden.value = '';
+            }
             categoryInput.value = 'all';
             
             // Reset category buttons
@@ -475,10 +530,12 @@
             
             // Set "All" category as active
             const allCategoryBtn = document.querySelector('[data-category="all"]');
-            allCategoryBtn.classList.add('active-category');
-            const span = allCategoryBtn.querySelector('span');
-            span.classList.add('bg-transparent', 'text-white');
-            span.classList.remove('bg-white');
+            if (allCategoryBtn) {
+                allCategoryBtn.classList.add('active-category');
+                const span = allCategoryBtn.querySelector('span');
+                span.classList.add('bg-transparent', 'text-white');
+                span.classList.remove('bg-white');
+            }
             
             // Reset price slider
             if (priceSlider && priceSlider.noUiSlider) {
@@ -499,6 +556,11 @@
             clearFilters.addEventListener('click', function() {
                 window.location.href = '/shop';
             });
+        }
+        
+        // For direct page loads, ensure searchValueHidden is properly initialized
+        if (searchValueHidden && searchInput) {
+            searchValueHidden.value = searchInput.value.trim();
         }
     });
 </script>
