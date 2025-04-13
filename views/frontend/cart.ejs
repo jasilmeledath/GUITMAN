@@ -1105,7 +1105,7 @@
                       alt="<%= product.product_name %>" 
                       class="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110">
                   
-                  <% if(product.offer) { %>
+                  <% if(product.offerDetails) { %>
                     <div class="absolute top-2 left-2 bg-primary-600 text-white text-xs font-bold px-2 py-1 rounded-md">
                       <%= product.offerDetails.offer_percentage %>% OFF
                     </div>

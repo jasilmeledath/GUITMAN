@@ -11,119 +11,149 @@ const Wallet = require('../../models/walletModel');
 const processRefund = require('../../helpers/processRefund');
 const Coupon = require('../../models/couponModel');
 const { sendEmail } = require("../../services/emailService");
-const {generateOrderConfirmationEmail} = require('../../utils/emailTemplates');
+const { generateOrderConfirmationEmail } = require('../../utils/emailTemplates');
 const PDFDocument = require('pdfkit');
 const { ObjectId } = require('mongodb');
-
+const {addUserToCouponUsedList} = require('../../helpers/addUserToCouponUsedList'); 
 
 const orderControls = {
+  /**
+   * Applies a coupon to the current cart.
+   *
+   * Validates the coupon code, checks expiration, usage limits, user eligibility, and minimum purchase.
+   * Updates the cart with the discount amount and recalculates the total.
+   *
+   * @param {Object} req - Express request object containing couponCode in the body.
+   * @param {Object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
+   */
   applyCoupon: async (req, res, next) => {    
     try {      
       const { couponCode } = req.body;
       if (!couponCode) {
         return res.status(HttpStatus.BAD_REQUEST)
           .json({ success: false, message: "Coupon code is required!" });
-      }
-      // Fetch the coupon from the database
+      } 
+      const user = await getUser(req,res,next);
+      const userId = user._id;
+      // Fetch coupon details
       const coupon = await Coupon.findOne({ coupon_code: couponCode, is_active: true });
+      
       if (!coupon) {
         return res.status(HttpStatus.BAD_REQUEST)
           .json({ success: false, message: "Invalid coupon code!" });
       }
-      // Check if the coupon has expired
       if (coupon.expire_date < new Date()) {
         return res.status(HttpStatus.BAD_REQUEST)
           .json({ success: false, message: "Coupon has expired!" });
       }
-      // Check if the coupon has reached its usage limit
       if (coupon.usage_limit <= coupon.redemption_count) {
         return res.status(HttpStatus.BAD_REQUEST)
           .json({ success: false, message: "Coupon usage limit reached!" });
       }
-      // Check if coupon is restricted to specific users
-      const user = await getUser(req, res, next);
-      if (coupon.user_id && coupon.user_id.length > 0 && !coupon.user_id.includes(user._id)) {
+      // Check if coupon is restricted to specific users.
+      if (
+        coupon.user_id &&
+        coupon.user_id.length > 0 &&
+        coupon.user_id.some(usedUser => usedUser.toString() === userId.toString())
+      ) {
         return res.status(HttpStatus.BAD_REQUEST)
-          .json({ success: false, message: "You are not eligible to use this coupon!" });
-      }
-      // Get the current cart
+          .json({ success: false, message: "Coupon is already used or restricted!" });
+      }      
+      
       const cart = await getCart(req, res, next);
-      // Check if the cart meets the minimum purchase required for the coupon
       if (cart.cart_subtotal < coupon.min_amount) {
         return res.status(HttpStatus.BAD_REQUEST)
           .json({ success: false, message: `Minimum purchase of ₹${coupon.min_amount} required to use this coupon!` });
       }
-      // Calculate discount amount based on coupon type
+      // Calculate discount based on coupon type
       let discountAmount = 0;
       if (coupon.coupon_type === 'percentage') {
         discountAmount = (coupon.discount / 100) * cart.cart_subtotal;
       } else if (coupon.coupon_type === 'fixed') {
         discountAmount = coupon.discount;
       }
-      // Apply maximum discount cap if specified
       if (coupon.max_discount && discountAmount > coupon.max_discount) {
         discountAmount = coupon.max_discount;
       }
-      // Update the cart: set savings and recalculate the total
+      // Update cart details and save
       cart.savings = discountAmount;
       cart.couponApplied = coupon._id;
       cart.cart_total = cart.cart_subtotal + cart.shipping_fee + cart.tax - discountAmount;
       await cart.save();
-      return res.status(HttpStatus.OK)
-        .json({ 
-          success: true, 
-          message: "Coupon applied successfully!", 
-          coupon: { code: coupon.coupon_code },
-          discount: discountAmount,
-          total: cart.cart_total,
-          updatedCart: cart
-        });
+      return res.status(HttpStatus.OK).json({ 
+        success: true, 
+        message: "Coupon applied successfully!", 
+        coupon: { code: coupon.coupon_code },
+        discount: discountAmount,
+        total: cart.cart_total,
+        updatedCart: cart
+      });
     } catch (err) {
       next(err);
     }
   },
+
+  /**
+   * Removes the applied coupon from the current cart.
+   *
+   * Resets discount-related fields and recalculates the cart total.
+   *
+   * @param {Object} req - Express request object.
+   * @param {Object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
+   */
   removeCoupon: async (req, res, next) => {
     try {
       const cart = await getCart(req, res, next);
-      // Remove coupon discount by resetting savings and recalculate total
       cart.savings = 0;
       cart.cart_total = cart.cart_subtotal + cart.shipping_fee + cart.tax;
       cart.couponApplied = null;
       await cart.save();
-      return res.status(HttpStatus.OK)
-        .json({ 
-          success: true, 
-          message: "Coupon removed successfully!",
-          total: cart.cart_total,
-          updatedCart: cart
-        });
+      return res.status(HttpStatus.OK).json({ 
+        success: true, 
+        message: "Coupon removed successfully!",
+        total: cart.cart_total,
+        updatedCart: cart
+      });
     } catch (err) {
       next(err);
     }
   },
+
+  /**
+   * Creates an order based on the current cart and chosen payment method.
+   *
+   * For COD, it validates the order amount and creates a local order record.
+   * For UPI, it initiates a Razorpay order and creates a local order record with 'pending' status.
+   *
+   * @param {Object} req - Express request object containing addressId, paymentMethod, and optionally couponCode in the body.
+   * @param {Object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
+   */
   createOrder: async (req, res, next) => {
     try {
       const { addressId, paymentMethod, cardDetails, couponCode } = req.body;
       const cart = await getCart(req, res, next);
       const user = await getUser(req, res, next);
+      const userId = user._id;
   
       if (!addressId || !paymentMethod) {
         return res.status(HttpStatus.BAD_REQUEST)
           .json({ success: false, message: "Select the address and payment method!" });
       }
   
+      // Handle COD orders
       if (paymentMethod === 'cod') {
-        // Map cart items to the order items format
         const items = cart.items.map(item => ({
           product: item.product,
           quantity: item.quantity,
           price: item.item_price
         }));
-         if(cart.total>=1001){
+        if (cart.total >= 1001) {
           return res.status(HttpStatus.BAD_REQUEST)
-          .json({success: false, message:"Order amount allowed for cod exceeded!"})
-         }
-        // Create the local order record for COD
+            .json({ success: false, message: "Order amount allowed for COD exceeded!" });
+        }
         const order = new Order({
           items: items,
           payment_method: paymentMethod,
@@ -134,16 +164,14 @@ const orderControls = {
           total: cart.cart_total,
           user: user._id,
           address: addressId,
-          status: 'placed' 
+          status: 'placed'
         });
         const newOrder = await order.save();
-  
         if (!newOrder) {
           return res.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .json({ success: false, message: "Something went wrong! Please try again later!" });
         }
-  
-        // Reduce the stock for each product based on the ordered quantity
+        // Deduct stock for ordered products
         await Promise.all(
           cart.items.map(item =>
             Product.findByIdAndUpdate(
@@ -152,8 +180,14 @@ const orderControls = {
             )
           )
         );
-  
-        // Empty the cart after placing the order
+
+        // Add user to coupon used list
+        const couponId = cart?.couponApplied;
+        if(couponId){
+        await addUserToCouponUsedList(couponId,userId);
+        }
+
+        // Clear the cart after order placement
         await Cart.findOneAndUpdate(
           { _id: cart._id },
           {
@@ -166,31 +200,28 @@ const orderControls = {
             couponApplied: null,
           }
         );
+        
         const getExpectedDeliveryDate = () => {
           const today = new Date();
           today.setDate(today.getDate() + 5);
           return today;
         };
-        
         const expectedDeliveryDate = getExpectedDeliveryDate();
-        const emailContent = generateOrderConfirmationEmail(user.first_name, newOrder.order_id, newOrder.total, expectedDeliveryDate)
-
-        await sendEmail(
-          user.email,
-          emailContent.subject,
-          emailContent.text,
-          emailContent.html
+        const emailContent = generateOrderConfirmationEmail(
+          user.first_name,
+          newOrder.order_id,
+          newOrder.total,
+          expectedDeliveryDate
         );
+        await sendEmail(user.email, emailContent.subject, emailContent.text, emailContent.html);
   
-        return res.status(HttpStatus.OK)
-          .json({ success: true, message: "Order Placed!", orderId: newOrder._id });
+        return res.status(HttpStatus.OK).json({ success: true, message: "Order Placed!", orderId: newOrder._id });
       }
   
+      // Handle UPI payment orders
       if (paymentMethod === 'upi') {
-        // Create a Razorpay order using the service function.
-        // Ensure the amount is provided in rupees (the service handles conversion to paise)
         const razorpayOrder = await createRazorpayOrder({
-          amount: Number(cart.cart_total), // converting to number if not already
+          amount: Number(cart.cart_total),
           currency: 'INR',
           receipt: `receipt#${Date.now()}`
         });
@@ -199,14 +230,12 @@ const orderControls = {
             .json({ success: false, message: "Failed to create Razorpay order!" });
         }
   
-        // Map cart items to the order items format
         const items = cart.items.map(item => ({
           product: item.product,
           quantity: item.quantity,
           price: item.item_price
         }));
   
-        // Create a local order record with the Razorpay order id and status 'pending'
         const newOrder = new Order({
           items: items,
           payment_method: paymentMethod,
@@ -217,68 +246,61 @@ const orderControls = {
           total: cart.cart_total,
           user: user._id,
           address: addressId,
-          razorpay_order_id: razorpayOrder.id, // store the Razorpay order ID
-          status: 'pending' // Payment not yet verified
+          razorpay_order_id: razorpayOrder.id,
+          status: 'pending'
         });
         const savedOrder = await newOrder.save();
-        
         if (!savedOrder) {
           return res.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .json({ success: false, message: "Failed to save order!" });
         }
   
-        // Return the Razorpay order details and local order ID to the client.
-        return res.status(HttpStatus.OK)
-          .json({
-            success: true,
-            message: "Razorpay order created",
-            order: razorpayOrder,
-            localOrderId: savedOrder._id
-          });
+        return res.status(HttpStatus.OK).json({
+          success: true,
+          message: "Razorpay order created",
+          order: razorpayOrder,
+          localOrderId: savedOrder._id
+        });
       }
-  
-      // Optionally, handle other payment methods here
+      // Optionally handle additional payment methods here
   
     } catch (err) {
       next(err);
     }
   },
+
+  /**
+   * Updates an order for retrying payment by generating a new Razorpay order.
+   *
+   * @param {Object} req - Express request object containing the order_id parameter.
+   * @param {Object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
+   */
   updateOrderForRetryPayment: async (req, res, next) => {
     try {
       const { order_id } = req.params;
-      
-      // Find the existing order by order_id (assuming order.order_id is stored)
+      // Find order by order_id
       const order = await Order.findOne({ order_id });
       if (!order) {
         return res.status(HttpStatus.NOT_FOUND)
           .json({ success: false, message: "Order not found" });
       }
-      
-      // Ensure this order is for UPI payment; you can add further checks if necessary.
       if (order.payment_method !== 'upi') {
         return res.status(HttpStatus.BAD_REQUEST)
           .json({ success: false, message: "Retry payment is only available for UPI payments." });
       }
-      
-      // Create a new Razorpay order with the required amount and currency.
-      // Note: Adjust amount if your createRazorpayOrder service expects rupees (service should convert to paise if needed)
       const razorpayOrder = await createRazorpayOrder({
-        amount: Number(order.total),  // assuming order.total is in rupees; service converts to paise
+        amount: Number(order.total),
         currency: 'INR',
         receipt: `receipt#retry-${Date.now()}`
       });
-      
       if (!razorpayOrder) {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR)
           .json({ success: false, message: "Failed to create Razorpay order for retry." });
       }
-      
-      // Update the existing order with the new Razorpay order ID and reset its status if necessary.
       order.razorpay_order_id = razorpayOrder.id;
       order.status = 'pending';
       await order.save();
-      
-      // Return the new Razorpay order ID to the client so the frontend can use it.
       return res.status(HttpStatus.OK)
         .json({
           success: true,
@@ -289,19 +311,31 @@ const orderControls = {
       next(error);
     }
   },
+
+  /**
+   * Verifies Razorpay payment details and finalizes the order.
+   *
+   * Updates order status to 'paid', creates a transaction record, updates wallet history,
+   * reduces product stock, clears the cart, and sends a confirmation email.
+   *
+   * @param {Object} req - Express request object containing Razorpay details and local order ID.
+   * @param {Object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
+   */
   verifyRazorpayPayment: async (req, res, next) => {
     try {
       const {
         razorpay_payment_id,
         razorpay_order_id,
         razorpay_signature,
-        order_id // local order ID you sent to the client
+        order_id // local order ID
       } = req.body;
   
       const cart = await getCart(req, res, next);
       const user = await getUser(req, res, next);
+      const userId = user._id;
   
-      // 1) Verify signature using your existing helper
+      // Verify payment signature
       const isValidSignature = verifyPayment({
         razorpay_order_id,
         razorpay_payment_id,
@@ -315,7 +349,7 @@ const orderControls = {
         });
       }
   
-      // 2) Find the order in the DB
+      // Retrieve order from DB
       let order;
       if (ObjectId.isValid(order_id)) {
         order = await Order.findById(order_id);
@@ -329,34 +363,30 @@ const orderControls = {
         });
       }
   
-      // 3) Update order status to 'paid' and store Razorpay details
+      // Update order status and store Razorpay payment ID
       order.payment_status = 'paid';
       order.razorpay_payment_id = razorpay_payment_id;
       await order.save();
   
-      // 4) Create a transaction record using the separate function
+      // Log the transaction
       const transaction = await createTransaction({
         user: user._id,
-        transaction_id: razorpay_payment_id, // Using Razorpay payment ID as transaction ID
+        transaction_id: razorpay_payment_id,
         transaction_type: 'payment',
-        amount: order.total, // Assuming order.total contains the payment amount
+        amount: order.total,
         description: `Payment for order ${order_id} verified successfully via Razorpay.`,
         date: new Date()
       });
   
-      // 5) Update wallet history:
+      // Update wallet history
       let wallet = await Wallet.findOne({ user: user._id });
       if (!wallet) {
-        wallet = new Wallet({
-          user: user._id,
-          history: []
-        });
+        wallet = new Wallet({ user: user._id, history: [] });
       }
       wallet.history.push(transaction._id);
       await wallet.save();
   
-      // 6) Reduce the product stock based on the items in the cart.
-      // Assuming each cart item has `product` (id) and `quantity`
+      // Deduct product stock
       if (cart && cart.items && cart.items.length) {
         await Promise.all(
           cart.items.map(item =>
@@ -367,9 +397,15 @@ const orderControls = {
             )
           )
         );
+      } 
+      
+      // Add user to coupon used list
+      const couponId = cart?.couponApplied;
+      if(couponId){
+        await addUserToCouponUsedList(couponId,userId);
       }
-  
-      // 7) Empty the cart after placing the order
+
+      // Clear the cart
       await Cart.findOneAndUpdate(
         { _id: cart._id },
         {
@@ -379,16 +415,16 @@ const orderControls = {
           tax: 0,
           shipping_fee: 0,
           savings: 0,
+          couponApplied: null,
         }
       );
   
-      // 8) Send Confirmation Email
+      // Prepare and send order confirmation email
       const getExpectedDeliveryDate = () => {
         const today = new Date();
         today.setDate(today.getDate() + 5);
         return today;
       };
-  
       const expectedDeliveryDate = getExpectedDeliveryDate();
       const emailContent = generateOrderConfirmationEmail(
         user.first_name,
@@ -396,13 +432,7 @@ const orderControls = {
         order.total,
         expectedDeliveryDate
       );
-  
-      await sendEmail(
-        user.email,
-        emailContent.subject,
-        emailContent.text,
-        emailContent.html
-      );
+      await sendEmail(user.email, emailContent.subject, emailContent.text, emailContent.html);
   
       return res.json({
         success: true,
@@ -414,10 +444,18 @@ const orderControls = {
     }
   },
     
-  downloadInvoice:async (req, res, next) => {
+  /**
+   * Generates a downloadable invoice PDF for the specified order.
+   *
+   * Queries the order by order_id, constructs a PDF document with order details, and streams it back.
+   *
+   * @param {Object} req - Express request object containing orderId in params.
+   * @param {Object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
+   */
+  downloadInvoice: async (req, res, next) => {
     try {
       const { orderId } = req.params;
-      // Find the order by its order_id
       const order = await Order.findOne({ order_id: orderId })
         .populate('items.product')
         .lean();
@@ -426,155 +464,140 @@ const orderControls = {
         return res.status(404).json({ success: false, message: 'Order not found' });
       }
   
-      // Create a new PDF document
       const doc = new PDFDocument({ margin: 50 });
   
-      // Set response headers for PDF download
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename=Invoice-${order.order_id}.pdf`);
   
-      // Pipe the document to the response
       doc.pipe(res);
   
-      // ----------------- Header Section -----------------
-      // GuitMan Brand Header
-      doc
-        .font('Helvetica-Bold')
-        .fontSize(26)
-        .fillColor('#0284c7')
-        .text('GuitMan', { align: 'center' })
-        .moveDown(0.3);
+      // Header Section
+      doc.font('Helvetica-Bold')
+         .fontSize(26)
+         .fillColor('#0284c7')
+         .text('GuitMan', { align: 'center' })
+         .moveDown(0.3);
+      doc.font('Helvetica')
+         .fontSize(16)
+         .fillColor('#333')
+         .text('Invoice', { align: 'center' })
+         .moveDown();
   
-      doc
-        .font('Helvetica')
-        .fontSize(16)
-        .fillColor('#333')
-        .text('Invoice', { align: 'center' })
-        .moveDown();
-  
-      // ----------------- Order Information -----------------
+      // Order Information
       const orderDate = new Date(order.timestamp).toLocaleDateString('en-IN', {
         day: 'numeric',
         month: 'long',
         year: 'numeric'
       });
-      doc
-        .fontSize(12)
-        .fillColor('#333')
-        .text(`Order ID: ${order.order_id}`, { align: 'left' })
-        .text(`Order Date: ${orderDate}`, { align: 'left' })
-        .moveDown();
-  
-      // Draw a horizontal line separator
+      doc.fontSize(12)
+         .fillColor('#333')
+         .text(`Order ID: ${order.order_id}`, { align: 'left' })
+         .text(`Order Date: ${orderDate}`, { align: 'left' })
+         .moveDown();
       doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#ddd').moveDown();
   
-      // ----------------- Items Table -----------------
-      // Table Header
-      doc
-        .fontSize(12)
-        .fillColor('#333')
-        .text('Item', 50, doc.y, { width: 200, continued: true })
-        .text('Qty', 260, doc.y, { width: 50, continued: true })
-        .text('Price (Rs.)', 320, doc.y, { width: 100, continued: true })
-        .text('Total (Rs.)', 430, doc.y, { width: 100 });
+      // Items Table Header
+      doc.fontSize(12)
+         .fillColor('#333')
+         .text('Item', 50, doc.y, { width: 200, continued: true })
+         .text('Qty', 260, doc.y, { width: 50, continued: true })
+         .text('Price (Rs.)', 320, doc.y, { width: 100, continued: true })
+         .text('Total (Rs.)', 430, doc.y, { width: 100 });
       doc.moveDown(0.5);
       doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#ddd').moveDown();
   
-      // List each order item
+      // List Items
       order.items.forEach(item => {
         const productName = item.product ? item.product.product_name : 'Unknown Item';
         const price = item.price;
         const quantity = item.quantity;
         const total = price * quantity;
   
-        doc
-          .fontSize(12)
-          .fillColor('#333')
-          .text(productName, 50, doc.y, { width: 200, continued: true })
-          .text(quantity.toString(), 260, doc.y, { width: 50, continued: true })
-          .text(price.toFixed(2), 320, doc.y, { width: 100, continued: true })
-          .text(total.toFixed(2), 430, doc.y, { width: 100 });
+        doc.fontSize(12)
+           .fillColor('#333')
+           .text(productName, 50, doc.y, { width: 200, continued: true })
+           .text(quantity.toString(), 260, doc.y, { width: 50, continued: true })
+           .text(price.toFixed(2), 320, doc.y, { width: 100, continued: true })
+           .text(total.toFixed(2), 430, doc.y, { width: 100 });
         doc.moveDown(0.5);
       });
-  
-      // Draw another horizontal line
       doc.moveDown();
       doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#ddd').moveDown();
   
-      // ----------------- Totals Section -----------------
-      doc
-        .fontSize(12)
-        .fillColor('#333')
-        .text(`Subtotal: Rs.${order.subtotal.toFixed(2)}`, { align: 'right' })
-        .moveDown(0.3);
-      doc
-        .text(`Shipping: Rs.${order.shipping.toFixed(2)}`, { align: 'right' })
-        .moveDown(0.3);
-      doc
-        .text(`Tax: Rs.${order.tax.toFixed(2)}`, { align: 'right' })
-        .moveDown(0.3);
+      // Totals Section
+      doc.fontSize(12)
+         .fillColor('#333')
+         .text(`Subtotal: Rs.${order.subtotal.toFixed(2)}`, { align: 'right' })
+         .moveDown(0.3);
+      doc.text(`Shipping: Rs.${order.shipping.toFixed(2)}`, { align: 'right' })
+         .moveDown(0.3);
+      doc.text(`Tax: Rs.${order.tax.toFixed(2)}`, { align: 'right' })
+         .moveDown(0.3);
       if (order.discount && order.discount > 0) {
-        doc.text(`Discount: -Rs.${order.discount.toFixed(2)}`, { align: 'right' }).moveDown(0.3);
+        doc.text(`Discount: -Rs.${order.discount.toFixed(2)}`, { align: 'right' })
+           .moveDown(0.3);
       }
-      doc
-        .font('Helvetica-Bold')
-        .fontSize(14)
-        .fillColor('#0284c7')
-        .text(`Total: Rs.${order.total.toFixed(2)}`, { align: 'right' });
+      doc.font('Helvetica-Bold')
+         .fontSize(14)
+         .fillColor('#0284c7')
+         .text(`Total: Rs.${order.total.toFixed(2)}`, { align: 'right' });
   
-      // ----------------- Footer Section -----------------
+      // Footer Section
       doc.moveDown(2);
-      doc
-        .fontSize(10)
-        .fillColor('#777')
-        .text('Thank you for shopping with GuitMan!', { align: 'center' })
-        .moveDown(0.5);
-      doc
-        .fontSize(10)
-        .text('For any queries, please contact support@guitman.com', { align: 'center' });
+      doc.fontSize(10)
+         .fillColor('#777')
+         .text('Thank you for shopping with GuitMan!', { align: 'center' })
+         .moveDown(0.5);
+      doc.fontSize(10)
+         .text('For any queries, please contact support@guitman.com', { align: 'center' });
   
-      // Finalize the PDF and end the stream
       doc.end();
     } catch (error) {
       next(error);
     }
   },
-  returnOrder: async (req, res) => {
+
+  /**
+   * Submits a return request for a delivered order.
+   *
+   * Validates the input, checks if the order exists and is eligible for return,
+   * then updates the order's return_details.
+   *
+   * @param {Object} req - Express request object containing orderId in params and reason in body.
+   * @param {Object} res - Express response object.
+   */
+  returnOrder: async (req, res, next) => {
     try {
       const { orderId } = req.params;
       const { reason } = req.body;
   
-      // Validate input: a return reason is required.
       if (!reason) {
-        return res.status(HttpStatus.BAD_REQUEST).json({ error: 'Return reason is required.' });
+        return res.status(HttpStatus.BAD_REQUEST)
+          .json({ error: 'Return reason is required.' });
       }
   
-      // Find the order using the order_id field from your Order model.
       const order = await Order.findOne({ order_id: orderId });
       if (!order) {
-        return res.status(HttpStatus.BAD_REQUEST).json({ error: 'Order not found.' });
+        return res.status(HttpStatus.BAD_REQUEST)
+          .json({ error: 'Order not found.' });
       }
   
-      // Check if the order is eligible for a return.
-      // In this example, only orders with order_status 'delivered' can be returned.
       if (order.order_status !== 'delivered') {
-        return res.status(HttpStatus.BAD_REQUEST).json({ error: 'Only delivered orders can be returned.' });
+        return res.status(HttpStatus.BAD_REQUEST)
+          .json({ error: 'Only delivered orders can be returned.' });
       }
   
-      // Check if a return request has already been submitted.
       if (order.return_details.status !== 'none') {
-        return res.status(HttpStatus.BAD_REQUEST).json({ error: 'Return request has already been submitted.' });
+        return res.status(HttpStatus.BAD_REQUEST)
+          .json({ error: 'Return request has already been submitted.' });
       }
-      // Update the order with return request details.
+  
       order.return_details = {
         status: 'requested',
         reason: reason,
         requested_at: new Date(),
         processed_at: null
       };
-  
-      // Optionally, you might want to update the order_status or notify other systems.
-      // In this example, we leave order_status unchanged.
   
       await order.save();
   
@@ -583,85 +606,104 @@ const orderControls = {
       next(error);
     }
   },
+
+  /**
+   * Cancels an order and processes a refund if applicable.
+   *
+   * Validates the cancellation reason, updates order_status to 'cancelled',
+   * and calls processRefund for non-COD orders if payment was made.
+   *
+   * @param {Object} req - Express request object containing orderId in params and reason in body.
+   * @param {Object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
+   */
   cancelOrder: async (req, res, next) => {
     try {
       const { orderId } = req.params;
       const { reason } = req.body;
   
       if (!reason) {
-        return res.status(HttpStatus.BAD_REQUEST).json({ error: 'Cancel reason is required.' });
+        return res.status(HttpStatus.BAD_REQUEST)
+          .json({ error: 'Cancel reason is required.' });
       }
   
-      // Find the order by order_id and update its status to 'cancelled'
       const order = await Order.findOneAndUpdate(
         { order_id: orderId },
         { order_status: 'cancelled' },
         { new: true }
       );
       if (!order) {
-        return res.status(HttpStatus.NOT_FOUND).json({ error: 'Order not found.' });
+        return res.status(HttpStatus.NOT_FOUND)
+          .json({ error: 'Order not found.' });
       }
   
-      // Process the refund:
-      // Assuming order.user is the user ID and order.total holds the refund amount.
-      
-      if (order.payment_status === 'paid' && order.payment_method!='cod') {
+      if (order.payment_status === 'paid' && order.payment_method !== 'cod') {
         await processRefund({
           userId: order.user,
           orderId: order.order_id,
-          amount: order.total, // Adjust field name if necessary
+          amount: order.total,
           reason
         });
         return res.status(HttpStatus.OK)
           .json({ message: "Order cancelled and refund processed successfully" });
       }
-      // Return a success response
+  
       res.status(HttpStatus.OK).json({ message: "Order cancelled successfully" });
     } catch (err) {
       next(err);
     }
   },
-  handleFailedPayment: async(req, res, next) =>{
-    try {      
-      const {order_id} = req.body;
-      if(!ObjectId.isValid(order_id)){
-      const order = await Order.findOne({order_id});
-      order.payment_status = 'failed';
-      order.order_status = 'pending';
-      await order.save();
-      return res.status(HttpStatus.OK).json({success:true, order:order});
+
+  /**
+   * Marks an order's payment as failed, resetting its payment status.
+   *
+   * @param {Object} req - Express request object containing order_id in the body.
+   * @param {Object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
+   */
+  handleFailedPayment: async (req, res, next) => {
+    try {
+      const { order_id } = req.body;
+      let order;
+      if (!ObjectId.isValid(order_id)) {
+        order = await Order.findOne({ order_id });
+      } else {
+        order = await Order.findById(order_id);
       }
-      const order = await Order.findById(order_id);
       order.payment_status = 'failed';
       order.order_status = 'pending';
       await order.save();
-      res.status(HttpStatus.OK).json({success:true, order:order});
+      res.status(HttpStatus.OK).json({ success: true, order: order });
     } catch (err) {
-      next(err)
+      next(err);
     }
   },
+
+  /**
+   * Submits a product review for an order.
+   *
+   * Creates a new review record linking the user, product, and order details.
+   *
+   * @param {Object} req - Express request object containing productId_0, review_0, rating_0, and orderId in the body.
+   * @param {Object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
+   */
   submitReview: async (req, res, next) => {
     try {
       const { productId_0, review_0, rating_0, orderId } = req.body;
-  
       const user = await getUser(req, res, next);
       if (!user) {
         return res.status(HttpStatus.NOT_FOUND).json({ message: "User not found" });
       }
-      // Create a new review
       const review = new Review({
         rating: rating_0,
         feedback: review_0,
         order: orderId,
         product: productId_0,
-        user: user._id, // Ensure this is an ObjectId
-        user_name: user.first_name, // Send user name
+        user: user._id,
+        user_name: user.first_name,
       });
-  
-      // Save the review to the database
       await review.save();
-  
-      // Redirect or send a response
       res.status(HttpStatus.OK).json({ success: true, message: "Review added successfully!" });
     } catch (err) {
       next(err);

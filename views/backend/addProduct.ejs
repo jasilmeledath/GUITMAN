@@ -5,35 +5,95 @@
     <%- include('./partials/meta') %>
     <link rel="shortcut icon" type="image/x-icon" href="/backend/imgs/theme/favicon.svg">
     <link href="/backend/css/main.css" rel="stylesheet" type="text/css" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Cropper.js CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
     <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+        }
+        
+        /* Image preview and upload styles */
         .image-container {
             position: relative;
             display: inline-block;
             margin: 10px;
+            transition: all 0.2s ease;
         }
+        
+        .image-container:hover {
+            transform: translateY(-2px);
+        }
+        
         .image-preview {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             object-fit: cover;
-            border-radius: 5px;
-            border: 1px solid #ccc;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
         }
+        
+        .image-container:hover .image-preview {
+            border-color: #93c5fd;
+        }
+        
         .remove-image {
             position: absolute;
-            top: -10px;
-            right: -10px;
-            background: #ff5555;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
             color: white;
             border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            text-align: center;
-            line-height: 22px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.2s ease;
         }
+        
+        .image-container:hover .remove-image {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
         /* Modal styles */
         .crop-modal {
             display: none;
@@ -46,40 +106,55 @@
             overflow: auto;
             background-color: rgba(0, 0, 0, 0.7);
             padding: 20px;
+            backdrop-filter: blur(4px);
         }
+        
         .crop-modal-content {
-            background-color: #fefefe;
+            background-color: #ffffff;
             margin: 5% auto;
-            padding: 20px;
-            border-radius: 8px;
-            width: 80%;
-            max-width: 800px;
-            max-height: 80vh;
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 85vh;
             display: flex;
             flex-direction: column;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
+        
         .crop-modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e5e7eb;
         }
+        
         .crop-modal-title {
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 20px;
+            font-weight: 600;
+            color: #111827;
         }
+        
         .crop-modal-body {
             flex: 1;
             overflow: hidden;
             position: relative;
             height: 60vh;
+            background-color: #f3f4f6;
+            border-radius: 8px;
         }
+        
         .crop-modal-footer {
-            margin-top: 15px;
+            margin-top: 20px;
             display: flex;
             justify-content: flex-end;
-            gap: 10px;
+            gap: 12px;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
         }
+        
         .crop-img-container {
             height: 100%;
             width: 100%;
@@ -87,14 +162,17 @@
             align-items: center;
             justify-content: center;
         }
+        
         .crop-img {
             max-height: 100%;
             max-width: 100%;
             display: block;
         }
+        
         .hidden-file-inputs {
             display: none;
         }
+        
         .loading-spinner {
             position: absolute;
             top: 50%;
@@ -103,14 +181,318 @@
             width: 50px;
             height: 50px;
             border: 5px solid #f3f3f3;
-            border-top: 5px solid #3498db;
+            border-top: 5px solid #3b82f6;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             z-index: 1;
         }
+        
         @keyframes spin {
             0% { transform: translate(-50%, -50%) rotate(0deg); }
             100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        /* Form styling */
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.625rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: #1f2937;
+            background-color: #ffffff;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        
+        .form-input:focus {
+            border-color: #93c5fd;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 0.625rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: #1f2937;
+            background-color: #ffffff;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-textarea:focus {
+            border-color: #93c5fd;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 0.625rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: #1f2937;
+            background-color: #ffffff;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        
+        .form-select:focus {
+            border-color: #93c5fd;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .form-error {
+            color: #ef4444;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+        
+        /* Custom checkbox styling */
+        .custom-checkbox {
+            position: relative;
+            padding-left: 28px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            user-select: none;
+            display: inline-block;
+        }
+        
+        .custom-checkbox input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        
+        .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 18px;
+            width: 18px;
+            background-color: #fff;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .custom-checkbox:hover input ~ .checkmark {
+            border-color: #93c5fd;
+        }
+        
+        .custom-checkbox input:checked ~ .checkmark {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+        
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+        
+        .custom-checkbox input:checked ~ .checkmark:after {
+            display: block;
+        }
+        
+        .custom-checkbox .checkmark:after {
+            left: 6px;
+            top: 2px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        
+        /* Button styling */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            border: 1px solid transparent;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        
+        .btn-secondary {
+            background-color: #f3f4f6;
+            color: #4b5563;
+            border: 1px solid #d1d5db;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+        }
+        
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+            border: 1px solid transparent;
+        }
+        
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        
+        .btn-icon {
+            margin-right: 0.5rem;
+            font-size: 1.25rem;
+        }
+        
+        /* Card styling */
+        .card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+        }
+        
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+            margin: 0;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        /* Progress indicator */
+        .progress-steps {
+            display: flex;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+        
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+            padding: 0 1rem;
+        }
+        
+        .progress-step:not(:last-child):after {
+            content: '';
+            position: absolute;
+            top: 1rem;
+            width: 100%;
+            height: 2px;
+            background-color: #e5e7eb;
+            left: 50%;
+            z-index: 0;
+        }
+        
+        .progress-step.active:not(:last-child):after {
+            background-color: #3b82f6;
+        }
+        
+        .step-circle {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background-color: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+            z-index: 1;
+            position: relative;
+        }
+        
+        .progress-step.active .step-circle {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .progress-step.completed .step-circle {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .step-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .progress-step.active .step-label {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        
+        .progress-step.completed .step-label {
+            color: #10b981;
+            font-weight: 600;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .crop-modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+            
+            .crop-modal-body {
+                height: 50vh;
+            }
         }
     </style>
 </head>
@@ -120,151 +502,191 @@
     <%- include('./partials/leftNav') %>
     <main class="main-wrap">
         <%- include('./partials/header') %>
-        <section class="content-main">
-            <div class="row">
-                <div class="col-9">
-                    <div class="content-header">
-                        <h2 class="content-title">Add New Product</h2>
+        <section class="content-main p-6">
+            <div class="max-w-5xl mx-auto">
+                <!-- Page Header -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Add New Product</h1>
+                        <p class="text-gray-500 mt-1">Create a new product to add to your inventory</p>
+                    </div>
+                    <div class="mt-4 md:mt-0">
+                        <a href="/admin/dashboard/product" class="btn btn-secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            Back to Products
+                        </a>
                     </div>
                 </div>
-                <div class="col-lg-9">
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h4>Basic Information</h4>
-                        </div>
-                        <div class="card-body">
-                            <!-- Main form -->
-                            <form id="productForm" action="/admin/dashboard/product/add-product" method="POST" enctype="multipart/form-data">
-                                <div class="mb-4">
-                                    <label for="product_name" class="form-label">Product Title</label>
-                                    <input
-                                        type="text"
-                                        name="product_name"
-                                        placeholder="Type here"
-                                        class="form-control"
-                                        id="product_name"
-                                        value="<%= formData ? formData.product_name : '' %>"
-                                    />
-                                    <% if (errors && errors.product_name) { %>
-                                        <span class="text-danger"><%= errors.product_name %></span>
-                                    <% } %>
+                
+                <!-- Progress Steps -->
+                <div class="progress-steps mb-8">
+                    <div class="progress-step active">
+                        <div class="step-circle">1</div>
+                        <div class="step-label">Basic Info</div>
+                    </div>
+                    <div class="progress-step">
+                        <div class="step-circle">2</div>
+                        <div class="step-label">Images</div>
+                    </div>
+                    <div class="progress-step">
+                        <div class="step-circle">3</div>
+                        <div class="step-label">Review</div>
+                    </div>
+                </div>
+                
+                <!-- Main Form Card -->
+                <div class="card mb-8">
+                    <div class="card-header">
+                        <h2 class="card-title">Product Information</h2>
+                    </div>
+                    <div class="card-body">
+                        <!-- Main form -->
+                        <form id="productForm" action="/admin/dashboard/product/add-product" method="POST" enctype="multipart/form-data">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Left Column -->
+                                <div class="space-y-6">
+                                    <div>
+                                        <label for="product_name" class="form-label">Product Title <span class="text-red-500">*</span></label>
+                                        <input
+                                            type="text"
+                                            name="product_name"
+                                            placeholder="Enter product name"
+                                            class="form-input"
+                                            id="product_name"
+                                            value="<%= formData ? formData.product_name : '' %>"
+                                        />
+                                        <% if (errors && errors.product_name) { %>
+                                            <p class="form-error"><%= errors.product_name %></p>
+                                        <% } %>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="form-label">Full Description <span class="text-red-500">*</span></label>
+                                        <textarea
+                                            name="description"
+                                            placeholder="Describe your product in detail"
+                                            class="form-textarea"
+                                            rows="5"
+                                        ><%= formData ? formData.description : '' %></textarea>
+                                        <% if (errors && errors.description) { %>
+                                            <p class="form-error"><%= errors.description %></p>
+                                        <% } %>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="form-label">Category <span class="text-red-500">*</span></label>
+                                        <select name="category" class="form-select">
+                                            <% categories.forEach((category) => { %>
+                                                <option
+                                                    value="<%= category._id %>"
+                                                    <%= formData && formData.category === category._id ? 'selected' : '' %>
+                                                >
+                                                    <%= category.name %>
+                                                </option>
+                                            <% }); %>
+                                        </select>
+                                        <% if (errors && errors.category) { %>
+                                            <p class="form-error"><%= errors.category %></p>
+                                        <% } %>
+                                    </div>
                                 </div>
-
-                                <div class="mb-4">
-                                    <label class="form-label">Full Description</label>
-                                    <textarea
-                                        name="description"
-                                        placeholder="Type here"
-                                        class="form-control"
-                                        rows="4"
-                                    ><%= formData ? formData.description : '' %></textarea>
-                                    <% if (errors && errors.description) { %>
-                                        <span class="text-danger"><%= errors.description %></span>
-                                    <% } %>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-lg-4">
-                                        <div class="mb-4">
-                                            <label class="form-label">Regular Price</label>
-                                            <input
-                                                name="price"
-                                                type="number"
-                                                placeholder="₹"
-                                                class="form-control"
-                                                min="0"
-                                                value="<%= formData ? formData.price : '' %>"
-                                            />
+                                
+                                <!-- Right Column -->
+                                <div class="space-y-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="form-label">Regular Price <span class="text-red-500">*</span></label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <span class="text-gray-500">₹</span>
+                                                </div>
+                                                <input
+                                                    name="price"
+                                                    type="number"
+                                                    placeholder="0.00"
+                                                    class="form-input pl-8"
+                                                    min="0"
+                                                    step="0.01"
+                                                    value="<%= formData ? formData.price : '' %>"
+                                                />
+                                            </div>
                                             <% if (errors && errors.price) { %>
-                                                <span class="text-danger"><%= errors.price %></span>
+                                                <p class="form-error"><%= errors.price %></p>
                                             <% } %>
                                         </div>
-                                        <div class="mb-4">
-                                            <label class="form-label">Stocks</label>
+                                        
+                                        <div>
+                                            <label class="form-label">Stock Quantity <span class="text-red-500">*</span></label>
                                             <input
                                                 name="stock"
                                                 type="number"
-                                                placeholder="Enter number of stocks"
-                                                class="form-control"
+                                                placeholder="0"
+                                                class="form-input"
                                                 min="0"
                                                 value="<%= formData ? formData.stock : '' %>"
                                             />
                                             <% if (errors && errors.stock) { %>
-                                                <span class="text-danger"><%= errors.stock %></span>
+                                                <p class="form-error"><%= errors.stock %></p>
                                             <% } %>
                                         </div>
                                     </div>
-                                    <div class="col-lg-4">
-                                        <label class="form-label">Offer</label>
-                                        <select name="offer" class="form-select">
-                                            <option value="">No Offer</option>
-                                            <% offers.forEach((offer) => { %>
-                                                <option
-                                                    value="<%= offer._id %>"
-                                                    <%= formData && formData.offer === offer._id ? 'selected' : '' %>
-                                                >
-                                                    <%= offer.offer_type %>
-                                                </option>
-                                            <% }); %>
-                                        </select>
+                                    
+                                    <div class="space-y-3">
+                                        <div>
+                                            <label class="custom-checkbox">
+                                                <input
+                                                    id="isActiveCheckbox"
+                                                    name="isActive"
+                                                    type="checkbox"
+                                                    value="false"
+                                                    <%= formData && formData.isActive ? 'checked' : '' %>
+                                                />
+                                                <span class="checkmark"></span>
+                                                Publish product immediately
+                                            </label>
+                                            <p class="text-xs text-gray-500 mt-1 ml-7">If unchecked, product will be saved as draft</p>
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="custom-checkbox">
+                                                <input
+                                                    id="isTopModelCheckbox"
+                                                    name="isTopModel"
+                                                    type="checkbox"
+                                                    <%= formData && formData.isTopMode ? 'checked' : '' %>
+                                                />
+                                                <span class="checkmark"></span>
+                                                Feature as Top Model
+                                            </label>
+                                            <p class="text-xs text-gray-500 mt-1 ml-7">Featured products appear in prominent locations</p>
+                                        </div>
                                     </div>
                                 </div>
-
-                                <div class="mb-4">
-                                    <label class="form-check">
-                                        <input
-                                            id="isActiveCheckbox"
-                                            name="isActive"
-                                            class="form-check-input"
-                                            type="checkbox"
-                                            value="false"
-                                            <%= formData && formData.isActive ? 'checked' : '' %>
-                                        />
-                                        <span class="form-check-label"> Publish now </span>
-                                    </label>
-                                </div>
-
-                                <div class="mb-4">
-                                    <label class="form-check">
-                                        <input
-                                            id="isTopModelCheckbox"
-                                            name="isTopModel"
-                                            class="form-check-input"
-                                            type="checkbox"
-                                            <%= formData && formData.isTopMode ? 'checked' : '' %>
-                                        />
-                                        <span class="form-check-label"> Top Model </span>
-                                    </label>
-                                </div>
-
-                                <div class="mb-4">
-                                    <label class="form-label">Category</label>
-                                    <select name="category" class="form-select">
-                                        <% categories.forEach((category) => { %>
-                                            <option
-                                                value="<%= category._id %>"
-                                                <%= formData && formData.category === category._id ? 'selected' : '' %>
-                                            >
-                                                <%= category.name %>
-                                            </option>
-                                        <% }); %>
-                                    </select>
-                                    <% if (errors && errors.category) { %>
-                                        <span class="text-danger"><%= errors.category %></span>
-                                    <% } %>
-                                </div>
-
-                                <!-- Media Section -->
-                                <div class="mb-4">
-                                    <label class="form-label">Upload Images</label>
-                                    <div class="d-flex align-items-center">
+                            </div>
+                            
+                            <!-- Media Section -->
+                            <div class="mt-8 pt-6 border-t border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Product Images</h3>
+                                
+                                <div class="mb-6">
+                                    <div class="flex flex-wrap items-center gap-4">
                                         <button type="button" id="uploadButton" class="btn btn-primary">
-                                            <i class="material-icons md-add"></i> Crop and Add Images
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            Crop & Add Images
                                         </button>
-                                        <button type="button" id="uploadNoCropButton" class="btn btn-secondary ml-2">
-                                            <i class="material-icons md-photo_library"></i> Add Without Crop
+                                        <button type="button" id="uploadNoCropButton" class="btn btn-secondary">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                            </svg>
+                                            Add Without Crop
                                         </button>
-                                        <small class="text-muted ms-3">You can upload and crop multiple images or add them directly without cropping</small>
+                                        <p class="text-sm text-gray-500">
+                                            Upload up to 8 images. First image will be used as the product thumbnail.
+                                        </p>
                                     </div>
                                     
                                     <div class="hidden-file-inputs">
@@ -272,20 +694,29 @@
                                         <div id="croppedImagesContainer"></div>
                                     </div>
                                     
-                                    <div
-                                        id="imagePreviewContainer"
-                                        style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;"
-                                    >
+                                    <div id="imagePreviewContainer" class="flex flex-wrap gap-4 mt-4">
                                         <!-- Image previews will be added here -->
                                     </div>
                                     
                                     <% if (errors && errors.images) { %>
-                                        <span class="text-danger"><%= errors.images %></span>
+                                        <p class="form-error mt-2"><%= errors.images %></p>
                                     <% } %>
                                 </div>
-                                <button type="submit" class="btn btn-primary">Add Product</button>
-                            </form>
-                        </div>
+                            </div>
+                            
+                            <!-- Form Actions -->
+                            <div class="mt-8 pt-6 border-t border-gray-200 flex justify-end">
+                                <button type="button" class="btn btn-secondary mr-3">
+                                    Save as Draft
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                    Add Product
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -297,7 +728,12 @@
     <div id="cropModal" class="crop-modal">
         <div class="crop-modal-content">
             <div class="crop-modal-header">
-                <div class="crop-modal-title">Crop Image</div>
+                <div class="crop-modal-title">Crop Product Image</div>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-gray-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
             </div>
             <div class="crop-modal-body">
                 <div id="loadingSpinner" class="loading-spinner"></div>
@@ -306,9 +742,24 @@
                 </div>
             </div>
             <div class="crop-modal-footer">
-                <button id="cancelCropBtn" class="btn btn-light">Cancel</button>
-                <button id="rotateCropBtn" class="btn btn-secondary">Rotate</button>
-                <button id="applyCropBtn" class="btn btn-primary">Apply Crop</button>
+                <button id="cancelCropBtn" class="btn btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Cancel
+                </button>
+                <button id="rotateCropBtn" class="btn btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Rotate
+                </button>
+                <button id="applyCropBtn" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Apply Crop
+                </button>
             </div>
         </div>
     </div>
@@ -330,6 +781,7 @@
             const applyCropBtn = document.getElementById('applyCropBtn');
             const cancelCropBtn = document.getElementById('cancelCropBtn');
             const rotateCropBtn = document.getElementById('rotateCropBtn');
+            const closeModalBtn = document.getElementById('closeModalBtn');
             const croppedImagesContainer = document.getElementById('croppedImagesContainer');
             const isActiveCheckbox = document.getElementById('isActiveCheckbox');
             const isTopModelCheckbox = document.getElementById('isTopModelCheckbox');
@@ -431,7 +883,6 @@
                 }
                 cropImage.src = '';
                 cropImage.onload = function() {
-                    console.log('Image loaded successfully');
                     loadingSpinner.style.display = 'none';
                     setTimeout(() => {
                         try {
@@ -449,7 +900,6 @@
                                 zoomable: true,
                                 checkCrossOrigin: false
                             });
-                            console.log('Cropper initialized successfully');
                         } catch (error) {
                             console.error('Error initializing cropper:', error);
                             alert('Error initializing image cropper. Please try again.');
@@ -464,7 +914,6 @@
                     cropModal.style.display = 'none';
                 };
                 cropModal.style.display = 'block';
-                console.log('Setting image source:', imageData.originalSrc);
                 cropImage.src = imageData.originalSrc;
             }
             
@@ -538,6 +987,16 @@
                 if (currentImageIndex < imageFiles.length) {
                     startCropping(currentImageIndex);
                 }
+            });
+            
+            // Close modal
+            closeModalBtn.addEventListener('click', function() {
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+                cropModal.style.display = 'none';
+                imageFiles.splice(currentImageIndex, 1);
             });
             
             // Add image preview to the container
@@ -614,6 +1073,61 @@
                         cropper = null;
                     }
                     cropModal.style.display = 'none';
+                }
+            });
+            
+            // Form validation
+            const productForm = document.getElementById('productForm');
+            productForm.addEventListener('submit', function(event) {
+                let isValid = true;
+                
+                // Check required fields
+                const requiredFields = ['product_name', 'description', 'price', 'stock'];
+                requiredFields.forEach(field => {
+                    const input = this.elements[field];
+                    if (!input.value.trim()) {
+                        isValid = false;
+                        // Add error styling if not already present
+                        if (!input.classList.contains('border-red-500')) {
+                            input.classList.add('border-red-500');
+                            const errorMsg = document.createElement('p');
+                            errorMsg.className = 'form-error';
+                            errorMsg.textContent = 'This field is required';
+                            input.parentNode.appendChild(errorMsg);
+                        }
+                    } else {
+                        // Remove error styling if present
+                        input.classList.remove('border-red-500');
+                        const errorMsg = input.parentNode.querySelector('.form-error');
+                        if (errorMsg) {
+                            errorMsg.remove();
+                        }
+                    }
+                });
+                
+                // Check if at least one image is uploaded
+                if (imageFiles.length === 0) {
+                    isValid = false;
+                    if (!imagePreviewContainer.nextElementSibling || !imagePreviewContainer.nextElementSibling.classList.contains('form-error')) {
+                        const errorMsg = document.createElement('p');
+                        errorMsg.className = 'form-error mt-2';
+                        errorMsg.textContent = 'At least one product image is required';
+                        imagePreviewContainer.parentNode.insertBefore(errorMsg, imagePreviewContainer.nextSibling);
+                    }
+                } else {
+                    const errorMsg = imagePreviewContainer.nextElementSibling;
+                    if (errorMsg && errorMsg.classList.contains('form-error')) {
+                        errorMsg.remove();
+                    }
+                }
+                
+                if (!isValid) {
+                    event.preventDefault();
+                    // Scroll to the first error
+                    const firstError = document.querySelector('.form-error');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
                 }
             });
         });

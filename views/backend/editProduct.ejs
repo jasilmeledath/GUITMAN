@@ -2,214 +2,271 @@
 <html lang="en">
 
 <head>
-    <%- include('./partials/meta') %>
-    <link rel="shortcut icon" type="image/x-icon" href="/backend/imgs/theme/favicon.svg">
-    <link href="/backend/css/main.css" rel="stylesheet" type="text/css" />
-    <!-- Add Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+  <%- include('./partials/meta') %>
+  <link rel="shortcut icon" type="image/x-icon" href="/backend/imgs/theme/favicon.svg">
+  <link href="/backend/css/main.css" rel="stylesheet" type="text/css" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f9fafb;
+    }
+  </style>
 </head>
 
 <body>
-    <div class="screen-overlay"></div>
-    <%- include('./partials/leftNav') %>
-    <main class="main-wrap">
-        <%- include('./partials/header') %>
-        <section class="content-main">
-            <div class="row">
-                <div class="col-9">
-                    <div class="content-header">
-                        <h2 class="content-title">Edit Product</h2>
-                    </div>
-                </div>
-                <div class="col-lg-9">
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h4>Product Information</h4>
-                        </div>
-                        <div class="card-body">
-                            <form id="editProductForm" action="/admin/dashboard/product/update-product/<%= product._id %>" enctype="multipart/form-data">
-                                <div class="mb-4">
-                                    <label for="product_name" class="form-label">Product Title</label>
-                                    <input type="text" name="product_name" id="product_name" class="form-control"
-                                        value="<%= product.product_name %>" required />
-                                    <span id="nameError" class="text-danger" style="display:none;">Product name already exists</span>
-                                </div>
-
-                                <div class="mb-4">
-                                    <label class="form-label">Full Description</label>
-                                    <textarea name="description" class="form-control" rows="4"><%= product.description %></textarea>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-lg-4">
-                                        <div class="mb-4">
-                                            <label class="form-label">Regular Price</label>
-                                            <input name="price" type="number" class="form-control" min="0"
-                                                value="<%= product.price %>" />
-                                        </div>
-                                        <div class="mb-4">
-                                            <label class="form-label">Stocks</label>
-                                            <input name="stock" type="number" class="form-control" min="0"
-                                                value="<%= product.stock %>" />
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <label class="form-label">Offer</label>
-                                        <select name="offer" class="form-select">
-                                            <option value="">No Offer</option>
-                                            <% offers.forEach((offer) => { %>
-                                                <option value="<%= offer._id %>" <%= product.offer && product.offer._id.toString() === offer._id.toString() ? 'selected' : '' %> >
-                                                    <%= offer.offer_type %>
-                                                </option>
-                                            <% }); %>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="mb-4">
-                                    <label class="form-check">
-                                        <input name="isTopModel" class="form-check-input" type="checkbox" value="true"
-                                            <%= product.isTopModel ? 'checked' : '' %> />
-                                        <span class="form-check-label"> Top Model </span>
-                                    </label>
-                                </div>
-
-                                <div class="mb-4">
-                                    <label class="form-label">Category</label>
-                                    <select name="category" class="form-select">
-                                        <% categories.forEach((category) => { %>
-                                            <option value="<%= category._id %>" <%= product.category._id.toString() === category._id.toString() ? 'selected' : '' %> >
-                                                <%= category.name %>
-                                            </option>
-                                        <% }); %>
-                                    </select>
-                                </div>
-
-                                <!-- Image Preview and Upload Section -->
-                                <div class="mb-4">
-                                    <label class="form-label">Current Images</label>
-                                    <div id="imagePreviewContainer" style="display: flex; flex-wrap: wrap; gap: 10px;">
-                                        <% product.images.forEach((image, index) => { %>
-                                            <div class="image-box" style="position: relative; margin-bottom: 20px;">
-                                                <img src="/<%= image %>" style="width: 100px; height: 100px; object-fit: cover; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 10px;">
-                                                <input type="file" name="images_<%= index %>" accept="image/*" class="image-input" style="display: block;">
-                                            </div>
-                                        <% }); %>
-                                    </div>
-                                    <input type="hidden" name="deletedImages" id="deletedImages">
-                                </div>
-                                <button type="submit" class="btn btn-primary">Update Product</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <%- include('./partials/footer') %>
-    </main>
-
-    <!-- Tailwind Alert Component -->
-    <div id="alert" class="fixed top-4 right-4 z-50 hidden">
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-            <strong class="font-bold" id="alertTitle"></strong>
-            <span class="block sm:inline" id="alertMessage"></span>
+  <div class="screen-overlay"></div>
+  <%- include('./partials/leftNav') %>
+  <main class="main-wrap">
+    <%- include('./partials/header') %>
+    <section class="content-main p-6">
+      <div class="max-w-5xl mx-auto">
+        <!-- Page Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Edit Product</h1>
+            <p class="text-gray-500 mt-1">Update product details</p>
+          </div>
+          <div class="mt-4 md:mt-0">
+            <a href="/admin/dashboard/product" class="btn btn-secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back to Products
+            </a>
+          </div>
         </div>
+
+        <!-- Main Form Card -->
+        <div class="card mb-8">
+          <div class="card-header">
+            <h2 class="card-title">Product Information</h2>
+          </div>
+          <div class="card-body">
+            <form id="editProductForm" action="/admin/dashboard/product/update-product/<%= product._id %>" method="POST" enctype="multipart/form-data">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Left Column -->
+                <div class="space-y-6">
+                  <div>
+                    <label for="product_name" class="form-label">Product Title <span class="text-red-500">*</span></label>
+                    <input type="text" name="product_name" id="product_name" class="form-input" placeholder="Enter product name" value="<%= product.product_name %>" required />
+                    <span id="nameError" class="text-danger" style="display:none;">Product name already exists</span>
+                  </div>
+                  <div>
+                    <label class="form-label">Full Description <span class="text-red-500">*</span></label>
+                    <textarea name="description" class="form-textarea" placeholder="Describe your product in detail" rows="5"><%= product.description %></textarea>
+                  </div>
+                  <div>
+                    <label class="form-label">Category <span class="text-red-500">*</span></label>
+                    <select name="category" class="form-select">
+                      <% categories.forEach((category) => { %>
+                        <option value="<%= category._id %>" <%= product.category._id.toString() === category._id.toString() ? 'selected' : '' %>>
+                          <%= category.name %>
+                        </option>
+                      <% }); %>
+                    </select>
+                  </div>
+                </div>
+                <!-- Right Column -->
+                <div class="space-y-6">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="form-label">Regular Price <span class="text-red-500">*</span></label>
+                      <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <span class="text-gray-500">₹</span>
+                        </div>
+                        <input name="price" type="number" class="form-input pl-8" placeholder="0.00" min="0" step="0.01" value="<%= product.price %>" />
+                      </div>
+                    </div>
+                    <div>
+                      <label class="form-label">Stock Quantity <span class="text-red-500">*</span></label>
+                      <input name="stock" type="number" class="form-input" placeholder="0" min="0" value="<%= product.stock %>" />
+                    </div>
+                  </div>
+                  <div class="space-y-3">
+                    <div>
+                      <label class="custom-checkbox">
+                        <input name="isActive" class="form-check-input" type="checkbox" value="true" <%= product.isActive ? 'checked' : '' %> />
+                        <span class="checkmark"></span>
+                        Publish product immediately
+                      </label>
+                      <p class="text-xs text-gray-500 mt-1 ml-7">If unchecked, product will be saved as draft</p>
+                    </div>
+                    <div>
+                      <label class="custom-checkbox">
+                        <input name="isTopModel" class="form-check-input" type="checkbox" value="true" <%= product.isTopModel ? 'checked' : '' %> />
+                        <span class="checkmark"></span>
+                        Feature as Top Model
+                      </label>
+                      <p class="text-xs text-gray-500 mt-1 ml-7">Featured products appear in prominent locations</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Image Preview and Upload Section -->
+              <div class="mt-8 pt-6 border-t border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Current Images</h3>
+                <div id="imagePreviewContainer" class="flex flex-wrap gap-4">
+                  <% product.images.forEach((image, index) => { %>
+                    <div class="image-container" style="position: relative;">
+                      <img src="/<%= image %>" alt="Product Image" class="w-24 h-24 object-cover rounded-md border" />
+                      <input type="file" name="images_<%= index %>" accept="image/*" class="image-input mt-2 block" />
+                    </div>
+                  <% }); %>
+                </div>
+                <input type="hidden" name="deletedImages" id="deletedImages">
+              </div>
+
+              <!-- Form Actions -->
+              <div class="mt-8 pt-6 border-t border-gray-200 flex justify-end">
+                <button type="submit" class="btn btn-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Update Product
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+    <%- include('./partials/footer') %>
+  </main>
+
+  <!-- Tailwind Alert Component -->
+  <div id="alert" class="fixed top-4 right-4 z-50 hidden">
+    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+      <strong class="font-bold" id="alertTitle"></strong>
+      <span class="block sm:inline" id="alertMessage"></span>
     </div>
+  </div>
 
-    <script>
-        document.getElementById("product_name").addEventListener("blur", async function () {
-            const name = this.value.trim();
-            const id = "<%= product._id %>";
-            if (name) {
-                const res = await fetch(`/admin/dashboard/product/check-name?name=${name}&id=${id}`);
-                const data = await res.json();
-                if (data.exists) {
-                    document.getElementById("nameError").style.display = "block";
-                } else {
-                    document.getElementById("nameError").style.display = "none";
-                }
-            }
-        });
-    </script>
+  <%- include('./partials/scriptsLinks') %>
 
-<%- include('./partials/scriptsLinks') %>
-    
-    <!-- New Script for Image Preview Update -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function(){
-            const fileInputs = document.querySelectorAll('.image-input');
-            fileInputs.forEach(function(input) {
-                input.addEventListener('change', function(event){
-                    const file = event.target.files[0];
-                    if(file) {
-                        const reader = new FileReader();
-                        reader.onload = function(e){
-                            const img = event.target.parentElement.querySelector('img');
-                            if(img) {
-                                img.src = e.target.result;
-                            }
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                });
-            });
-        });
-    </script>
-    
-    <!-- New Script to Intercept the Form Submit and Send a PUT Request via Fetch -->
-    <script>
-        function showAlert(title, message, type = 'success') {
-            const alert = document.getElementById('alert');
-            const alertTitle = document.getElementById('alertTitle');
-            const alertMessage = document.getElementById('alertMessage');
-            
-            alertTitle.textContent = title + ' ';
-            alertMessage.textContent = message;
-            
-            if (type === 'error') {
-                alert.querySelector('div').classList.remove('bg-green-100', 'border-green-400', 'text-green-700');
-                alert.querySelector('div').classList.add('bg-red-100', 'border-red-400', 'text-red-700');
-            } else {
-                alert.querySelector('div').classList.remove('bg-red-100', 'border-red-400', 'text-red-700');
-                alert.querySelector('div').classList.add('bg-green-100', 'border-green-400', 'text-green-700');
-            }
-            
-            alert.classList.remove('hidden');
-            setTimeout(() => {
-                alert.classList.add('hidden');
-            }, 5000);
+  <script>
+    document.getElementById("product_name").addEventListener("blur", async function () {
+      const name = this.value.trim();
+      const id = "<%= product._id %>";
+      if (name) {
+        const res = await fetch(`/admin/dashboard/product/check-name?name=${name}&id=${id}`);
+        const data = await res.json();
+        if (data.exists) {
+          document.getElementById("nameError").style.display = "block";
+        } else {
+          document.getElementById("nameError").style.display = "none";
         }
-    
-        document.getElementById("editProductForm").addEventListener("submit", async function(e) {
-            e.preventDefault(); // Prevent the default form submission
-    
-            const form = this;
-            const formData = new FormData(form);
-    
-            try {
-                const response = await fetch(form.action, {
-                    method: 'PUT',
-                    body: formData
-                });
-    
-                if (response.ok) {
-                    const data = await response.json();
-                    showAlert('Product updated successfully!', 'The changes have been saved.');
-                    setTimeout(() => {
-                        window.location.href = "http://localhost:8080/admin/dashboard/product/list-product"; // Redirect after alert
-                    }, 3000);
-                    // Optionally, you can redirect or update the UI here
-                } else {
-                    const errorData = await response.json();
-                    showAlert('Error', errorData.message, 'error');
-                }
-            } catch (err) {
-                console.error(err);
-                showAlert('Error', 'An error occurred while updating the product.', 'error');
-            }
+      }
+    });
+  </script>
+
+  <!-- Script for Image Preview Update -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const fileInputs = document.querySelectorAll('.image-input');
+      fileInputs.forEach(function (input) {
+        input.addEventListener('change', function (event) {
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              const img = event.target.parentElement.querySelector('img');
+              if (img) {
+                img.src = e.target.result;
+              }
+            };
+            reader.readAsDataURL(file);
+          }
         });
-    </script>
-    
+      });
+    });
+  </script>
+
+  <!-- Script to Intercept Form Submit and Send a PUT Request via Fetch -->
+  <script>
+    function showAlert(title, message, type = 'success') {
+      const alert = document.getElementById('alert');
+      const alertTitle = document.getElementById('alertTitle');
+      const alertMessage = document.getElementById('alertMessage');
+
+      alertTitle.textContent = title + ' ';
+      alertMessage.textContent = message;
+
+      if (type === 'error') {
+        alert.querySelector('div').classList.remove('bg-green-100', 'border-green-400', 'text-green-700');
+        alert.querySelector('div').classList.add('bg-red-100', 'border-red-400', 'text-red-700');
+      } else {
+        alert.querySelector('div').classList.remove('bg-red-100', 'border-red-400', 'text-red-700');
+        alert.querySelector('div').classList.add('bg-green-100', 'border-green-400', 'text-green-700');
+      }
+
+      alert.classList.remove('hidden');
+      setTimeout(() => {
+        alert.classList.add('hidden');
+      }, 5000);
+    }
+
+    document.getElementById("editProductForm").addEventListener("submit", async function (e) {
+      e.preventDefault(); // Prevent the default form submission
+
+      const form = this;
+      const formData = new FormData(form);
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'PUT',
+          body: formData
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          showAlert('Product updated successfully!', 'The changes have been saved.');
+          setTimeout(() => {
+            window.location.href = "/admin/dashboard/product/list-product";
+          }, 3000);
+        } else {
+          const errorData = await response.json();
+          showAlert('Error', errorData.message, 'error');
+        }
+      } catch (err) {
+        console.error(err);
+        showAlert('Error', 'An error occurred while updating the product.', 'error');
+      }
+    });
+  </script>
 </body>
 
 </html>

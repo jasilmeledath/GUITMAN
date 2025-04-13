@@ -1,5 +1,4 @@
 const Product = require("../models/productModel");
-const Offer = require("../models/offerModel");
 const Category = require("../models/categoryModel");
 
 const validateAddProduct = async (req, res, next) => {
@@ -63,9 +62,8 @@ const validateAddProduct = async (req, res, next) => {
       }
     }
 
-    // Fetch offers and categories to re-render the form if there are errors
-    const [offers, categories] = await Promise.all([
-      Offer.find(),
+    // Fetch categories to re-render the form if there are errors
+    const [categories] = await Promise.all([
       Category.find(),
     ]);
 

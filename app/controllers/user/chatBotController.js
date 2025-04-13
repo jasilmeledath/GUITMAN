@@ -247,7 +247,7 @@ const chatbotControls = async (req, res) => {
       if (lowerMsg.includes('time') || lowerMsg.includes('long')) {
         reply = "Standard shipping typically takes 3-5 business days within the continental US. Express shipping delivers in 1-2 business days. International shipping varies by location, usually 7-14 business days.";
       } else if (lowerMsg.includes('free')) {
-        reply = "We offer free standard shipping on all orders over $99. Orders under $99 have a flat rate shipping fee of $7.95.";
+        reply = "We offer free standard shipping on all orders over Rs.5000. Orders under Rs.1000 have a flat rate shipping fee of Rs.99";
       } else if (lowerMsg.includes('international')) {
         reply = "Yes, we ship internationally to most countries. International shipping costs depend on weight and destination. Delivery typically takes 7-14 business days, and import duties may apply.";
       } else {

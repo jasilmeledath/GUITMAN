@@ -9,13 +9,12 @@ const Transactions = require('../../models/transactionDetails');
 const Wishlist = require('../../models/wishlistModel');
 
 const loadProfilePages = {
-
   /**
-   * Renders the user's profile page.
+   * Renders the user's profile page with recent orders and saved addresses.
    *
-   * @param {Object} req - Express request object containing the user ID in parameters.
+   * @param {Object} req - Express request object.
    * @param {Object} res - Express response object used to render the profile page.
-   * @param {Function} next - Express next middleware function for error handling.
+   * @param {Function} next - Express next middleware function.
    */
   userProfile: async (req, res, next) => {
     try {
@@ -30,15 +29,14 @@ const loadProfilePages = {
           .status(httpStatus.NOT_FOUND)
           .json({ message: "User not found!" });
       }
-      res
-        .status(httpStatus.OK)
-        .render("frontend/profile", {
-          user,
-          orders,
-          currentRoute: req.path,
-          numOfItemsInCart,
-          addresses: addresses || null,
-        });
+
+      res.status(httpStatus.OK).render("frontend/profile", {
+        user,
+        orders,
+        currentRoute: req.path,
+        numOfItemsInCart,
+        addresses: addresses || null,
+      });
     } catch (err) {
       next(err);
     }
@@ -48,8 +46,8 @@ const loadProfilePages = {
    * Renders the user's profile settings page.
    *
    * @param {Object} req - Express request object.
-   * @param {Object} res - Express response object.
-   * @param {Function} next - Express next middleware function for error handling.
+   * @param {Object} res - Express response object used to render the profile settings page.
+   * @param {Function} next - Express next middleware function.
    */
   profileSettings: async (req, res, next) => {
     try {
@@ -57,52 +55,121 @@ const loadProfilePages = {
       const cart = await getCart(req, res, next);
       const numOfItemsInCart = cart?.items?.length || 0;
       const user = await getUser(req, res, next);
-      let emailChange = null;
-      if (email_changed) {
-        emailChange = true;
-      }
+      // Set email change flag if present
+      const emailChange = email_changed ? true : null;
       
-      res
-        .status(httpStatus.OK)
-        .render("frontend/profileSettings", {
-          user,
-          currentRoute: req.path,
-          numOfItemsInCart,
-        });
+      res.status(httpStatus.OK).render("frontend/profileSettings", {
+        user,
+        currentRoute: req.path,
+        numOfItemsInCart,
+      });
     } catch (err) {
       next(err);
     }
   },
 
   /**
- * Renders the user's profile My orders page.
+   * Renders the user's orders page, paginated.
+   *
+   * @param {Object} req - Express request object containing the page number and user ID.
+   * @param {Object} res - Express response object used to render the orders page.
+   * @param {Function} next - Express next middleware function.
+   */
+  profileOrders: async (req, res, next) => {
+    try {
+      const cart = await getCart(req, res, next);
+      const numOfItemsInCart = cart?.items?.length || 0;
+      const user = await getUser(req, res, next);
+      const page = parseInt(req.query.page) || 1;
+      const limit = 10;
+      const skip = (page - 1) * limit;
+
+      const totalOrders = await Order.countDocuments({ user: user._id });
+      const orders = await Order.find({ user: user._id })
+        .sort({ timestamp: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('items.product')
+        .populate('address')
+        .exec();
+
+      const totalPages = Math.ceil(totalOrders / limit);
+
+      res.status(httpStatus.OK).render("frontend/profileOrders", {
+        user,
+        orders,
+        currentRoute: req.path,
+        numOfItemsInCart,
+        currentPage: page,
+        totalPages,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /**
+   * Renders the user's addresses page.
+   *
+   * @param {Object} req - Express request object.
+   * @param {Object} res - Express response object used to render the addresses page.
+   * @param {Function} next - Express next middleware function.
+   */
+  profileAddresses: async (req, res, next) => {
+    try {
+      const cart = await getCart(req, res, next);
+      const numOfItemsInCart = cart?.items?.length || 0;
+      const user = await getUser(req, res, next);
+      const addresses = await getAddresses(req, res, next);
+
+      res.status(httpStatus.OK).render("frontend/profileAddresses", {
+        user,
+        currentRoute: req.path,
+        numOfItemsInCart,
+        addresses: addresses || null,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+/**
+ * Renders the user's bucket list (wishlist) page with pagination.
  *
- * @param {Object} req - Express request object containing the current route and user data.
- * @param {Object} res - Express response object used to render the profile orders page.
- * @param {Function} next - Express next middleware function for error handling.
+ * Retrieves the current cart and user, fetches the wishlist (populated with product details and recently viewed items),
+ * calculates pagination details, and renders the profileBucketList EJS template with the required data.
+ *
+ * @param {Object} req - Express request object, expecting a "page" query parameter for pagination.
+ * @param {Object} res - Express response object used to render the bucket list page.
+ * @param {Function} next - Express next middleware function.
  */
-profileOrders: async (req, res, next) => {
+profileBucketList: async (req, res, next) => {
   try {
     const cart = await getCart(req, res, next);
     const numOfItemsInCart = cart?.items?.length || 0;
     const user = await getUser(req, res, next);
-    const page = parseInt(req.query.page) || 1;
-    const limit = 10;
-    const skip = (page - 1) * limit;
-    const totalOrders = await Order.countDocuments({ user: user._id });
-    const orders = await Order.find({ user: user._id })
-      .sort({ timestamp: -1 })
-      .skip(skip)
-      .limit(limit)
+    let wishlist = await Wishlist.findOne({ user: user._id })
       .populate('items.product')
-      .populate('address')
-      .exec();
-    const totalPages = Math.ceil(totalOrders / limit);
-    res.status(httpStatus.OK).render("frontend/profileOrders", {
+      .populate('recentlyViewed.product');
+
+    if (!wishlist) {
+      wishlist = { items: [], recentlyViewed: [] };
+    }
+
+    const page = parseInt(req.query.page) || 1;
+    const perPage = 8; 
+    const totalItems = wishlist.items.length;
+    const totalPages = Math.ceil(totalItems / perPage) || 1;
+    const startIndex = (page - 1) * perPage;
+    const paginatedItems = wishlist.items.slice(startIndex, startIndex + perPage);
+    wishlist.items = paginatedItems;
+    
+    res.status(httpStatus.OK).render("frontend/profileBucketList", {
       user,
-      orders,
       currentRoute: req.path,
       numOfItemsInCart,
+      wishlist,
+      recentlyViewed: wishlist.recentlyViewed || [],
       currentPage: page,
       totalPages
     });
@@ -112,96 +179,40 @@ profileOrders: async (req, res, next) => {
 },
 
 
-  /**
-   * Renders the user's profile My Addresses page.
-   *
-   * @param {Object} req - Express request object.
-   * @param {Object} res - Express response object.
-   * @param {Function} next - Express next middleware function for error handling.
-   */
-  profileAddresses: async (req, res, next) => {
-    try {
-      const cart = await getCart(req, res, next);
-      const numOfItemsInCart = cart?.items?.length || 0;
-      const user = await getUser(req, res, next);
-      const addresses = await getAddresses(req, res, next);
-
-      res
-        .status(httpStatus.OK)
-        .render("frontend/profileAddresses", {
-          user,
-          currentRoute: req.path,
-          numOfItemsInCart,
-          addresses: addresses || null,
-        });
-    } catch (err) {
-      next(err);
-    }
-  },
 
   /**
-   * Renders the user's profile My Bucket list page.
+   * Renders the user's wallet page with debit card details and paginated transaction history.
    *
-   * @param {Object} req - Express request object.
-   * @param {Object} res - Express response object.
-   * @param {Function} next - Express next middleware function for error handling.
-   */
-  profileBucketList: async (req, res, next) => {
-    try {
-      const cart = await getCart(req, res, next);
-      const numOfItemsInCart = cart?.items?.length || 0;
-      const user = await getUser(req, res, next);
-      const wishlist = await Wishlist.findOne({ user: user._id }).populate('items.product');
-
-      res.status(httpStatus.OK).render("frontend/profileBucketList", {
-        user,
-        currentRoute: req.path,
-        numOfItemsInCart,
-        wishlist
-      });
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  /**
-   * Renders the user's profile Wallet page.
-   *
-   * @param {Object} req - Express request object.
-   * @param {Object} res - Express response object.
-   * @param {Function} next - Express next middleware function for error handling.
+   * @param {Object} req - Express request object containing pagination and filter query parameters.
+   * @param {Object} res - Express response object used to render the wallet page.
+   * @param {Function} next - Express next middleware function.
    */
   profileWallet: async (req, res, next) => {
     try {
-      // Get pagination parameters
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
-      
-      // Get filtering parameters from query string
       const { type, dateRange, search } = req.query;
       const user = await getUser(req, res, next);
       const debitCards = await DebitCard.find();
       const userId = user._id;
-      
-      // Find or create the user's wallet
+
       let wallet = await Wallet.findOne({ user: userId });
       if (!wallet) {
         wallet = new Wallet({ user: userId });
         await wallet.save();
       }
-      
-      // Build the transaction filter
+
+      // Build filter for transactions
       let transactionFilter = { user: userId };
-      
       if (type && type !== 'all') {
         transactionFilter.transaction_type = type;
       }
-      
-      // Date range filtering
+
+      // Filter transactions by date range
       if (dateRange && dateRange !== 'all') {
         let fromDate;
         const now = new Date();
-        switch(dateRange) {
+        switch (dateRange) {
           case 'last30Days':
             fromDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
             break;
@@ -216,7 +227,6 @@ profileOrders: async (req, res, next) => {
             const toDate = new Date(now.getFullYear(), now.getMonth(), 0);
             transactionFilter.date = { $gte: fromDate, $lte: toDate };
             break;
-          // For custom range, you would parse additional query parameters (e.g., start and end)
           default:
             break;
         }
@@ -224,25 +234,21 @@ profileOrders: async (req, res, next) => {
           transactionFilter.date = { $gte: fromDate };
         }
       }
-      
-      // Search filtering in description
+
+      // Apply search filter on description if provided
       if (search) {
         transactionFilter.description = { $regex: search, $options: 'i' };
       }
-      
-      // Count total matching transactions
+
       const totalTransactions = await Transactions.countDocuments(transactionFilter);
-      
-      // Fetch transactions sorted from latest to oldest, paginated
       const transactions = await Transactions.find(transactionFilter)
         .sort({ date: -1 })
         .skip((page - 1) * limit)
         .limit(limit);
-        
-      // Also get the cart count
+
       const cart = await getCart(req, res, next);
       const numOfItemsInCart = cart?.items?.length || 0;
-      
+
       res.status(httpStatus.OK).render("frontend/profileWallet", {
         user,
         currentRoute: req.path,
@@ -253,10 +259,10 @@ profileOrders: async (req, res, next) => {
         totalTransactions,
         currentPage: page,
         totalPages: Math.ceil(totalTransactions / limit),
-        type,      // Pass current filter values to EJS for display
+        type,
         dateRange,
         search,
-        limit
+        limit,
       });
     } catch (err) {
       next(err);
@@ -267,21 +273,19 @@ profileOrders: async (req, res, next) => {
    * Renders the change email page.
    *
    * @param {Object} req - Express request object.
-   * @param {Object} res - Express response object.
-   * @param {Function} next - Express next middleware function for error handling.
+   * @param {Object} res - Express response object used to render the change email page.
+   * @param {Function} next - Express next middleware function.
    */
   changeEmail: async (req, res, next) => {
     try {
       const cart = await getCart(req, res, next);
       const numOfItemsInCart = cart?.items?.length || 0;
       const user = await getUser(req, res, next);
-      res
-        .status(httpStatus.OK)
-        .render("frontend/changeEmail", {
-          user,
-          currentRoute: req.path,
-          numOfItemsInCart,
-        });
+      res.status(httpStatus.OK).render("frontend/changeEmail", {
+        user,
+        currentRoute: req.path,
+        numOfItemsInCart,
+      });
     } catch (err) {
       next(err);
     }
@@ -291,34 +295,30 @@ profileOrders: async (req, res, next) => {
    * Renders the change password page.
    *
    * @param {Object} req - Express request object.
-   * @param {Object} res - Express response object.
-   * @param {Function} next - Express next middleware function for error handling.
+   * @param {Object} res - Express response object used to render the change password page.
+   * @param {Function} next - Express next middleware function.
    */
   changePassword: async (req, res, next) => {
     try {
       const cart = await getCart(req, res, next);
       const numOfItemsInCart = cart?.items?.length || 0;
       const user = await getUser(req, res, next);
-      res
-        .status(httpStatus.OK)
-        .render("frontend/changePassword", {
-          user,
-          currentRoute: req.path,
-          numOfItemsInCart,
-        });
+      res.status(httpStatus.OK).render("frontend/changePassword", {
+        user,
+        currentRoute: req.path,
+        numOfItemsInCart,
+      });
     } catch (err) {
       next(err);
     }
   },
 
   /**
-   * Renders the Order Details page.
+   * Renders the Order Details page for a specific order.
    *
-   * Expects the order_id as a route parameter (e.g., /order-details/:order_id)
-   *
-   * @param {Object} req - Express request object.
-   * @param {Object} res - Express response object.
-   * @param {Function} next - Express next middleware function for error handling.
+   * @param {Object} req - Express request object containing the order ID in parameters.
+   * @param {Object} res - Express response object used to render the order details page.
+   * @param {Function} next - Express next middleware function.
    */
   orderDetails: async (req, res, next) => {
     try {
@@ -327,7 +327,7 @@ profileOrders: async (req, res, next) => {
       const cart = await getCart(req, res, next);
       const numOfItemsInCart = cart?.items?.length || 0;
       
-      // Find the order by order_id and populate user, address, and product details for each item.
+      // Find the order by order_id and populate its details
       const order = await Order.findOne({ order_id: orderId })
         .populate('user')
         .populate('address')
@@ -335,16 +335,21 @@ profileOrders: async (req, res, next) => {
           path: 'items.product',
           model: 'Product'
         });
+      
       if (!order) {
         return res.status(httpStatus.NOT_FOUND).send('Order not found');
       }
-      res.status(httpStatus.OK)
-        .render('frontend/orderDetails', { order, currentRoute: req.path, user, numOfItemsInCart });
+      
+      res.status(httpStatus.OK).render('frontend/orderDetails', {
+        order,
+        currentRoute: req.path,
+        user,
+        numOfItemsInCart,
+      });
     } catch (err) {
       next(err);
     }
   }
-
 };
 
 module.exports = loadProfilePages;
