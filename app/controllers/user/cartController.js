@@ -8,7 +8,6 @@
 const Product = require('../../models/productModel');
 const Cart = require('../../models/cartModel');
 const httpStatus = require('../../utils/httpStatus');
-const jwt = require('jsonwebtoken');
 const Wishlist = require('../../models/wishlistModel');
 const getUser = require('../../helpers/getUser');
 const getProduct = require('../../helpers/getProduct');

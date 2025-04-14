@@ -43,7 +43,7 @@ router.post('/chat', chatbotContols);
 router.post('/signup', userAuth.signup);
 router.post('/verify-otp', userAuth.verifyOtp);
 router.post('/resend-otp', userAuth.resendOtp);
-router.post('/login',loginLimiter, validateLoginForm, userAuth.login);
+router.post('/login', validateLoginForm, userAuth.login);
 
 // Routes that require user information but not strict authentication
 // router.get('/tune', loadPages.tuner);

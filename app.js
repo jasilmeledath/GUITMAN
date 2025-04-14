@@ -57,7 +57,7 @@ app.use((req, res, next) => {
 app.use(redirectIfAdminLoggedIn);
 
 // Global Rate Limiter
-app.use(generalLimiter);
+// app.use(generalLimiter);
 
 // Routes
 app.use("/", userRoutes);

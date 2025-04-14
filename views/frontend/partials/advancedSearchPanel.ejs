@@ -17,11 +17,10 @@
                     <input type="text" 
                            id="searchInput"
                            name="search"
-                           value="<%= typeof search !== 'undefined' ? search : '' %>"
                            placeholder="Search products..."
                            class="w-full pl-4 pr-4 py-2 text-sm md:text-base rounded-l-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                     <button type="submit" 
-                            id="searchButton"
+                            id="advancedSearchButton"
                             class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 md:px-4 md:py-2.5 rounded-r-lg transition-colors duration-200 flex items-center">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
@@ -148,7 +147,7 @@
         // Cache DOM elements
         const searchInput = document.getElementById('searchInput');
         const searchValueHidden = document.getElementById('searchValueHidden');
-        const searchButton = document.getElementById('searchButton');
+        const searchButton = document.getElementById('advancedSearchButton');
         const sortSelect = document.getElementById('sortSelect');
         const categoryButtons = document.querySelectorAll('.category-btn');
         const categoryInput = document.getElementById('categoryInput');
