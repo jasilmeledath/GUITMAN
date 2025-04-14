@@ -11,6 +11,7 @@ const profileRoutes = require('../../routes/user/profileRoutes');
 const loadProfilePages = require('../../controllers/user/loadProfilePages');
 const chatbotContols = require('../../controllers/user/chatBotController');
 const {loginLimiter} = require('../../middlewares/rateLimiter');
+const contactPageControls = require('../../controllers/user/contactPageController');
 
 // Google OAuth routes
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
@@ -57,6 +58,8 @@ router.use('/profile', verifyUser, profileRoutes);
 router.get('/profile', verifyUser, loadProfilePages.userProfile);
 router.use('/cart', verifyUser, cartAndOrderRoutes);
 
+// Contact us routes
+router.post('/contact', verifyUser, contactPageControls.submitContactForm);
 // Logout route
 router.get('/logout', userAuth.logout);
 
