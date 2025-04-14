@@ -24,184 +24,207 @@ const loadAdminPage = {
   },
   
   /**
-   * Renders the admin dashboard with comprehensive analytics and reporting.
-   * Includes revenue metrics, order statistics, and visualization data.
-   * 
-   * @param {Object} req - Express request object with optional pagination parameters
-   * @param {Object} res - Express response object
-   * @param {Function} next - Express next middleware function
-   */
-  dashboard: async (req, res, next) => {
-    try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
-      const skip = (page - 1) * limit;
-  
-      // Fetch paginated orders with user details
-      const orders = await Order.find()
-        .sort({ timestamp: -1 })
-        .skip(skip)
-        .limit(limit)
-        .populate('user', 'name email');
-  
-      const totalOrdersCount = await Order.countDocuments();
-      const totalPages = Math.ceil(totalOrdersCount / limit);
-  
-      // Calculate total revenue from all orders
-      const revenueAgg = await Order.aggregate([
-        { $group: { _id: null, revenue: { $sum: "$total" } } }
-      ]);
-      const revenue = revenueAgg[0] ? revenueAgg[0].revenue : 0;
-  
-      // Get total product count
-      const productsCount = await Product.countDocuments();
-  
-      // Calculate current month's revenue
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const monthlyAgg = await Order.aggregate([
-        { $match: { timestamp: { $gte: startOfMonth } } },
-        { $group: { _id: null, monthlyEarning: { $sum: "$total" } } }
-      ]);
-      const monthlyEarning = monthlyAgg[0] ? monthlyAgg[0].monthlyEarning : 0;
-  
-      // Generate yearly sales data for chart visualization
-      const chartDataYearlyAgg = await Order.aggregate([
-        { 
-          $group: { 
-            _id: { $dateToString: { format: "%Y", date: "$timestamp" } },
-            totalSales: { $sum: "$total" }
-          } 
-        },
-        { $sort: { _id: 1 } }
-      ]);
-      const chartDataYearlyLabels = chartDataYearlyAgg.map(item => item._id);
-      const chartDataYearlySales = chartDataYearlyAgg.map(item => item.totalSales);
-  
-      // Generate monthly sales data for chart visualization
-      const chartDataMonthlyAgg = await Order.aggregate([
-        { 
-          $group: { 
-            _id: { $dateToString: { format: "%Y-%m", date: "$timestamp" } },
-            totalSales: { $sum: "$total" }
-          } 
-        },
-        { $sort: { _id: 1 } }
-      ]);
-      const chartDataMonthlyLabels = chartDataMonthlyAgg.map(item => item._id);
-      const chartDataMonthlySales = chartDataMonthlyAgg.map(item => item.totalSales);
-  
-      // Generate daily sales data for chart visualization
-      const chartDataDailyAgg = await Order.aggregate([
-        { 
-          $group: { 
-            _id: { $dateToString: { format: "%Y-%m-%d", date: "$timestamp" } },
-            totalSales: { $sum: "$total" }
-          } 
-        },
-        { $sort: { _id: 1 } }
-      ]);
-      const chartDataDailyLabels = chartDataDailyAgg.map(item => item._id);
-      const chartDataDailySales = chartDataDailyAgg.map(item => item.totalSales);
-  
-      // Identify top 10 best-selling products
-      const bestSellingProductsAgg = await Order.aggregate([
-        { $unwind: "$items" },
-        {
-          $group: {
-            _id: "$items.product",
-            totalQuantity: { $sum: "$items.quantity" }
-          }
-        },
-        { $sort: { totalQuantity: -1 } },
-        { $limit: 10 }
-      ]);
-      const productIds = bestSellingProductsAgg.map(item => item._id);
-      const products = await Product.find({ _id: { $in: productIds } });
-      const bestSellingProducts = bestSellingProductsAgg.map(item => {
-        const product = products.find(p => p._id.toString() === item._id.toString());
-        return { ...product.toObject(), totalQuantity: item.totalQuantity };
-      });
-  
-      // Identify top 10 best-selling categories
-      const bestSellingCategoriesAgg = await Order.aggregate([
-        { $unwind: "$items" },
-        {
-          $lookup: {
-            from: "products",
-            localField: "items.product",
-            foreignField: "_id",
-            as: "productDetails"
-          }
-        },
-        { $unwind: "$productDetails" },
-        {
-          $group: {
-            _id: "$productDetails.category",
-            totalQuantity: { $sum: "$items.quantity" }
-          }
-        },
-        { $sort: { totalQuantity: -1 } },
-        { $limit: 10 }
-      ]);
-      const categoryIds = bestSellingCategoriesAgg.map(item => item._id);
-      const categories = await Category.find({ _id: { $in: categoryIds } });
-      const bestSellingCategories = bestSellingCategoriesAgg.map(item => {
-        const category = categories.find(c => c._id.toString() === item._id.toString());
-        return { ...category.toObject(), totalQuantity: item.totalQuantity };
-      });
-  
-      // Identify top 10 best-selling brands
-      const bestSellingBrandsAgg = await Order.aggregate([
-        { $unwind: "$items" },
-        {
-          $lookup: {
-            from: "products",
-            localField: "items.product",
-            foreignField: "_id",
-            as: "productDetails"
-          }
-        },
-        { $unwind: "$productDetails" },
-        {
-          $group: {
-            _id: "$productDetails.brand",
-            totalQuantity: { $sum: "$items.quantity" }
-          }
-        },
-        { $sort: { totalQuantity: -1 } },
-        { $limit: 10 }
-      ]);
-      const bestSellingBrands = bestSellingBrandsAgg.filter(item => item._id);
-  
-      // Render dashboard with compiled analytics data
-      res.status(httpStatus.OK).render("backend/dashboard", {
-        orders,
-        pagination: {
-          page,
-          limit,
-          totalPages,
-          totalOrders: totalOrdersCount
-        },
-        revenue,
-        ordersCount: totalOrdersCount,
-        productsCount,
-        monthlyEarning,
-        chartDataYearlyLabels,
-        chartDataYearlySales,
-        chartDataMonthlyLabels,
-        chartDataMonthlySales,
-        chartDataDailyLabels,
-        chartDataDailySales,
-        bestSellingProducts,
-        bestSellingCategories,
-        bestSellingBrands
-      });
-    } catch (err) {
-      next(err);
-    }
-  },  
-  
+ * Renders the admin dashboard with comprehensive analytics and reporting.
+ * Includes revenue metrics, order statistics, and visualization data.
+ *
+ * Note: Cancelled or returned orders (i.e., orders with order_status set to "cancelled"
+ * or with return_details.status not equal to "none") are excluded from
+ * revenue and chart calculations.
+ *
+ * @param {Object} req - Express request object with optional pagination parameters
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ */
+dashboard: async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Fetch paginated orders with user details (all orders are shown here)
+    const orders = await Order.find()
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('user', 'name email');
+
+    const totalOrdersCount = await Order.countDocuments();
+    const totalPages = Math.ceil(totalOrdersCount / limit);
+
+    // Define the filter criteria for valid orders (exclude cancelled or returned orders)
+    const validOrdersFilter = {
+      order_status: { $ne: "cancelled" },
+      "return_details.status": "none"
+    };
+
+    // Calculate total revenue from valid orders
+    const revenueAgg = await Order.aggregate([
+      { $match: validOrdersFilter },
+      { $group: { _id: null, revenue: { $sum: "$total" } } }
+    ]);
+    const revenue = revenueAgg[0] ? revenueAgg[0].revenue : 0;
+
+    // Get total product count
+    const productsCount = await Product.countDocuments();
+
+    // Calculate current month's revenue from valid orders
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthlyAgg = await Order.aggregate([
+      {
+        $match: {
+          timestamp: { $gte: startOfMonth },
+          ...validOrdersFilter
+        }
+      },
+      { $group: { _id: null, monthlyEarning: { $sum: "$total" } } }
+    ]);
+    const monthlyEarning = monthlyAgg[0] ? monthlyAgg[0].monthlyEarning : 0;
+
+    // Generate yearly sales data for chart visualization from valid orders
+    const chartDataYearlyAgg = await Order.aggregate([
+      { $match: validOrdersFilter },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y", date: "$timestamp" } },
+          totalSales: { $sum: "$total" }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+    const chartDataYearlyLabels = chartDataYearlyAgg.map(item => item._id);
+    const chartDataYearlySales = chartDataYearlyAgg.map(item => item.totalSales);
+
+    // Generate monthly sales data for chart visualization from valid orders
+    const chartDataMonthlyAgg = await Order.aggregate([
+      { $match: validOrdersFilter },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m", date: "$timestamp" } },
+          totalSales: { $sum: "$total" }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+    const chartDataMonthlyLabels = chartDataMonthlyAgg.map(item => item._id);
+    const chartDataMonthlySales = chartDataMonthlyAgg.map(item => item.totalSales);
+
+    // Generate daily sales data for chart visualization from valid orders
+    const chartDataDailyAgg = await Order.aggregate([
+      { $match: validOrdersFilter },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$timestamp" } },
+          totalSales: { $sum: "$total" }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+    const chartDataDailyLabels = chartDataDailyAgg.map(item => item._id);
+    const chartDataDailySales = chartDataDailyAgg.map(item => item.totalSales);
+
+    // Identify top 10 best-selling products from valid orders
+    const bestSellingProductsAgg = await Order.aggregate([
+      { $match: validOrdersFilter },
+      { $unwind: "$items" },
+      {
+        $group: {
+          _id: "$items.product",
+          totalQuantity: { $sum: "$items.quantity" }
+        }
+      },
+      { $sort: { totalQuantity: -1 } },
+      { $limit: 10 }
+    ]);
+    const productIds = bestSellingProductsAgg.map(item => item._id);
+    const products = await Product.find({ _id: { $in: productIds } });
+    const bestSellingProducts = bestSellingProductsAgg.map(item => {
+      const product = products.find(p => p._id.toString() === item._id.toString());
+      return { ...product.toObject(), totalQuantity: item.totalQuantity };
+    });
+
+    // Identify top 10 best-selling categories from valid orders
+    const bestSellingCategoriesAgg = await Order.aggregate([
+      { $match: validOrdersFilter },
+      { $unwind: "$items" },
+      {
+        $lookup: {
+          from: "products",
+          localField: "items.product",
+          foreignField: "_id",
+          as: "productDetails"
+        }
+      },
+      { $unwind: "$productDetails" },
+      {
+        $group: {
+          _id: "$productDetails.category",
+          totalQuantity: { $sum: "$items.quantity" }
+        }
+      },
+      { $sort: { totalQuantity: -1 } },
+      { $limit: 10 }
+    ]);
+    const categoryIds = bestSellingCategoriesAgg.map(item => item._id);
+    const categories = await Category.find({ _id: { $in: categoryIds } });
+    const bestSellingCategories = bestSellingCategoriesAgg.map(item => {
+      const category = categories.find(c => c._id.toString() === item._id.toString());
+      return { ...category.toObject(), totalQuantity: item.totalQuantity };
+    });
+
+    // Identify top 10 best-selling brands from valid orders
+    const bestSellingBrandsAgg = await Order.aggregate([
+      { $match: validOrdersFilter },
+      { $unwind: "$items" },
+      {
+        $lookup: {
+          from: "products",
+          localField: "items.product",
+          foreignField: "_id",
+          as: "productDetails"
+        }
+      },
+      { $unwind: "$productDetails" },
+      {
+        $group: {
+          _id: "$productDetails.brand",
+          totalQuantity: { $sum: "$items.quantity" }
+        }
+      },
+      { $sort: { totalQuantity: -1 } },
+      { $limit: 10 }
+    ]);
+    // Filter out any documents where _id is falsy
+    const bestSellingBrands = bestSellingBrandsAgg.filter(item => item._id);
+
+    // Render dashboard with compiled analytics data
+    res.status(httpStatus.OK).render("backend/dashboard", {
+      orders,
+      pagination: {
+        page,
+        limit,
+        totalPages,
+        totalOrders: totalOrdersCount
+      },
+      revenue,
+      ordersCount: totalOrdersCount,
+      productsCount,
+      monthlyEarning,
+      chartDataYearlyLabels,
+      chartDataYearlySales,
+      chartDataMonthlyLabels,
+      chartDataMonthlySales,
+      chartDataDailyLabels,
+      chartDataDailySales,
+      bestSellingProducts,
+      bestSellingCategories,
+      bestSellingBrands
+    });
+  } catch (err) {
+    next(err);
+  }
+},
+
   /**
    * Fetches a paginated and filtered list of users for admin management.
    * Supports search by name/email and status filtering.
