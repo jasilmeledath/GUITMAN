@@ -224,7 +224,7 @@ const salesControls = {
         if (err) {
           return res
             .status(httpStatus.INTERNAL_SERVER_ERROR)
-            .json({ error: 'PDF generation error' });
+            .json({ success:false, message: 'PDF generation error' });
         }
         res.setHeader('Content-type', 'application/pdf');
         res.setHeader('Content-disposition', 'attachment; filename=sales_report.pdf');

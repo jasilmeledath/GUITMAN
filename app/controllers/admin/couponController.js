@@ -33,7 +33,7 @@ const couponControls = {
       next(error);
     }
   },
-  
+
   /**
    * Creates a new coupon with validation
    * 
@@ -54,7 +54,7 @@ const couponControls = {
         usage_limit,
         single_use_per_user,
       } = req.body;
-  
+
       // Validate required fields
       if (!coupon_code || !coupon_type || discount === undefined || !expire_date) {
         return res.status(httpStatus.BAD_REQUEST).json({
@@ -62,7 +62,15 @@ const couponControls = {
           message: "Coupon code, coupon type, discount and expiry date are required."
         });
       }
-  
+      // Validate coupon code format: only uppercase letters and digits with at least one digit
+      const couponCodePattern = /^(?=.*\d)[A-Z0-9]+$/;
+      if (!couponCodePattern.test(coupon_code)) {
+        return res.status(httpStatus.BAD_REQUEST).json({
+          success: false,
+          message: "Coupon code format is invalid. It must contain only uppercase letters and digits with at least one number."
+        });
+      }
+
       // Validate coupon type value
       if (!['percentage', 'fixed'].includes(coupon_type)) {
         return res.status(httpStatus.BAD_REQUEST).json({
@@ -70,7 +78,7 @@ const couponControls = {
           message: "Coupon type must be either 'percentage' or 'fixed'."
         });
       }
-  
+
       // Validate discount value and constraints
       const discountVal = parseFloat(discount);
       if (isNaN(discountVal) || discountVal < 0) {
@@ -79,15 +87,15 @@ const couponControls = {
           message: "Discount must be a non-negative number."
         });
       }
-      
+
       // Percentage discount validation
-      if (coupon_type === 'percentage' && discountVal > 100) {
+      if (coupon_type === 'percentage' && discountVal > 99) {
         return res.status(httpStatus.BAD_REQUEST).json({
           success: false,
-          message: "Percentage discount cannot exceed 100%."
+          message: "Percentage discount cannot exceed 99%."
         });
       }
-  
+
       // Validate expiry date
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -98,7 +106,7 @@ const couponControls = {
           message: "Expiry date must be today or in the future."
         });
       }
-  
+
       // Validate optional numeric fields
       const minAmount = min_amount !== undefined ? parseFloat(min_amount) : 0;
       if (minAmount < 0) {
@@ -107,7 +115,7 @@ const couponControls = {
           message: "Minimum amount cannot be negative."
         });
       }
-      
+
       const maxDiscount = max_discount !== undefined ? parseFloat(max_discount) : undefined;
       if (maxDiscount !== undefined && maxDiscount < 0) {
         return res.status(httpStatus.BAD_REQUEST).json({
@@ -115,7 +123,7 @@ const couponControls = {
           message: "Maximum discount cannot be negative."
         });
       }
-      
+
       const usageLimit = usage_limit !== undefined ? parseInt(usage_limit) : 1;
       if (usageLimit < 0) {
         return res.status(httpStatus.BAD_REQUEST).json({
@@ -123,10 +131,10 @@ const couponControls = {
           message: "Usage limit cannot be negative."
         });
       }
-      
+
       // Parse boolean value
       const singleUse = single_use_per_user === 'true';
-  
+
       // Create and save new coupon
       const newCoupon = new Coupon({
         coupon_code,
@@ -138,14 +146,14 @@ const couponControls = {
         usage_limit: usageLimit,
         single_use_per_user: singleUse,
       });
-  
+
       await newCoupon.save();
       res.status(httpStatus.OK).json({ success: true, message: "Coupon created successfully!" });
     } catch (error) {
       next(error);
     }
   },
-  
+
   /**
    * Updates an existing coupon by ID with validation
    * 
@@ -157,7 +165,7 @@ const couponControls = {
   editCoupon: async (req, res, next) => {
     try {
       const { couponId } = req.params;
-      
+
       // Validate MongoDB ObjectId format
       if (!couponId || !couponId.match(/^[0-9a-fA-F]{24}$/)) {
         return res.status(httpStatus.BAD_REQUEST).json({
@@ -165,7 +173,7 @@ const couponControls = {
           message: "Invalid or missing coupon ID."
         });
       }
-  
+
       const {
         coupon_code,
         coupon_type,
@@ -176,7 +184,7 @@ const couponControls = {
         usage_limit,
         single_use_per_user,
       } = req.body;
-  
+
       // Validate required fields
       if (!coupon_code || !coupon_type || discount === undefined || !expire_date) {
         return res.status(httpStatus.BAD_REQUEST).json({
@@ -184,7 +192,17 @@ const couponControls = {
           message: "Coupon code, coupon type, discount, and expiry date are required."
         });
       }
-  
+
+      // Validate coupon code format: only uppercase letters and digits with at least one digit
+      const couponCodePattern = /^(?=.*\d)[A-Z0-9]+$/;
+      if (!couponCodePattern.test(coupon_code)) {
+        return res.status(httpStatus.BAD_REQUEST).json({
+          success: false,
+          message: "Coupon code format is invalid. It must contain only uppercase letters and digits with at least one number."
+        });
+      }
+
+
       // Validate coupon type
       if (!['percentage', 'fixed'].includes(coupon_type)) {
         return res.status(httpStatus.BAD_REQUEST).json({
@@ -192,7 +210,7 @@ const couponControls = {
           message: "Coupon type must be either 'percentage' or 'fixed'."
         });
       }
-  
+
       // Validate discount value
       const discountVal = parseFloat(discount);
       if (isNaN(discountVal) || discountVal < 0) {
@@ -201,7 +219,7 @@ const couponControls = {
           message: "Discount must be a non-negative number."
         });
       }
-      
+
       // Percentage type validation
       if (coupon_type === 'percentage' && discountVal > 100) {
         return res.status(httpStatus.BAD_REQUEST).json({
@@ -209,7 +227,7 @@ const couponControls = {
           message: "Percentage discount cannot exceed 100%."
         });
       }
-  
+
       // Validate expiry date
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -220,7 +238,7 @@ const couponControls = {
           message: "Expiry date must be today or in the future."
         });
       }
-  
+
       // Validate optional numeric fields
       const minAmount = min_amount !== undefined ? parseFloat(min_amount) : 0;
       if (minAmount < 0) {
@@ -229,7 +247,7 @@ const couponControls = {
           message: "Minimum amount cannot be negative."
         });
       }
-      
+
       const maxDiscount = max_discount !== undefined ? parseFloat(max_discount) : undefined;
       if (maxDiscount !== undefined && maxDiscount < 0) {
         return res.status(httpStatus.BAD_REQUEST).json({
@@ -237,7 +255,7 @@ const couponControls = {
           message: "Maximum discount cannot be negative."
         });
       }
-      
+
       const usageLimit = usage_limit !== undefined ? parseInt(usage_limit) : 1;
       if (usageLimit < 0) {
         return res.status(httpStatus.BAD_REQUEST).json({
@@ -245,9 +263,9 @@ const couponControls = {
           message: "Usage limit cannot be negative."
         });
       }
-      
+
       const singleUse = (single_use_per_user === 'true' || single_use_per_user === true);
-  
+
       // Check for duplicate coupon code (excluding the current coupon)
       // NOTE: Bug fix needed - 'id' variable is undefined, should be 'couponId'
       const duplicateCoupon = await Coupon.findOne({ coupon_code, _id: { $ne: couponId } });
@@ -257,7 +275,7 @@ const couponControls = {
           message: "Coupon code already exists. Please choose a different coupon code."
         });
       }
-  
+
       // Retrieve the existing coupon
       // NOTE: Bug fix needed - 'id' variable is undefined, should be 'couponId'
       const couponToUpdate = await Coupon.findById(couponId);
@@ -267,7 +285,7 @@ const couponControls = {
           message: "Coupon not found."
         });
       }
-  
+
       // Update coupon fields
       couponToUpdate.coupon_code = coupon_code;
       couponToUpdate.coupon_type = coupon_type;
@@ -277,9 +295,9 @@ const couponControls = {
       couponToUpdate.expire_date = expiry;
       couponToUpdate.usage_limit = usageLimit;
       couponToUpdate.single_use_per_user = singleUse;
-  
+
       await couponToUpdate.save();
-  
+
       return res.status(httpStatus.OK).json({
         success: true,
         message: "Coupon updated successfully!",
@@ -288,8 +306,8 @@ const couponControls = {
     } catch (error) {
       next(error);
     }
-  },  
-  
+  },
+
   /**
    * Toggles the active status of a coupon
    * 
@@ -302,22 +320,22 @@ const couponControls = {
     try {
       const { id } = req.params;
       const { is_active } = req.body;
-      
+
       const coupon = await Coupon.findByIdAndUpdate(id, { is_active: is_active }, { new: true });
       if (!coupon) {
         return res.status(httpStatus.NOT_FOUND).json({ success: false, message: "Coupon not found" });
       }
-      
-      res.status(httpStatus.OK).json({ 
-        success: true, 
-        message: `Coupon ${is_active ? 'activated' : 'deactivated'} successfully!`, 
-        coupon 
+
+      res.status(httpStatus.OK).json({
+        success: true,
+        message: `Coupon ${is_active ? 'activated' : 'deactivated'} successfully!`,
+        coupon
       });
     } catch (error) {
       next(error);
     }
   },
-  
+
   /**
    * Permanently deletes a coupon from the database
    * 
@@ -330,11 +348,11 @@ const couponControls = {
     try {
       const { id } = req.params;
       const coupon = await Coupon.findByIdAndDelete(id);
-      
+
       if (!coupon) {
         return res.status(httpStatus.NOT_FOUND).json({ success: false, message: "Coupon not found" });
       }
-      
+
       res.status(httpStatus.OK).json({ success: true, message: "Coupon deleted successfully!" });
     } catch (error) {
       next(error);
