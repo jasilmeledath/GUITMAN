@@ -7,6 +7,7 @@
 
 const Order = require('../../models/orderModel');
 const pdf = require('html-pdf');
+const phantomjs = require('phantomjs-prebuilt');
 const ExcelJS = require('exceljs');
 const httpStatus = require('../../utils/httpStatus');
 const { determineDateRange, buildFilter } = require('../../helpers/dateFilter');
@@ -214,10 +215,12 @@ const salesControls = {
         </html>
       `;
   
-      const phantomPath = '/usr/bin/phantomjs'; // Update this path if PhantomJS is installed elsewhere
-
-      // Generate a PDF stream from the HTML template and pipe it to the response
-      pdf.create(html, { phantomPath }).toStream((err, stream) => {
+      // Generate a PDF stream from the HTML template using the PhantomJS path option
+      const options = {
+        phantomPath: phantomjs.path
+      };
+  
+      pdf.create(html, options).toStream((err, stream) => {
         if (err) {
           return res
             .status(httpStatus.INTERNAL_SERVER_ERROR)
