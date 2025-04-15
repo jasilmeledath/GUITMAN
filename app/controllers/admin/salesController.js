@@ -214,8 +214,10 @@ const salesControls = {
         </html>
       `;
   
+      const phantomPath = '/usr/bin/phantomjs'; // Update this path if PhantomJS is installed elsewhere
+
       // Generate a PDF stream from the HTML template and pipe it to the response
-      pdf.create(html).toStream((err, stream) => {
+      pdf.create(html, { phantomPath }).toStream((err, stream) => {
         if (err) {
           return res
             .status(httpStatus.INTERNAL_SERVER_ERROR)
